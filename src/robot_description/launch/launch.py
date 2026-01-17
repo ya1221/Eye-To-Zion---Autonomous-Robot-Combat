@@ -60,7 +60,7 @@ def generate_launch_description():
     spawn_robot = Node(
         package='gazebo_ros',
         executable='spawn_entity.py',
-        arguments=['-entity', 'robot1', '-topic', '/robot_description', '-x', '-1.5', '-y', '0', '-z', '0.16'],
+        arguments=['-entity', 'robot1', '-topic', '/robot_description', '-x', '-1.5', '-y', '0', '-z', '0.3'],
         output='screen'
     )
 
@@ -148,7 +148,8 @@ def generate_launch_description():
     TwistToAckermann = Node(
         package='robot_description',
         executable='TwistToAckermann',
-        name='TwistToAckermann', 
+        name='TwistToAckermann',
+        parameters=[{'use_sim_time': True}] 
     )
 
     Ekf = Node(
