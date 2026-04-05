@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  ros2_core:
+    image: osrf/ros:humble-desktop
+    container_name: ros2_core
+    network_mode: host
+    command: tail -f /dev/null
+
+  redis_server:
+    image: redis:7-alpine
+    container_name: redis_server
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
