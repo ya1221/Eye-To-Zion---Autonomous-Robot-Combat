@@ -2,9 +2,21 @@ version: '3.8'
 
 services:
   ros2_core:
-    image: osrf/ros:humble-desktop
+    #image: osrf/ros:humble-desktop
+    build: .
     container_name: ros2_core
     network_mode: host
+    
+    devices:
+      - "/dev/video0:/dev/video0"
+     
+    volumes:
+      - "./ai_vision:/app"
+      - "/tmp/.X11-unix:/tmp/.X11-unix:rw" 
+      
+    environment:
+      - DISPLAY=${DISPLAY} 
+      
     command: tail -f /dev/null
 
   redis_server:
