@@ -5,3 +5,9 @@ __pycache__/
 *.pyc
 .env
 yolo_env/
+
+vision_shm
+
+
+.DS_Store
+
