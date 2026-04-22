@@ -12,7 +12,6 @@ class AIInferenceNode(Node):
     def __init__(self):
         super().__init__('ai_inference')
         
-        # Path must be relative to the /app directory in Docker
         model_path = 'results/runs/detect/EyeToZion_AI/yolo26_robot_detect/weights/best.pt'
         if not os.path.exists(model_path):
             self.get_logger().error(f"Model file missing: {model_path}")
@@ -29,6 +28,7 @@ class AIInferenceNode(Node):
         self.get_logger().info("AI Brain is online.")
 
     def metadata_callback(self, msg):
+        self.get_logger().info(f"CV MSG RECEIVED: {msg.data}")
         data = json.loads(msg.data)
         
         # Initialize connection to shared memory once
@@ -50,7 +50,7 @@ class AIInferenceNode(Node):
         for result in results:
             for box in result.boxes:
                 conf = float(box.conf[0])
-                if conf > 0.5: # 50% confidence threshold
+                if conf > 0.75:
                     x1, y1, x2, y2 = box.xyxy[0].tolist()
                     detections.append({
                         "bbox": [int(x1), int(y1), int(x2), int(y2)],

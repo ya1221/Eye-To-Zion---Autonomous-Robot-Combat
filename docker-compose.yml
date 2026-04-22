@@ -21,9 +21,6 @@ services:
       - "/tmp/.X11-unix:/tmp/.X11-unix:rw"
     environment:
       - DISPLAY=${DISPLAY}
-      - ROS_DOMAIN_ID=0
-      - ROS_LOCALHOST_ONLY=1
-      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
     command: bash -c "source /opt/ros/humble/setup.bash && python3 cv_processor.py"
 
   # 3. AI Inference Engine - Reads from shared memory, runs YOLO, and publishes to Redis
@@ -34,10 +31,6 @@ services:
     ipc: host
     volumes:
       - "./ai_vision:/app"
-    environment:
-      - ROS_DOMAIN_ID=0
-      - ROS_LOCALHOST_ONLY=1
-      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
     command: bash -c "source /opt/ros/humble/setup.bash && python3 ai_inference.py"
 
   # 4. Robot Core (ROS2) - Subscribes to Redis threats and bridges to ROS2 topics
@@ -45,10 +38,7 @@ services:
     build: .
     container_name: ros2_core
     network_mode: host
+    ipc: host
     volumes:
       - "./ai_vision:/app"
-    environment:
-      - ROS_DOMAIN_ID=0
-      - ROS_LOCALHOST_ONLY=1
-      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
     command: bash -c "source /opt/ros/humble/setup.bash && python3 ros_core.py"

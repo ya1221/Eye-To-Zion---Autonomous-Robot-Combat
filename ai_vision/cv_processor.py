@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import rclpy
 import json
-import os # Added for environment control
+import os
 from rclpy.node import Node
 from std_msgs.msg import String
 from multiprocessing import shared_memory
@@ -25,7 +25,6 @@ class CVProcessorNode(Node):
             self.get_logger().error("Cannot read initial frame.")
             raise RuntimeError("Stream Error")
 
-        # FIX: Handle existing shared memory segments
         shm_name = 'vision_shm'
         try:
             # Try to create a fresh segment

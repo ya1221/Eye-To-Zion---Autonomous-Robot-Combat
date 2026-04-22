@@ -15,11 +15,7 @@ class ROSCoreNode(Node):
         self.connect_to_redis()
 
         # Internal subscription to AI results
-        self.subscription = self.create_subscription(
-            String, 
-            '/ai/detections', 
-            self.detection_callback, 
-            10)
+        self.subscription = self.create_subscription(String, '/ai/detections', self.detection_callback, 10)
             
         self.robot_id = "robot_1"
         self.hfov = 141.0
@@ -42,6 +38,7 @@ class ROSCoreNode(Node):
 
     def detection_callback(self, msg):
         # Confirming reception from AI
+        self.get_logger().info(f"AI MSG RECEIVED: {msg.data}")
         detections = json.loads(msg.data)
         
         for det in detections:
