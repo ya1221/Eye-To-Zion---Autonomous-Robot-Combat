@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<robot name="base" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:property name="base_length" value="0.3"/>
+    <xacro:property name="base_width" value="0.2"/>
+    <xacro:property name="base_height" value="0.15"/>
+    <xacro:property name="base_mass" value="4.0"/>
+    <xacro:property name="base_color" value="0.25 0.25 0.25 1"/>
+
+    <material name="base_material">
+        <color rgba="${base_color}"/>
+    </material>
+
+    <link name="base_footprint"/>
+    <link name="base_link">
+        <visual>
+            <origin xyz="0 0 0"/>
+            <geometry>
+                <box size="0.195 0.145 0.055"/>
+            </geometry>
+            <material name="base_material"/>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0"/>
+            <geometry>
+                <box size="0.19 0.145 0.055"/>
+            </geometry>
+        </collision>
+
+        <inertial>
+            <origin xyz="0 0 0"/>        
+            <mass value="${base_mass}"/>
+            <inertia
+                ixx="${(1/12) * base_mass * (base_width**2 + base_height**2)}"
+                ixy="0" ixz="0"
+                iyy="${(1/12) * base_mass * (base_length**2 + base_height**2)}"
+                iyz="0"
+                izz="${(1/12) * base_mass * (base_length**2 + base_width**2)}"/>
+        </inertial>
+
+        <visual>
+            <origin xyz="-0.08 0 -0.075"/>
+            <geometry>
+                <box size="0.145 0.065 0.095"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="-0.08 0 -0.075"/>
+            <geometry>
+                <box size="0.145 0.065 0.095"/>
+            </geometry>
+        </collision>
+
+        <visual>
+            <origin xyz="0.09 0 -0.085"/>
+            <geometry>
+                <box size="0.055 0.19 0.115"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0.09 0 -0.085"/>
+            <geometry>
+                <box size="0.055 0.19 0.115"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <joint name="base_joint" type="fixed">
+        <parent link="base_footprint"/>
+        <child link="base_link"/>
+        <origin xyz="0 0 0.12"/> 
+    </joint>
+
+
+</robot>
