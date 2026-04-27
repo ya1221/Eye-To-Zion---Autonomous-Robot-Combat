@@ -1,0 +1,25 @@
+<ros2_control name="LeftWheel" type="actuator">
+  <hardware>
+    <plugin>motor_driver/MotorDriver</plugin>
+    <param name="pwm_device">/dev/pwmchip0</param>
+    <param name="pwm_channel">0</param>
+  </hardware>
+
+  <joint name="front_left_wheel_joint">
+    <command_interface name="velocity"/>
+    <state_interface name="velocity"/>
+  </joint>
+</ros2_control>
+
+<ros2_control name="RightWheel" type="actuator">
+  <hardware>
+    <plugin>motor_driver/MotorDriver</plugin>
+    <param name="pwm_device">/dev/pwmchip0</param>
+    <param name="pwm_channel">1</param>
+  </hardware>
+
+  <joint name="front_right_wheel_joint">
+    <command_interface name="velocity"/>
+    <state_interface name="velocity"/>
+  </joint>
+</ros2_control>
