@@ -23,7 +23,7 @@ services:
       - DISPLAY=${DISPLAY}
     command: bash -c "source /opt/ros/humble/setup.bash && python3 cv_processor.py"
 
-  # 3. AI Inference Engine - Reads from shared memory, runs YOLO, and publishes to Redis
+  # 3. AI Inference Engine - Reads from shared memory, runs YOLO and tracking
   ai_inference:
     build: ./ai_vision/ai_inference
     container_name: ai_inference
@@ -32,13 +32,18 @@ services:
     volumes:
       - "./ai_vision/ai_inference:/app"
     command: bash -c "source /opt/ros/humble/setup.bash && python3 ai_inference.py"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
-  # 4. Robot Core (ROS2) - Subscribes to Redis threats and bridges to ROS2 topics
-  ros2_core:
-    build: ./ai_vision/ros2_core
-    container_name: ros2_core
+  # 4. Redis Bridge - Router between internal ROS2 and external Redis
+  redis_bridge:
+    build: ./ai_vision/redis_bridge
+    container_name: redis_bridge
     network_mode: host
     ipc: host
     volumes:
-      - "./ai_vision/ros2_core:/app"
-    command: bash -c "source /opt/ros/humble/setup.bash && python3 ros_core.py"
+      - "./ai_vision/redis_bridge:/app"
+    command: bash -c "source /opt/ros/humble/setup.bash && python3 redis_bridge.py"
