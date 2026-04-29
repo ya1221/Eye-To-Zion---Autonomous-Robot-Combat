@@ -1,0 +1,5 @@
+[0.000000] (-) TimerEvent: {}
+[0.000521] (-) JobUnselected: {'identifier': 'hardware'}
+[0.000576] (-) JobUnselected: {'identifier': 'robot'}
+[0.000691] (-) JobUnselected: {'identifier': 'robot_description'}
+[0.000847] (-) EventReactorShutdown: {}

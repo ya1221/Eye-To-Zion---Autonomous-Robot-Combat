@@ -37,7 +37,7 @@ def generate_launch_description():
         output='screen',
         parameters=[{'use_sim_time': False, 'robot_description': robot_description}]
     )
-
+ 
 
     joint_state_broadcaster = Node(
         package='controller_manager', executable='spawner', output='screen',

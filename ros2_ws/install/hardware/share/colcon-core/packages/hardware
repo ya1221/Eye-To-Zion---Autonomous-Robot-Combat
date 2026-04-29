@@ -1,1 +1,1 @@
-hardware_interface:pluginlib:rclcpp:rclcpp_lifecycle
+controller_manager:hardware_interface:pluginlib:rclcpp:rclcpp_lifecycle:robot_state_publisher:xacro
