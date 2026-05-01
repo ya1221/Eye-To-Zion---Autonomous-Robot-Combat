@@ -79,7 +79,8 @@ class AIInferenceNode(Node):
                 confs = result.boxes.conf.cpu().tolist()
 
                 for box, track_id, conf in zip(boxes, track_ids, confs):
-                    if conf > 0.75:
+                    #if conf > 0.75:
+                    if conf > 0.3:
                         x1, y1, x2, y2 = box
                         
                         # Calculate real-world angle from bounding box center
