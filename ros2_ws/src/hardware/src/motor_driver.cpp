@@ -1,7 +1,22 @@
 #include "hardware/motor_driver.hpp"
 #include <cmath>
+#include <iostream>
+#include <cerrno>
+#include <cstring>
+#include "rclcpp/rclcpp.hpp"
 
 namespace motor_driver {
+
+
+bool MotorDriver::write_sysfs(const std::string& path, const std::string& value) {
+    int fd = open(path.c_str(), O_WRONLY);
+    if (fd < 0) return false;
+    ::write(fd, value.c_str(), value.length());
+    close(fd);
+    return true;
+}
+
+
 
 hardware_interface::CallbackReturn MotorDriver::on_init(const hardware_interface::HardwareInfo & info) {
     if (hardware_interface::SystemInterface::on_init(info) != hardware_interface::CallbackReturn::SUCCESS) {
@@ -47,17 +62,51 @@ hardware_interface::CallbackReturn MotorDriver::on_init(const hardware_interface
 }
 
 hardware_interface::CallbackReturn MotorDriver::on_activate(const rclcpp_lifecycle::State &) {
-    this->pwm_fd_ = open(this->device_path_.c_str(), O_RDWR);
-    if (this->pwm_fd_ < 0) {
-        return hardware_interface::CallbackReturn::ERROR;
+    for (auto & motor : this->active_motors_) {
+        // 1. Export the channel
+        std::string export_path = this->device_path_ + "/export";
+        write_sysfs(export_path, std::to_string(motor.pwm_channel));
+
+        // Wait slightly: sysfs can take a few milliseconds to generate the new directory
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+        std::string pwm_channel_dir = this->device_path_ + "/pwm" + std::to_string(motor.pwm_channel);
+
+        // 2. Set the Period (e.g., 20,000,000 ns = 50Hz)
+        write_sysfs(pwm_channel_dir + "/period", "20000000");
+
+        // 3. Enable the PWM
+        write_sysfs(pwm_channel_dir + "/enable", "1");
+
+        // 4. Open and cache the duty_cycle file descriptor for the real-time write loop
+        std::string duty_path = pwm_channel_dir + "/duty_cycle";
+        motor.duty_cycle_fd = open(duty_path.c_str(), O_WRONLY);
+        
+        if (motor.duty_cycle_fd < 0) {
+            // Fails if docker wasn't run in privileged mode or volume wasn't mounted
+            return hardware_interface::CallbackReturn::ERROR;
+        }
     }
     return hardware_interface::CallbackReturn::SUCCESS;
 }
 
 hardware_interface::CallbackReturn MotorDriver::on_deactivate(const rclcpp_lifecycle::State &) {
-    if (this->pwm_fd_ >= 0) {
-        close(this->pwm_fd_);
-        this->pwm_fd_ = -1;
+    for (auto & motor : this->active_motors_) {
+        if (motor.duty_cycle_fd >= 0) {
+            // Safety: Set duty cycle to 0 before closing
+            pwrite(motor.duty_cycle_fd, "0", 1, 0);
+            close(motor.duty_cycle_fd);
+            motor.duty_cycle_fd = -1;
+        }
+
+        std::string pwm_channel_dir = this->device_path_ + "/pwm" + std::to_string(motor.pwm_channel);
+        
+        // Disable the channel
+        write_sysfs(pwm_channel_dir + "/enable", "0");
+        
+        // Unexport the channel to clean up sysfs
+        std::string unexport_path = this->device_path_ + "/unexport";
+        write_sysfs(unexport_path, std::to_string(motor.pwm_channel));
     }
     return hardware_interface::CallbackReturn::SUCCESS;
 }
@@ -103,24 +152,51 @@ hardware_interface::return_type MotorDriver::read(const rclcpp::Time &, const rc
 }
 
 hardware_interface::return_type MotorDriver::write(const rclcpp::Time &, const rclcpp::Duration &) {
-    // Loop ONLY over motors with a valid PWM channel.
     for (const auto& motor : this->active_motors_) {
-        struct pwm_state state;
-        state.period = 20000000; 
+        if (motor.duty_cycle_fd < 0) {
+            RCLCPP_WARN_THROTTLE(rclcpp::get_logger("motor_driver"), this->steady_clock_, 2000,
+                "PWM channel %d: fd is invalid (%d)", motor.pwm_channel, motor.duty_cycle_fd);
+            continue;
+        }
 
-        // Direct O(1) memory lookup for the command value
+        // Calculate the duty cycle in nanoseconds
         double target_cmd = this->hw_commands_[motor.cmd_index];
-        
-        state.duty_cycle = static_cast<uint64_t>(std::abs(target_cmd) * 2000000.0); 
-        state.polarity = PWM_POLARITY_NORMAL;
-        state.enabled = (state.duty_cycle > 0);
+        uint64_t duty_cycle_ns = static_cast<uint64_t>(std::abs(target_cmd) * 2000000.0);
 
-        if (ioctl(this->pwm_fd_, PWM_SET_STATE(motor.pwm_channel), &state) < 0) {
-            // Depending on strictness, you can return ERROR or just print a warning
-        }   
+        // Clamp to period (20ms = 20,000,000 ns)
+        if (duty_cycle_ns > 20000000) {
+            duty_cycle_ns = 20000000;
+        }
+
+        RCLCPP_INFO_THROTTLE(rclcpp::get_logger("motor_driver"), this->steady_clock_, 2000,
+            "PWM ch%d: cmd_index=%zu, target_cmd=%.4f, duty_cycle_ns=%lu, fd=%d",
+            motor.pwm_channel, motor.cmd_index, target_cmd, duty_cycle_ns, motor.duty_cycle_fd);
+
+        // REAL-TIME SAFE CONVERSION:
+        // We use snprintf instead of std::to_string() to avoid heap memory allocations in the RT loop
+        char buf[32];
+        int len = snprintf(buf, sizeof(buf), "%lu", duty_cycle_ns);
+
+        // REAL-TIME SAFE WRITE:
+        // We use `pwrite` instead of `write`. Normal `write` advances the file cursor. 
+        // `pwrite(..., 0)` forces the kernel to overwrite from the very beginning of the file every time.
+        ssize_t ret = pwrite(motor.duty_cycle_fd, buf, len, 0);
+        if (ret < 0) {
+            RCLCPP_WARN_THROTTLE(rclcpp::get_logger("motor_driver"), this->steady_clock_, 2000,
+                "PWM ch%d: pwrite failed! errno=%d (%s), buf='%s'",
+                motor.pwm_channel, errno, std::strerror(errno), buf);
+        }
     }
 
     return hardware_interface::return_type::OK;
 }
 
 } 
+
+
+#include "pluginlib/class_list_macros.hpp"
+
+PLUGINLIB_EXPORT_CLASS(
+  motor_driver::MotorDriver, 
+  hardware_interface::SystemInterface
+)

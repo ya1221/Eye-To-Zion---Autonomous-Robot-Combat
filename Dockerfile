@@ -6,6 +6,10 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
     python3-colcon-common-extensions \
+    # ros2_control framework
+    ros-humble-ros2-control \
+    ros-humble-ros2-controllers \
+    ros-humble-ackermann-steering-controller \
     # Navigation 2 (The "Brain")
     ros-humble-navigation2 \
     ros-humble-nav2-bringup \

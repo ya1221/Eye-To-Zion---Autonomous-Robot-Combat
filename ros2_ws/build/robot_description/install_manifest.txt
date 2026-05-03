@@ -1,3 +1,7 @@
+/ros2_ws/install/robot_description/share/robot_description/urdf/base.xacro
+/ros2_ws/install/robot_description/share/robot_description/urdf/robot_urdf.xacro
+/ros2_ws/install/robot_description/share/robot_description/urdf/sensors.xacro
+/ros2_ws/install/robot_description/share/robot_description/urdf/wheels.xacro
 /ros2_ws/install/robot_description/share/ament_index/resource_index/package_run_dependencies/robot_description
 /ros2_ws/install/robot_description/share/ament_index/resource_index/parent_prefix_path/robot_description
 /ros2_ws/install/robot_description/share/robot_description/environment/ament_prefix_path.sh

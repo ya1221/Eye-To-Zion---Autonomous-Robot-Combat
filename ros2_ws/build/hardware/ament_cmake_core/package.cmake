@@ -5,7 +5,7 @@ set(hardware_BUILD_DEPENDS "rclcpp" "rclcpp_lifecycle" "hardware_interface" "plu
 set(hardware_BUILDTOOL_DEPENDS "ament_cmake")
 set(hardware_BUILD_EXPORT_DEPENDS "rclcpp" "rclcpp_lifecycle" "hardware_interface" "pluginlib")
 set(hardware_BUILDTOOL_EXPORT_DEPENDS )
-set(hardware_EXEC_DEPENDS "controller_manager" "robot_state_publisher" "xacro" "rclcpp" "rclcpp_lifecycle" "hardware_interface" "pluginlib")
+set(hardware_EXEC_DEPENDS "controller_manager" "robot_state_publisher" "ackermann_steering_controller" "joint_state_broadcaster" "xacro" "rclcpp" "rclcpp_lifecycle" "hardware_interface" "pluginlib")
 set(hardware_TEST_DEPENDS "ament_lint_auto" "ament_lint_common")
 set(hardware_GROUP_DEPENDS )
 set(hardware_MEMBER_OF_GROUPS )

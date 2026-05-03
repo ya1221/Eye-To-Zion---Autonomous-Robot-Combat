@@ -7,15 +7,15 @@ from launch.substitutions import PathJoinSubstitution, EnvironmentVariable, Comm
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
-
+ 
 
 def generate_launch_description():
     robot_description_pkg = get_package_share_directory('robot_description')
-    robot_description_path = os.path.join(robot_description_pkg, 'urdf', 'robot.urdf.xacro')
+    robot_description_path = os.path.join(robot_description_pkg, 'urdf', 'robot_urdf.xacro')
 
     hardware_pkg = get_package_share_directory('hardware')
-    # jsb_yaml       = os.path.join(hardware_pkg, 'config', 'joint_state_broadcaster.yaml')
-    # ackermann_yaml = os.path.join(hardware_pkg, 'config', 'ackermann_steering_controller.yaml')
+    ackermann_yaml = os.path.join(hardware_pkg, 'config', 'ackermann_steering_controller.yaml')
+    joint_state_broadcaster_yaml = os.path.join(hardware_pkg, 'config', 'joint_state_broadcaster.yaml')
     controller_manager_yaml = os.path.join(hardware_pkg, 'config', 'controller_manager.yaml')
 
     robot_description = ParameterValue(
@@ -26,7 +26,7 @@ def generate_launch_description():
     controller_manager_node = Node(
         package="controller_manager",
         executable="ros2_control_node",
-        parameters=[{'robot_description': robot_description},  controller_manager_yaml],
+        parameters=[{'robot_description': robot_description}, controller_manager_yaml, ackermann_yaml, joint_state_broadcaster_yaml],
         output="both",
     )
 

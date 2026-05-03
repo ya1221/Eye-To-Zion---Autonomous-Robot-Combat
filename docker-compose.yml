@@ -35,6 +35,8 @@ services:
       
       # The GUI Socket: A communication pipe that sends window data to your monitor
       - "/tmp/.X11-unix:/tmp/.X11-unix:rw" 
+
+      - /sys:/sys
       
     # Prevents the container from closing after it finishes its background tasks
     # Keeps it running so you can enter it using 'docker exec' to run nodes

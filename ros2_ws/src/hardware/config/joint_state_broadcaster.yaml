@@ -2,4 +2,6 @@
 # This file is passed to the spawner via --param-file for consistency
 # and to allow future configuration (e.g. extra_joints, publish_rate).
 joint_state_broadcaster:
-  ros__parameters: {}
+  ros__parameters: 
+    use_sim_time: false
+

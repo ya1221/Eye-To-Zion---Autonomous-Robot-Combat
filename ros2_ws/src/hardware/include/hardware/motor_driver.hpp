@@ -6,10 +6,14 @@
 #include "hardware_interface/system_interface.hpp"
 #include "hardware_interface/types/hardware_interface_return_values.hpp"
 #include "rclcpp/macros.hpp"
-#include <linux/pwm.h>  // For pwm_state and ioctl commands
+#include "rclcpp/clock.hpp"
+
+// NEW HEADERS for sysfs
 #include <fcntl.h>      // For open()
-#include <unistd.h>     // For close()
-#include <sys/ioctl.h>  // For ioctl()
+#include <unistd.h>     // For close(), pwrite()
+#include <fstream>
+#include <thread>
+#include <chrono>
 
 namespace motor_driver {
 
@@ -42,10 +46,17 @@ private:
         int pwm_channel;
         size_t cmd_index;   // Where to find the command in hw_commands_
         size_t state_index; // Where to mirror the state in hw_states_ (for open-loop)
+        int duty_cycle_fd = -1;
     };
 
     // Only stores joints that actively receive commands (ignores passive joints like rear wheels)
     std::vector<MotorTarget> active_motors_;
+
+
+    bool write_sysfs(const std::string& path, const std::string& value);
+
+    // Persistent clock for throttled logging — avoids dangling pointer from temporaries
+    rclcpp::Clock steady_clock_{RCL_STEADY_TIME};
 };
 
 } 
