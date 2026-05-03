@@ -34,13 +34,10 @@ class AIInferenceNode(Node):
 
         # FPS calculation variables
         self.last_time = time.time()
-        self.frame_count = 0
+        self.processed_msgs = 0
         
     def metadata_callback(self, msg):
-        # Skip alternating frames for performance
-        self.frame_count += 1
-        if self.frame_count % 2 != 0:
-            return
+        self.processed_msgs += 1
             
         # Calculate instantaneous FPS
         current_time = time.time()
@@ -50,8 +47,9 @@ class AIInferenceNode(Node):
         # Log critical FPS drops or occasional heartbeat
         if fps < 7.0:
             self.get_logger().warn(f"CRITICAL: FPS dropped to {fps:.2f}!")
-        elif (self.frame_count // 2) % 10 == 0:
-            self.get_logger().info(f"FPS: {fps:.2f}")
+        elif self.processed_msgs == 15:
+            self.get_logger().info(f"Target FPS stable: {fps:.2f}")
+            self.processed_msgs = 0
         
         data = json.loads(msg.data)
         
@@ -79,7 +77,6 @@ class AIInferenceNode(Node):
                 confs = result.boxes.conf.cpu().tolist()
 
                 for box, track_id, conf in zip(boxes, track_ids, confs):
-                    #if conf > 0.75:
                     if conf > 0.3:
                         x1, y1, x2, y2 = box
                         

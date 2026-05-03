@@ -46,13 +46,28 @@ class CVProcessorNode(Node):
         self.shared_array = np.ndarray(frame.shape, dtype=frame.dtype, buffer=self.shm.buf)
         self.publisher_ = self.create_publisher(String, '/camera/metadata', 10)
         self.timer = self.create_timer(1.0 / 30.0, self.capture_frame)
+        
+        self.skip_frame = 0
+        
         self.get_logger().info("CV Processor is now ROBUST and ONLINE.")
 
     def capture_frame(self):
-        ret, frame = self.cap.read()
-        if not ret:
+        # Grab frame without decoding to save CPU cycles
+        if not self.cap.grab():
             self.cap.release()
             self.cap = cv2.VideoCapture(0)
+            return
+
+        self.skip_frame += 1
+        
+        # Skip alternating frames at the hardware/decoding level
+        if self.skip_frame % 2 != 1:
+            self.skip_frame = 0
+            return
+
+        # Decode the frame only when we intend to use it
+        ret, frame = self.cap.retrieve()
+        if not ret:
             return
 
         np.copyto(self.shared_array, frame)
