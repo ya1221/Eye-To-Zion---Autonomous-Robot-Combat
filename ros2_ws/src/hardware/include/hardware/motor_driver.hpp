@@ -47,6 +47,10 @@ private:
         size_t cmd_index;   // Where to find the command in hw_commands_
         size_t state_index; // Where to mirror the state in hw_states_ (for open-loop)
         int duty_cycle_fd = -1;
+        int in1_gpio = -1;     // BCM GPIO number for IN1 (L298N direction)
+        int in2_gpio = -1;     // BCM GPIO number for IN2 (L298N direction)
+        int in1_value_fd = -1; // Cached fd for real-time safe GPIO writes
+        int in2_value_fd = -1;
     };
 
     // Only stores joints that actively receive commands (ignores passive joints like rear wheels)
@@ -54,6 +58,10 @@ private:
 
 
     bool write_sysfs(const std::string& path, const std::string& value);
+    int setup_gpio(int bcm_gpio);
+    void cleanup_gpio(int& fd, int bcm_gpio);
+
+    int gpio_chip_base_ = 0;  // sysfs GPIO base offset (Pi 5 RP1 = ~571)
 
     // Persistent clock for throttled logging — avoids dangling pointer from temporaries
     rclcpp::Clock steady_clock_{RCL_STEADY_TIME};

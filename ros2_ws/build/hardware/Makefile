@@ -210,6 +210,19 @@ motor_driver/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/motor_driver.dir/build.make CMakeFiles/motor_driver.dir/build
 .PHONY : motor_driver/fast
 
+#=============================================================================
+# Target rules for targets named twist_to_ackermann
+
+# Build rule for target.
+twist_to_ackermann: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 twist_to_ackermann
+.PHONY : twist_to_ackermann
+
+# fast build rule for target.
+twist_to_ackermann/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/twist_to_ackermann.dir/build.make CMakeFiles/twist_to_ackermann.dir/build
+.PHONY : twist_to_ackermann/fast
+
 src/motor_driver.o: src/motor_driver.cpp.o
 .PHONY : src/motor_driver.o
 
@@ -234,6 +247,30 @@ src/motor_driver.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/motor_driver.dir/build.make CMakeFiles/motor_driver.dir/src/motor_driver.cpp.s
 .PHONY : src/motor_driver.cpp.s
 
+src/twist_to_ackermann.o: src/twist_to_ackermann.cpp.o
+.PHONY : src/twist_to_ackermann.o
+
+# target to build an object file
+src/twist_to_ackermann.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/twist_to_ackermann.dir/build.make CMakeFiles/twist_to_ackermann.dir/src/twist_to_ackermann.cpp.o
+.PHONY : src/twist_to_ackermann.cpp.o
+
+src/twist_to_ackermann.i: src/twist_to_ackermann.cpp.i
+.PHONY : src/twist_to_ackermann.i
+
+# target to preprocess a source file
+src/twist_to_ackermann.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/twist_to_ackermann.dir/build.make CMakeFiles/twist_to_ackermann.dir/src/twist_to_ackermann.cpp.i
+.PHONY : src/twist_to_ackermann.cpp.i
+
+src/twist_to_ackermann.s: src/twist_to_ackermann.cpp.s
+.PHONY : src/twist_to_ackermann.s
+
+# target to generate assembly for a file
+src/twist_to_ackermann.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/twist_to_ackermann.dir/build.make CMakeFiles/twist_to_ackermann.dir/src/twist_to_ackermann.cpp.s
+.PHONY : src/twist_to_ackermann.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -250,9 +287,13 @@ help:
 	@echo "... hardware_uninstall"
 	@echo "... uninstall"
 	@echo "... motor_driver"
+	@echo "... twist_to_ackermann"
 	@echo "... src/motor_driver.o"
 	@echo "... src/motor_driver.i"
 	@echo "... src/motor_driver.s"
+	@echo "... src/twist_to_ackermann.o"
+	@echo "... src/twist_to_ackermann.i"
+	@echo "... src/twist_to_ackermann.s"
 .PHONY : help
 
 

@@ -16,6 +16,35 @@ bool MotorDriver::write_sysfs(const std::string& path, const std::string& value)
     return true;
 }
 
+int MotorDriver::setup_gpio(int bcm_gpio) {
+    if (bcm_gpio < 0) return -1;
+    int sysfs_num = this->gpio_chip_base_ + bcm_gpio;
+    std::string sysfs_str = std::to_string(sysfs_num);
+    std::string gpio_dir = "/sys/class/gpio/gpio" + sysfs_str;
+
+    write_sysfs("/sys/class/gpio/export", sysfs_str);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    write_sysfs(gpio_dir + "/direction", "out");
+
+    int fd = open((gpio_dir + "/value").c_str(), O_WRONLY);
+    if (fd >= 0) {
+        pwrite(fd, "0", 1, 0);  // Start LOW (motor coast)
+    }
+    return fd;
+}
+
+void MotorDriver::cleanup_gpio(int& fd, int bcm_gpio) {
+    if (fd >= 0) {
+        pwrite(fd, "0", 1, 0);
+        close(fd);
+        fd = -1;
+    }
+    if (bcm_gpio >= 0) {
+        int sysfs_num = this->gpio_chip_base_ + bcm_gpio;
+        write_sysfs("/sys/class/gpio/unexport", std::to_string(sysfs_num));
+    }
+}
+
 
 
 hardware_interface::CallbackReturn MotorDriver::on_init(const hardware_interface::HardwareInfo & info) {
@@ -24,6 +53,11 @@ hardware_interface::CallbackReturn MotorDriver::on_init(const hardware_interface
     }
 
     this->device_path_ = this->info_.hardware_parameters.at("pwm_device");
+
+    // Read GPIO chip base for sysfs GPIO numbering (Pi 5 RP1 typically ~571)
+    if (this->info_.hardware_parameters.find("gpio_chip_base") != this->info_.hardware_parameters.end()) {
+        this->gpio_chip_base_ = std::stoi(this->info_.hardware_parameters.at("gpio_chip_base"));
+    }
 
     size_t total_states = 0;
     size_t total_commands = 0;
@@ -45,7 +79,14 @@ hardware_interface::CallbackReturn MotorDriver::on_init(const hardware_interface
             // The index will just be the current total_commands size
             target.cmd_index = total_commands; 
             target.state_index = total_states; 
-            
+
+            // Read L298N direction GPIO pins from URDF
+            if (joint.parameters.find("in1_gpio") != joint.parameters.end()) {
+                target.in1_gpio = std::stoi(joint.parameters.at("in1_gpio"));
+            }
+            if (joint.parameters.find("in2_gpio") != joint.parameters.end()) {
+                target.in2_gpio = std::stoi(joint.parameters.at("in2_gpio"));
+            }
             this->active_motors_.push_back(target);
         }
 
@@ -86,12 +127,31 @@ hardware_interface::CallbackReturn MotorDriver::on_activate(const rclcpp_lifecyc
             // Fails if docker wasn't run in privileged mode or volume wasn't mounted
             return hardware_interface::CallbackReturn::ERROR;
         }
+
+        // Set up L298N direction GPIO pins (IN1/IN2)
+        motor.in1_value_fd = setup_gpio(motor.in1_gpio);
+        motor.in2_value_fd = setup_gpio(motor.in2_gpio);
+
+        if (motor.in1_gpio >= 0 && motor.in1_value_fd < 0) {
+            RCLCPP_ERROR(rclcpp::get_logger("motor_driver"),
+                "Failed to open GPIO %d (sysfs %d) for IN1",
+                motor.in1_gpio, gpio_chip_base_ + motor.in1_gpio);
+        }
+        if (motor.in2_gpio >= 0 && motor.in2_value_fd < 0) {
+            RCLCPP_ERROR(rclcpp::get_logger("motor_driver"),
+                "Failed to open GPIO %d (sysfs %d) for IN2",
+                motor.in2_gpio, gpio_chip_base_ + motor.in2_gpio);
+        }
     }
     return hardware_interface::CallbackReturn::SUCCESS;
 }
 
 hardware_interface::CallbackReturn MotorDriver::on_deactivate(const rclcpp_lifecycle::State &) {
     for (auto & motor : this->active_motors_) {
+        // Clean up direction GPIOs
+        cleanup_gpio(motor.in1_value_fd, motor.in1_gpio);
+        cleanup_gpio(motor.in2_value_fd, motor.in2_gpio);
+
         if (motor.duty_cycle_fd >= 0) {
             // Safety: Set duty cycle to 0 before closing
             pwrite(motor.duty_cycle_fd, "0", 1, 0);
@@ -166,6 +226,20 @@ hardware_interface::return_type MotorDriver::write(const rclcpp::Time &, const r
         // Clamp to period (20ms = 20,000,000 ns)
         if (duty_cycle_ns > 20000000) {
             duty_cycle_ns = 20000000;
+        }
+
+        // L298N direction control: set IN1/IN2 based on command sign
+        if (motor.in1_value_fd >= 0 && motor.in2_value_fd >= 0) {
+            if (target_cmd > 0.0) {
+                pwrite(motor.in1_value_fd, "1", 1, 0);  // Forward
+                pwrite(motor.in2_value_fd, "0", 1, 0);
+            } else if (target_cmd < 0.0) {
+                pwrite(motor.in1_value_fd, "0", 1, 0);  // Backward
+                pwrite(motor.in2_value_fd, "1", 1, 0);
+            } else {
+                pwrite(motor.in1_value_fd, "0", 1, 0);  // Coast
+                pwrite(motor.in2_value_fd, "0", 1, 0);
+            }
         }
 
         RCLCPP_INFO_THROTTLE(rclcpp::get_logger("motor_driver"), this->steady_clock_, 2000,

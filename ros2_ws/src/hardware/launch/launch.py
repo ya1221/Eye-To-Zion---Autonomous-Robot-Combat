@@ -57,9 +57,16 @@ def generate_launch_description():
         ],
     )
 
+    twist_to_ackermann_node = Node(
+        package='hardware', executable='twist_to_ackermann', output='screen',
+        name='twist_to_ackermann',
+        parameters=[{'use_sim_time': False}]
+    )
+
     return LaunchDescription([
        controller_manager_node,
        rsp,
        joint_state_broadcaster,
        ackermann_steering_controller,
+       twist_to_ackermann_node,
     ])

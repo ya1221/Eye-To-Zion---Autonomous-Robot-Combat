@@ -1,5 +1,6 @@
 /ros2_ws/install/hardware/share/hardware/hardware_interface_plugins.xml
 /ros2_ws/install/hardware/lib/libmotor_driver.so
+/ros2_ws/install/hardware/lib/hardware/twist_to_ackermann
 /ros2_ws/install/hardware/share/hardware/config/ackermann_steering_controller.yaml
 /ros2_ws/install/hardware/share/hardware/config/joint_state_broadcaster.yaml
 /ros2_ws/install/hardware/share/hardware/config/controller_manager.yaml
