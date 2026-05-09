@@ -2,5 +2,6 @@
 <robot name="WALL-E" xmlns:xacro="http://www.ros.org/wiki/xacro">
   <xacro:include filename="$(find robot_description)/urdf/base.xacro"/>
   <xacro:include filename="$(find robot_description)/urdf/wheels.xacro"/>
+  <xacro:include filename="$(find robot_description)/urdf/sensors.xacro"/>
   <xacro:include filename="$(find hardware)/ros2_control.xacro"/>
 </robot>

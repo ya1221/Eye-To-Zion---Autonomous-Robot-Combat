@@ -16,35 +16,6 @@ bool MotorDriver::write_sysfs(const std::string& path, const std::string& value)
     return true;
 }
 
-int MotorDriver::setup_gpio(int bcm_gpio) {
-    if (bcm_gpio < 0) return -1;
-    int sysfs_num = this->gpio_chip_base_ + bcm_gpio;
-    std::string sysfs_str = std::to_string(sysfs_num);
-    std::string gpio_dir = "/sys/class/gpio/gpio" + sysfs_str;
-
-    write_sysfs("/sys/class/gpio/export", sysfs_str);
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    write_sysfs(gpio_dir + "/direction", "out");
-
-    int fd = open((gpio_dir + "/value").c_str(), O_WRONLY);
-    if (fd >= 0) {
-        pwrite(fd, "0", 1, 0);  // Start LOW (motor coast)
-    }
-    return fd;
-}
-
-void MotorDriver::cleanup_gpio(int& fd, int bcm_gpio) {
-    if (fd >= 0) {
-        pwrite(fd, "0", 1, 0);
-        close(fd);
-        fd = -1;
-    }
-    if (bcm_gpio >= 0) {
-        int sysfs_num = this->gpio_chip_base_ + bcm_gpio;
-        write_sysfs("/sys/class/gpio/unexport", std::to_string(sysfs_num));
-    }
-}
-
 
 
 hardware_interface::CallbackReturn MotorDriver::on_init(const hardware_interface::HardwareInfo & info) {
@@ -54,9 +25,9 @@ hardware_interface::CallbackReturn MotorDriver::on_init(const hardware_interface
 
     this->device_path_ = this->info_.hardware_parameters.at("pwm_device");
 
-    // Read GPIO chip base for sysfs GPIO numbering (Pi 5 RP1 typically ~571)
-    if (this->info_.hardware_parameters.find("gpio_chip_base") != this->info_.hardware_parameters.end()) {
-        this->gpio_chip_base_ = std::stoi(this->info_.hardware_parameters.at("gpio_chip_base"));
+    // Read GPIO chip name for libgpiod (e.g. "gpiochip4" on Pi 5)
+    if (this->info_.hardware_parameters.find("gpio_chip") != this->info_.hardware_parameters.end()) {
+        this->gpio_chip_name_ = this->info_.hardware_parameters.at("gpio_chip");
     }
 
     size_t total_states = 0;
@@ -65,6 +36,22 @@ hardware_interface::CallbackReturn MotorDriver::on_init(const hardware_interface
     // Dynamically map memory based on whatever is inside the URDF
     for (const auto & joint : info_.joints) {
         
+        StateUpdater updater;
+
+        for (size_t i = 0; i < joint.command_interfaces.size(); ++i) {
+            if (joint.command_interfaces[i].name == "velocity") updater.cmd_vel_idx = total_commands + i;
+            if (joint.command_interfaces[i].name == "position") updater.cmd_pos_idx = total_commands + i;
+        }
+
+        for (size_t i = 0; i < joint.state_interfaces.size(); ++i) {
+            if (joint.state_interfaces[i].name == "velocity") updater.state_vel_idx = total_states + i;
+            if (joint.state_interfaces[i].name == "position") updater.state_pos_idx = total_states + i;
+        }
+
+        if (updater.state_pos_idx != -1 || updater.state_vel_idx != -1) {
+            this->state_updaters_.push_back(updater);
+        }
+
         // 1. Check if this joint has a PWM channel assigned in the URDF
         int pwm_channel = -1;
         if (joint.parameters.find("pwm_channel") != joint.parameters.end()) {
@@ -76,11 +63,10 @@ hardware_interface::CallbackReturn MotorDriver::on_init(const hardware_interface
             MotorTarget target;
             target.pwm_channel = pwm_channel;
             
-            // The index will just be the current total_commands size
-            target.cmd_index = total_commands; 
-            target.state_index = total_states; 
+            // For PWM output, we use the velocity command. If not found, fallback to the first command.
+            target.cmd_index = (updater.cmd_vel_idx != -1) ? updater.cmd_vel_idx : total_commands; 
 
-            // Read L298N direction GPIO pins from URDF
+            // Read L298N direction GPIO pins from URDF (BCM line offsets)
             if (joint.parameters.find("in1_gpio") != joint.parameters.end()) {
                 target.in1_gpio = std::stoi(joint.parameters.at("in1_gpio"));
             }
@@ -103,7 +89,24 @@ hardware_interface::CallbackReturn MotorDriver::on_init(const hardware_interface
 }
 
 hardware_interface::CallbackReturn MotorDriver::on_activate(const rclcpp_lifecycle::State &) {
+
+    // --- Open libgpiod chip (shared by all motors) ---
+    if (!this->gpio_chip_name_.empty()) {
+        this->gpio_chip_ = gpiod_chip_open_by_name(this->gpio_chip_name_.c_str());
+        if (!this->gpio_chip_) {
+            RCLCPP_ERROR(rclcpp::get_logger("motor_driver"),
+                "Failed to open GPIO chip '%s': %s",
+                this->gpio_chip_name_.c_str(), std::strerror(errno));
+            return hardware_interface::CallbackReturn::ERROR;
+        }
+        RCLCPP_INFO(rclcpp::get_logger("motor_driver"),
+            "Opened GPIO chip '%s' for L298N direction control",
+            this->gpio_chip_name_.c_str());
+    }
+
     for (auto & motor : this->active_motors_) {
+        // --- PWM setup (unchanged) ---
+
         // 1. Export the channel
         std::string export_path = this->device_path_ + "/export";
         write_sysfs(export_path, std::to_string(motor.pwm_channel));
@@ -128,29 +131,61 @@ hardware_interface::CallbackReturn MotorDriver::on_activate(const rclcpp_lifecyc
             return hardware_interface::CallbackReturn::ERROR;
         }
 
-        // Set up L298N direction GPIO pins (IN1/IN2)
-        motor.in1_value_fd = setup_gpio(motor.in1_gpio);
-        motor.in2_value_fd = setup_gpio(motor.in2_gpio);
+        // --- L298N direction GPIO setup via libgpiod ---
+        if (this->gpio_chip_ && motor.in1_gpio >= 0) {
+            motor.in1_line = gpiod_chip_get_line(this->gpio_chip_, motor.in1_gpio);
+            if (motor.in1_line) {
+                if (gpiod_line_request_output(motor.in1_line, "motor_driver", 0) < 0) {
+                    RCLCPP_ERROR(rclcpp::get_logger("motor_driver"),
+                        "Failed to request GPIO line %d as output for IN1: %s",
+                        motor.in1_gpio, std::strerror(errno));
+                    motor.in1_line = nullptr;
+                }
+            } else {
+                RCLCPP_ERROR(rclcpp::get_logger("motor_driver"),
+                    "Failed to get GPIO line %d for IN1: %s",
+                    motor.in1_gpio, std::strerror(errno));
+            }
+        }
 
-        if (motor.in1_gpio >= 0 && motor.in1_value_fd < 0) {
-            RCLCPP_ERROR(rclcpp::get_logger("motor_driver"),
-                "Failed to open GPIO %d (sysfs %d) for IN1",
-                motor.in1_gpio, gpio_chip_base_ + motor.in1_gpio);
+        if (this->gpio_chip_ && motor.in2_gpio >= 0) {
+            motor.in2_line = gpiod_chip_get_line(this->gpio_chip_, motor.in2_gpio);
+            if (motor.in2_line) {
+                if (gpiod_line_request_output(motor.in2_line, "motor_driver", 0) < 0) {
+                    RCLCPP_ERROR(rclcpp::get_logger("motor_driver"),
+                        "Failed to request GPIO line %d as output for IN2: %s",
+                        motor.in2_gpio, std::strerror(errno));
+                    motor.in2_line = nullptr;
+                }
+            } else {
+                RCLCPP_ERROR(rclcpp::get_logger("motor_driver"),
+                    "Failed to get GPIO line %d for IN2: %s",
+                    motor.in2_gpio, std::strerror(errno));
+            }
         }
-        if (motor.in2_gpio >= 0 && motor.in2_value_fd < 0) {
-            RCLCPP_ERROR(rclcpp::get_logger("motor_driver"),
-                "Failed to open GPIO %d (sysfs %d) for IN2",
-                motor.in2_gpio, gpio_chip_base_ + motor.in2_gpio);
-        }
+
+        RCLCPP_INFO(rclcpp::get_logger("motor_driver"),
+            "Motor on PWM ch%d activated: IN1(gpio%d)=%s, IN2(gpio%d)=%s",
+            motor.pwm_channel,
+            motor.in1_gpio, motor.in1_line ? "OK" : "N/A",
+            motor.in2_gpio, motor.in2_line ? "OK" : "N/A");
     }
     return hardware_interface::CallbackReturn::SUCCESS;
 }
 
 hardware_interface::CallbackReturn MotorDriver::on_deactivate(const rclcpp_lifecycle::State &) {
     for (auto & motor : this->active_motors_) {
-        // Clean up direction GPIOs
-        cleanup_gpio(motor.in1_value_fd, motor.in1_gpio);
-        cleanup_gpio(motor.in2_value_fd, motor.in2_gpio);
+        // Release direction GPIO lines
+        if (motor.in1_line) {
+            gpiod_line_set_value(motor.in1_line, 0);
+            gpiod_line_release(motor.in1_line);
+            motor.in1_line = nullptr;
+        }
+        if (motor.in2_line) {
+            gpiod_line_set_value(motor.in2_line, 0);
+            gpiod_line_release(motor.in2_line);
+            motor.in2_line = nullptr;
+        }
 
         if (motor.duty_cycle_fd >= 0) {
             // Safety: Set duty cycle to 0 before closing
@@ -168,6 +203,13 @@ hardware_interface::CallbackReturn MotorDriver::on_deactivate(const rclcpp_lifec
         std::string unexport_path = this->device_path_ + "/unexport";
         write_sysfs(unexport_path, std::to_string(motor.pwm_channel));
     }
+
+    // Close the GPIO chip
+    if (this->gpio_chip_) {
+        gpiod_chip_close(this->gpio_chip_);
+        this->gpio_chip_ = nullptr;
+    }
+
     return hardware_interface::CallbackReturn::SUCCESS;
 }
 
@@ -199,15 +241,31 @@ std::vector<hardware_interface::CommandInterface> MotorDriver::export_command_in
     return command_interfaces;
 }
 
-hardware_interface::return_type MotorDriver::read(const rclcpp::Time &, const rclcpp::Duration &) {
-    // Open-Loop mapping: simply mirror the command values to state values.
-    // Notice how fast this loop is—no strings, no nested loops over inactive joints.
-    for (const auto& motor : this->active_motors_) {
-        this->hw_states_[motor.state_index] = this->hw_commands_[motor.cmd_index];
+hardware_interface::return_type MotorDriver::read(const rclcpp::Time &, const rclcpp::Duration & period) {
+    // Open-Loop mapping: update states based on commands for ALL joints
+    double dt = period.seconds();
+
+    for (const auto& updater : this->state_updaters_) {
+        // If we have a position command, directly map it to position state
+        if (updater.cmd_pos_idx != -1 && updater.state_pos_idx != -1) {
+            this->hw_states_[updater.state_pos_idx] = this->hw_commands_[updater.cmd_pos_idx];
+        }
+
+        // If we have a velocity command, map it to velocity state, and integrate into position state
+        if (updater.cmd_vel_idx != -1) {
+            double vel = this->hw_commands_[updater.cmd_vel_idx];
+            
+            if (updater.state_vel_idx != -1) {
+                this->hw_states_[updater.state_vel_idx] = vel;
+            }
+            
+            // Only integrate if there was no position command explicitly overriding it
+            if (updater.state_pos_idx != -1 && updater.cmd_pos_idx == -1) {
+                this->hw_states_[updater.state_pos_idx] += vel * dt;
+            }
+        }
     }
     
-    // Note: Joints with no commands (rear wheels) remain 0.0 
-    // until you connect physical encoders and write their data here.
     return hardware_interface::return_type::OK; 
 }
 
@@ -228,17 +286,17 @@ hardware_interface::return_type MotorDriver::write(const rclcpp::Time &, const r
             duty_cycle_ns = 20000000;
         }
 
-        // L298N direction control: set IN1/IN2 based on command sign
-        if (motor.in1_value_fd >= 0 && motor.in2_value_fd >= 0) {
+        // L298N direction control via libgpiod: set IN1/IN2 based on command sign
+        if (motor.in1_line && motor.in2_line) {
             if (target_cmd > 0.0) {
-                pwrite(motor.in1_value_fd, "1", 1, 0);  // Forward
-                pwrite(motor.in2_value_fd, "0", 1, 0);
+                gpiod_line_set_value(motor.in1_line, 1);  // Forward
+                gpiod_line_set_value(motor.in2_line, 0);
             } else if (target_cmd < 0.0) {
-                pwrite(motor.in1_value_fd, "0", 1, 0);  // Backward
-                pwrite(motor.in2_value_fd, "1", 1, 0);
+                gpiod_line_set_value(motor.in1_line, 0);  // Backward
+                gpiod_line_set_value(motor.in2_line, 1);
             } else {
-                pwrite(motor.in1_value_fd, "0", 1, 0);  // Coast
-                pwrite(motor.in2_value_fd, "0", 1, 0);
+                gpiod_line_set_value(motor.in1_line, 0);  // Coast
+                gpiod_line_set_value(motor.in2_line, 0);
             }
         }
 

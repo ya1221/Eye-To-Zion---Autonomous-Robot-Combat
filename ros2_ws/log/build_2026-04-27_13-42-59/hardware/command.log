@@ -1,6 +1,0 @@
-Invoking command in '/ros2_ws/build/hardware': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /ros2_ws/src/hardware -DCMAKE_INSTALL_PREFIX=/ros2_ws/install/hardware
-Invoked command in '/ros2_ws/build/hardware' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /ros2_ws/src/hardware -DCMAKE_INSTALL_PREFIX=/ros2_ws/install/hardware
-Invoking command in '/ros2_ws/build/hardware': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/hardware -- -j4 -l4
-Invoked command in '/ros2_ws/build/hardware' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/hardware -- -j4 -l4
-Invoking command in '/ros2_ws/build/hardware': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/hardware
-Invoked command in '/ros2_ws/build/hardware' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/hardware

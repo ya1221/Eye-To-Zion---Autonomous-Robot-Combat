@@ -14,7 +14,8 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(geometry_msgs REQUIRED)
 
-
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GPIOD REQUIRED libgpiod)
 
 # -------------------- #
 # --- motor_driver --- #
@@ -26,7 +27,7 @@ add_library(motor_driver SHARED
 )
 
 # 2. Add include directories
-target_include_directories(motor_driver PRIVATE include)
+target_include_directories(motor_driver PRIVATE include ${GPIOD_INCLUDE_DIRS})
 
 # 3. Add dependencies to the library
 ament_target_dependencies(motor_driver
@@ -35,6 +36,9 @@ ament_target_dependencies(motor_driver
   rclcpp
   rclcpp_lifecycle
 )
+
+# 4. Link libgpiod
+target_link_libraries(motor_driver ${GPIOD_LIBRARIES})
 
 # 4. Register the plugin (very important!)
 pluginlib_export_plugin_description_file(hardware_interface hardware_interface_plugins.xml)

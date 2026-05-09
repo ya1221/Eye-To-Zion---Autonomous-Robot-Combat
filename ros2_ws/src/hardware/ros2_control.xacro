@@ -5,9 +5,9 @@
     <hardware>
       <plugin>motor_driver/MotorDriver</plugin>
       <param name="pwm_device">/sys/class/pwm/pwmchip0</param>
-      <!-- GPIO sysfs base offset. Find with: cat /sys/class/gpio/gpiochip*/base /sys/class/gpio/gpiochip*/label -->
-      <!-- Pi 5 RP1 chip is typically 571. Set to 0 if sysfs uses raw BCM numbers. -->
-      <param name="gpio_chip_base">0</param>
+      <!-- libgpiod chip name for L298N direction pins -->
+      <!-- Pi 5 RP1 = "gpiochip0" (pinctrl-rp1, 54 lines). Verify with: gpiodetect -->
+      <param name="gpio_chip">gpiochip0</param>
     </hardware>
 
     <joint name="front_left_steering_joint">
@@ -25,22 +25,24 @@
     <!-- Left motor: ENA=PWM ch0 (GPIO12/pin32), IN1=GPIO27 (pin13), IN2=GPIO22 (pin15) -->
     <joint name="front_left_wheel_joint">
       <command_interface name="velocity"/>
+      <state_interface name="position"/>
       <state_interface name="velocity"/>
       <state_interface name="effort"/>
       <param name="pwm_channel">0</param>
-      <param name="in1_gpio">27</param>
-      <param name="in2_gpio">22</param>
+      <param name="in1_gpio">17</param>
+      <param name="in2_gpio">27</param>
     </joint>
 
     <!-- Right motor: ENB not connected yet. IN3=GPIO23 (pin16), IN4=??? -->
     <!-- WARNING: Physical pin 17 is 3.3V POWER, not a GPIO! Verify your wiring! -->
     <joint name="front_right_wheel_joint">
       <command_interface name="velocity"/>
+      <state_interface name="position"/>
       <state_interface name="velocity"/>
       <state_interface name="effort"/>
       <param name="pwm_channel">1</param>
-      <param name="in1_gpio">23</param>
-      <param name="in2_gpio">24</param>
+      <param name="in1_gpio">22</param>
+      <param name="in2_gpio">23</param>
     </joint>
 
     <joint name="rear_left_wheel_joint">

@@ -8,12 +8,15 @@
 #include "rclcpp/macros.hpp"
 #include "rclcpp/clock.hpp"
 
-// NEW HEADERS for sysfs
+// Headers for sysfs PWM
 #include <fcntl.h>      // For open()
 #include <unistd.h>     // For close(), pwrite()
 #include <fstream>
 #include <thread>
 #include <chrono>
+
+// libgpiod for L298N direction pins
+#include <gpiod.h>
 
 namespace motor_driver {
 
@@ -45,23 +48,29 @@ private:
     struct MotorTarget {
         int pwm_channel;
         size_t cmd_index;   // Where to find the command in hw_commands_
-        size_t state_index; // Where to mirror the state in hw_states_ (for open-loop)
         int duty_cycle_fd = -1;
-        int in1_gpio = -1;     // BCM GPIO number for IN1 (L298N direction)
-        int in2_gpio = -1;     // BCM GPIO number for IN2 (L298N direction)
-        int in1_value_fd = -1; // Cached fd for real-time safe GPIO writes
-        int in2_value_fd = -1;
+        int in1_gpio = -1;              // BCM GPIO line offset for IN1 (L298N direction)
+        int in2_gpio = -1;              // BCM GPIO line offset for IN2 (L298N direction)
+        struct gpiod_line* in1_line = nullptr;  // libgpiod line handle for IN1
+        struct gpiod_line* in2_line = nullptr;  // libgpiod line handle for IN2
     };
+
+    struct StateUpdater {
+        ssize_t cmd_pos_idx = -1;
+        ssize_t cmd_vel_idx = -1;
+        ssize_t state_pos_idx = -1;
+        ssize_t state_vel_idx = -1;
+    };
+    std::vector<StateUpdater> state_updaters_;
 
     // Only stores joints that actively receive commands (ignores passive joints like rear wheels)
     std::vector<MotorTarget> active_motors_;
 
-
     bool write_sysfs(const std::string& path, const std::string& value);
-    int setup_gpio(int bcm_gpio);
-    void cleanup_gpio(int& fd, int bcm_gpio);
 
-    int gpio_chip_base_ = 0;  // sysfs GPIO base offset (Pi 5 RP1 = ~571)
+    // libgpiod chip handle (shared across all motors)
+    std::string gpio_chip_name_;                // e.g. "gpiochip4" on Pi 5
+    struct gpiod_chip* gpio_chip_ = nullptr;
 
     // Persistent clock for throttled logging — avoids dangling pointer from temporaries
     rclcpp::Clock steady_clock_{RCL_STEADY_TIME};
