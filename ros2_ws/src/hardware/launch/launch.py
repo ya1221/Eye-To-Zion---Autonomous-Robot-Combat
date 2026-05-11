@@ -28,6 +28,9 @@ def generate_launch_description():
         executable="ros2_control_node",
         parameters=[{'robot_description': robot_description}, controller_manager_yaml, ackermann_yaml, joint_state_broadcaster_yaml],
         output="both",
+        remappings=[
+            ("/ackermann_steering_controller/tf_odometry", "/tf"),
+        ],
     )
 
     rsp = Node(
