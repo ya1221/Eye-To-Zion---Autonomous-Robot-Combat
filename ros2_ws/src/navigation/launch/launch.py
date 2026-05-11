@@ -47,7 +47,7 @@ def generate_launch_description():
     )
 
 
-     return LaunchDescription([
+    return LaunchDescription([
         use_sim_time_arg,
         autostart_arg,
         params_file_arg,
