@@ -1,0 +1,23 @@
+services:
+  overhead_tracker:
+    build: .
+    container_name: overhead_tracker
+    network_mode: host
+    
+    # Pass display variable to container
+    environment:
+      - DISPLAY=${DISPLAY}
+      
+    volumes:
+      - .:/app
+      # Connect to host X11 display engine
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - /dev:/dev
+      
+    # 2. נותנים תעודת זהות של "מורשה מצלמות"
+    group_add:
+      - video
+      
+    # 3. הקסם: פותחים הרשאות (cgroups) לכל המצלמות (חומרה סוג 81) מראש!
+    device_cgroup_rules:
+      - 'c 81:* rmw'
