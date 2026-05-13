@@ -14,7 +14,7 @@ slam_toolbox:
 
     transform_timeout: 0.5
 
-    min_laser_range: 0.05
+    min_laser_range: 0.02
     max_laser_range: 15.0
 
     throttle_scans: 1

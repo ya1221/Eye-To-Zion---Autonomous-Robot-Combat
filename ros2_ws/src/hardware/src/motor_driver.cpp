@@ -300,7 +300,7 @@ hardware_interface::return_type MotorDriver::write(const rclcpp::Time &, const r
             }
         }
 
-        RCLCPP_INFO_THROTTLE(rclcpp::get_logger("motor_driver"), this->steady_clock_, 2000,
+        RCLCPP_INFO_THROTTLE(rclcpp::get_logger("motor_driver"), this->steady_clock_, 1000,
             "PWM ch%d: cmd_index=%zu, target_cmd=%.4f, duty_cycle_ns=%lu, fd=%d",
             motor.pwm_channel, motor.cmd_index, target_cmd, duty_cycle_ns, motor.duty_cycle_fd);
 
