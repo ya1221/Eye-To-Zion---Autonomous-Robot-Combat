@@ -14,7 +14,7 @@ detector = aruco.ArucoDetector(aruco_dict, parameters)
 lk_params = dict(winSize=(15, 15), maxLevel=2, criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
 feature_params = dict(maxCorners=20, qualityLevel=0.3, minDistance=7, blockSize=7)
 
-GRID_N = 5
+GRID_N = 5000 #Centimeters
 VALID_IDS = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10} # Anchors: 0-3, Robots: 4+
 
 dst_pts = np.array([
