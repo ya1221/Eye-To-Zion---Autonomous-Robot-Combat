@@ -132,7 +132,7 @@ hardware_interface::CallbackReturn MotorDriver::on_activate(const rclcpp_lifecyc
         }
 
         // --- L298N direction GPIO setup via libgpiod ---
-        if (this->gpio_chip_ && motor.in1_gpio >= 0) {
+        if (motor.in1_gpio >= 0) {
             motor.in1_line = gpiod_chip_get_line(this->gpio_chip_, motor.in1_gpio);
             if (motor.in1_line) {
                 if (gpiod_line_request_output(motor.in1_line, "motor_driver", 0) < 0) {
@@ -148,7 +148,7 @@ hardware_interface::CallbackReturn MotorDriver::on_activate(const rclcpp_lifecyc
             }
         }
 
-        if (this->gpio_chip_ && motor.in2_gpio >= 0) {
+        if (motor.in2_gpio >= 0) {
             motor.in2_line = gpiod_chip_get_line(this->gpio_chip_, motor.in2_gpio);
             if (motor.in2_line) {
                 if (gpiod_line_request_output(motor.in2_line, "motor_driver", 0) < 0) {

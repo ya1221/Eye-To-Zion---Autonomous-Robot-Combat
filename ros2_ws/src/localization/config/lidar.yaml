@@ -14,3 +14,7 @@
     range_min: 0.01
     frequency: 10.0        # Motor rotation (Hz)
     auto_reconnect: true
+    fixed_resolution: true  # Forces consistent point count per scan
+    isSingleChannel: false  # Required for TG-series (multi-channel TOF)
+    reversion: true         # TG-series scan direction correction
+    intensity: false        # TG15 does not provide intensity data
