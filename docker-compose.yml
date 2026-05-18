@@ -1,44 +1,30 @@
 version: '3.8'
 
 services:
-  # 1. Communication Server (Central Pub/Sub Hub)
+  # הקונטיינר של הרובוט/המוח (ROS2)
+  tactical_brain:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: etz_brain
+    # מחבר את התיקייה במחשב שלך לתוך הקונטיינר כדי שתוכל לערוך קוד מבחוץ
+    volumes:
+      - ./ETZ_ws:/app/ETZ_ws
+    # מחבר אותו לרשת המשותפת
+    networks:
+      - etz_network
+    # אומר לדוקר להשאיר את הקונטיינר דולק ברקע
+    command: tail -F /dev/null
+
+  # הקונטיינר של הרדיס (תקשורת)
   redis_server:
-    image: redis:alpine
-    container_name: redis_server
-    network_mode: host
-    restart: always
+    image: redis:latest
+    container_name: etz_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - etz_network
 
-  # 2. Vision Processor - Captures video stream and writes to shared memory
-  cv_processor:
-    build: .
-    container_name: cv_processor
-    network_mode: host
-    ipc: host
-    devices:
-      - "/dev/video0:/dev/video0"
-    volumes:
-      - "./ai_vision:/app"
-      - "/tmp/.X11-unix:/tmp/.X11-unix:rw"
-    environment:
-      - DISPLAY=${DISPLAY}
-    command: bash -c "source /opt/ros/humble/setup.bash && python3 cv_processor.py"
-
-  # 3. AI Inference Engine - Reads from shared memory, runs YOLO, and publishes to Redis
-  ai_inference:
-    build: .
-    container_name: ai_inference
-    network_mode: host
-    ipc: host
-    volumes:
-      - "./ai_vision:/app"
-    command: bash -c "source /opt/ros/humble/setup.bash && python3 ai_inference.py"
-
-  # 4. Robot Core (ROS2) - Subscribes to Redis threats and bridges to ROS2 topics
-  ros2_core:
-    build: .
-    container_name: ros2_core
-    network_mode: host
-    ipc: host
-    volumes:
-      - "./ai_vision:/app"
-    command: bash -c "source /opt/ros/humble/setup.bash && python3 ros_core.py"
+networks:
+  etz_network:
+    driver: bridge
