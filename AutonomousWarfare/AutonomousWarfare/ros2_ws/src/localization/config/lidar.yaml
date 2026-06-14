@@ -1,0 +1,20 @@
+/ydlidar_ros2_driver_node:
+  ros__parameters:
+    port: "/dev/ttyUSB0"
+    baudrate: 512000        # Mandatory for TG15
+    lidar_type: 0           # 0 = TOF family
+    device_type: 0          # 0 = Serial
+    sample_rate: 20         # TG15 supports 20kHz
+    isToFLidar: true        # CRITICAL: Enables TOF parsing
+    frame_id: "lidar_link"
+    inverted: false
+    angle_max: 180.0
+    angle_min: -180.0
+    range_max: 15.0
+    range_min: 0.01
+    frequency: 10.0        # Motor rotation (Hz)
+    auto_reconnect: true
+    fixed_resolution: true  # Forces consistent point count per scan
+    isSingleChannel: false  # Required for TG-series (multi-channel TOF)
+    reversion: true         # TG-series scan direction correction
+    intensity: false        # TG15 does not provide intensity data

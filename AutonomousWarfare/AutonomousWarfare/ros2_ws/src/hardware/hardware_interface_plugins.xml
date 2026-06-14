@@ -1,0 +1,7 @@
+<library path="motor_driver">
+  <class name="motor_driver/MotorDriver"
+         type="motor_driver::MotorDriver"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>RP1 PWM Motor Driver for Ackermann</description>
+  </class>
+</library>
