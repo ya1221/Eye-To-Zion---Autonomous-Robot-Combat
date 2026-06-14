@@ -378,6 +378,31 @@ class TacticalBrainNode(Node):
             self.pose_callback,
             10
         )
+
+        # יצירת ה-Subscriber כדי לקרוא את מה שה-redis_manager משדר
+        self.aruco_pose_sub = self.create_subscription(
+            PoseStamped,
+            '/sensor_fusion_node/aruco_global_pose',
+            self.aruco_callback,
+            10
+        )
+         # משתנים לשמירת האמת האבסולוטית מהארוקו
+        self.aruco_x = 0.0
+        self.aruco_y = 0.0
+        self.aruco_yaw = 0.0
+
+        # משתנים לשמירת הסטייה המחושבת
+        self.drift_x = 0.0
+        self.drift_y = 0.0
+        self.drift_yaw = 0.0
+
+        # פבלישר לערוץ חטיפת המיקום של מערכת הניווט
+        self.initial_pose_pub = self.create_publisher(
+            PoseWithCovarianceStamped,
+            '/initialpose',
+            10
+        )
+
         # 2. אתחול משתני מצב מקומיים (מהקוד שלך)
         self.static_obstacles = set() # (כאן תיכנס מפת הקירות מהלידאר בעתיד)
         self.enemies_list = []
@@ -406,6 +431,7 @@ class TacticalBrainNode(Node):
         # 3. טיימרים
         # טיימר שמפעיל את העץ כל חצי שנייה (2Hz)
         self.tree_timer = self.create_timer(0.5, self.sense_and_think)
+
         # טיימר שמשנה את התרחיש כל 5 שניות
         #self.scenario_timer = self.create_timer(5.0, self.mock_scenario_changer)
         #self.scenario_step = 0
@@ -495,16 +521,58 @@ class TacticalBrainNode(Node):
             # אם הוא שידר דגל מצוקה ברדיס
             self.blackboard.teammate_requested_help = teammate_data.get('needs_help', False)
 
+    
+    def aruco_callback(self, msg):
+        # קליטת קואורדינטות האמת
+        self.aruco_x = msg.pose.position.x
+        self.aruco_y = msg.pose.position.y
+        self.aruco_yaw = self.get_yaw_from_quaternion(msg.pose.orientation)
+        
+        # חישוב הסטייה מול ה-Blackboard (AMCL)
+        self.drift_x = self.aruco_x - self.blackboard.current_x
+        self.drift_y = self.aruco_y - self.blackboard.current_y
+        yaw_diff = self.aruco_yaw - self.blackboard.current_yaw
+        self.drift_yaw = math.atan2(math.sin(yaw_diff), math.cos(yaw_diff))
+        
+        # חישוב המרחק הכולל (היפוטנוזה של משולש X,Y)
+        total_drift_meters = math.hypot(self.drift_x, self.drift_y)
+        
+        # אם הסטייה עולה על 5 ס"מ (0.05 מטר), אנחנו מבצעים איפוס קשיח!
+        if total_drift_meters > 0.05:
+            self.get_logger().warn(f"HIGH ODOM DRIFT: {total_drift_meters*100:.1f}cm! Resetting AMCL to ArUco ground truth.")
+            
+            # יצירת הודעת האיפוס
+            reset_msg = PoseWithCovarianceStamped()
+            reset_msg.header.stamp = self.get_clock().now().to_msg()
+            reset_msg.header.frame_id = 'map'
+            
+            # הזנת קואורדינטות הארוקו לתוך ה-AMCL
+            reset_msg.pose.pose.position.x = self.aruco_x
+            reset_msg.pose.pose.position.y = self.aruco_y
+            reset_msg.pose.pose.orientation = msg.pose.orientation
+            
+            # (אופציונלי אך מומלץ): איפוס מטריצת השגיאות (Covariance) לזיהוי מדויק
+            reset_msg.pose.covariance[0] = 0.05 # רדיוס ביטחון סביר
+            reset_msg.pose.covariance[7] = 0.05
+            reset_msg.pose.covariance[35] = 0.05
+            
+            # שיגור ההוראה למערכת הניווט!
+            self.initial_pose_pub.publish(reset_msg)
+            
+            # איפוס המשתנים המקומיים כדי שלא נשגר איפוס כפול בפריים הבא
+            self.drift_x = 0.0
+            self.drift_y = 0.0
+
     def pose_callback(self, msg):
-        # עדכון X ו-Y
+        # שימוש בפונקציית העזר כדי שהקוד יהיה נקי
         self.blackboard.current_x = msg.pose.pose.position.x
         self.blackboard.current_y = msg.pose.pose.position.y
-        
-        # חילוץ הזווית (Yaw) מתוך הקווטרניון ש-ROS2 שולח
-        q = msg.pose.pose.orientation
+        self.blackboard.current_yaw = self.get_yaw_from_quaternion(msg.pose.pose.orientation)
+
+    def get_yaw_from_quaternion(self, q):
         siny_cosp = 2 * (q.w * q.z + q.x * q.y)
         cosy_cosp = 1 - 2 * (q.y * q.y + q.z * q.z)
-        self.blackboard.current_yaw = math.atan2(siny_cosp, cosy_cosp)
+        return math.atan2(siny_cosp, cosy_cosp)
 
     # def mock_scenario_changer(self):
     #     self.scenario_step += 1
@@ -536,6 +604,12 @@ class TacticalBrainNode(Node):
     #     else:
     #         self.get_logger().info("Restarting scenarios...")
     #         self.scenario_step = 0
+
+        def get_yaw_from_quaternion(self, q):
+            siny_cosp = 2 * (q.w * q.z + q.x * q.y)
+            cosy_cosp = 1 - 2 * (q.y * q.y + q.z * q.z)
+            return math.atan2(siny_cosp, cosy_cosp)
+
 
 def distance(a, b):
     return math.hypot(a[0] - b[0], a[1] - b[1])
