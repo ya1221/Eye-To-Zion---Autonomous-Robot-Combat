@@ -1,0 +1,42 @@
+services:
+  # 1. Vision Processor - Captures video, splits to H.264 stream & Shared Memory
+  cv_processor:
+    build: ./ai_vision/cv_processor
+    container_name: cv_processor
+    network_mode: host
+    ipc: host
+    privileged: true
+    volumes:
+      - /dev:/dev
+      - "./ai_vision/cv_processor:/app"
+    command: bash -c "source /opt/ros/humble/setup.bash && python3 cv_processor.py"
+
+  # 2. AI Inference Engine - Reads SHM, runs YOLO, publishes ROS 2 Topics
+  ai_inference:
+    build: ./ai_vision/ai_inference
+    container_name: ai_inference
+    network_mode: host
+    ipc: host
+    cpus: '2.0'
+    environment:
+      - OMP_NUM_THREADS=2
+      - YOLO_OFFLINE=True
+      - YOLOV8_NO_TELEMETRY=1
+    volumes:
+      - "./ai_vision/ai_inference:/app"
+    command: bash -c "source /opt/ros/humble/setup.bash && python3 ai_inference.py"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# 3. Zenoh Bridge - Automatically routes ROS 2 traffic over Tailscale
+  zenoh_bridge:
+    image: eclipse/zenoh-bridge-ros2dds:latest
+    container_name: zenoh_bridge
+    network_mode: host
+    restart: always
+    environment:
+      - ROS_DISTRO=humble
+    command: ["-l", "tcp/0.0.0.0:7447"]
