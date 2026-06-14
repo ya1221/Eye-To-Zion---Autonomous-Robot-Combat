@@ -31,12 +31,26 @@ services:
         max-size: "10m"
         max-file: "3"
 
-# 3. Zenoh Bridge - Automatically routes ROS 2 traffic over Tailscale
-  zenoh_bridge:
+  zenoh_bridge_robot:
     image: eclipse/zenoh-bridge-ros2dds:latest
-    container_name: zenoh_bridge
+    container_name: zenoh_bridge_robot
     network_mode: host
     restart: always
     environment:
       - ROS_DISTRO=humble
-    command: ["-l", "tcp/0.0.0.0:7447"]
+    # הגשר של הרובוט מתחבר באופן אקטיבי לגשר של המחשב המרכזי (החלף ב-Tailscale IP של המחשב)
+    command: ["-e", "tcp/100.XX.XX.XX:7447"] 
+
+  # 2. קוד הלוגיקה והאזנה למיקומים של הרובוט
+  robot_logic:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: robot_logic
+    network_mode: host
+    restart: always
+    environment:
+      - ROBOT_ID=4            # <-- כאן קובעים את ה-ID (זוגי = אלפא)
+      - ROBOT_TEAM=alpha      # <-- כאן קובעים את הקבוצה
+    volumes:
+      - .:/app
