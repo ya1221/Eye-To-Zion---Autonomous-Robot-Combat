@@ -1,0 +1,1 @@
+rclcpp;geometry_msgs;nav_msgs;libcurl-dev;ament_index_cpp;launch;launch_ros;ament_index_python;gazebo_ros;robot_state_publisher;octomap_server;ament_lint_auto;ament_lint_common

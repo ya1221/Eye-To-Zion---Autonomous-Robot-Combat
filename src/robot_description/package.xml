@@ -17,8 +17,16 @@
   <exec_depend>octomap_server</exec_depend>
   <depend>rclcpp</depend>
   <depend>geometry_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>libcurl-dev</depend>
+  <depend>libfmt-dev</depend>
+  <depend>libboost-dev</depend>
+  <depend>sensor_msgs</depend>
+  <depend>cv_bridge</depend>
   <depend>ament_index_cpp</depend>
-
+  <depend>OpenCV</depend>
+  <depend>rclcpp_components</depend>
+  
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
 

@@ -1,0 +1,17 @@
+digraph G {
+"map" -> "odom"[label=" Broadcaster: default_authority\nAverage rate: 10.43\nBuffer length: 4.602\nMost recent transform: 84.453\nOldest transform: 79.851\n"];
+"odom" -> "base_footprint"[label=" Broadcaster: default_authority\nAverage rate: 10.222\nBuffer length: 4.5\nMost recent transform: 83.991\nOldest transform: 79.491\n"];
+"base_link" -> "front_left_steering_link"[label=" Broadcaster: default_authority\nAverage rate: 20.217\nBuffer length: 4.6\nMost recent transform: 84.027\nOldest transform: 79.427\n"];
+"base_footprint" -> "base_link"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"front_left_steering_link" -> "front_left_wheel_link"[label=" Broadcaster: default_authority\nAverage rate: 20.217\nBuffer length: 4.6\nMost recent transform: 84.027\nOldest transform: 79.427\n"];
+"base_link" -> "front_right_steering_link"[label=" Broadcaster: default_authority\nAverage rate: 20.217\nBuffer length: 4.6\nMost recent transform: 84.027\nOldest transform: 79.427\n"];
+"front_right_steering_link" -> "front_right_wheel_link"[label=" Broadcaster: default_authority\nAverage rate: 20.217\nBuffer length: 4.6\nMost recent transform: 84.027\nOldest transform: 79.427\n"];
+"base_link" -> "rear_left_wheel_link"[label=" Broadcaster: default_authority\nAverage rate: 20.217\nBuffer length: 4.6\nMost recent transform: 84.027\nOldest transform: 79.427\n"];
+"base_link" -> "rear_right_wheel_link"[label=" Broadcaster: default_authority\nAverage rate: 20.217\nBuffer length: 4.6\nMost recent transform: 84.027\nOldest transform: 79.427\n"];
+"base_link" -> "imu_link"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"base_link" -> "lidar_link"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 1771594594.3508482"[ shape=plaintext ] ;
+}->"map";
+}

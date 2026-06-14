@@ -68,12 +68,12 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        base_link:
+        base_footprint:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        camera_link:
+        base_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -98,6 +98,11 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        imu_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
         lidar_link:
           Alpha: 1
           Show Axes: false
@@ -109,11 +114,6 @@ Visualization Manager:
           Show Trail: false
           Value: true
         rear_right_wheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        turret_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -214,9 +214,9 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: true
-        base_link:
+        base_footprint:
           Value: true
-        camera_link:
+        base_link:
           Value: true
         front_left_steering_link:
           Value: true
@@ -225,6 +225,8 @@ Visualization Manager:
         front_right_steering_link:
           Value: true
         front_right_wheel_link:
+          Value: true
+        imu_link:
           Value: true
         lidar_link:
           Value: true
@@ -236,33 +238,30 @@ Visualization Manager:
           Value: true
         rear_right_wheel_link:
           Value: true
-        turret_link:
-          Value: true
       Marker Scale: 1
       Name: TF
       Show Arrows: true
       Show Axes: true
-      Show Names: true
+      Show Names: false
       Tree:
         map:
           odom:
-            base_link:
-              camera_link:
-                {}
-              front_left_steering_link:
-                front_left_wheel_link:
+            base_footprint:
+              base_link:
+                front_left_steering_link:
+                  front_left_wheel_link:
+                    {}
+                front_right_steering_link:
+                  front_right_wheel_link:
+                    {}
+                imu_link:
                   {}
-              front_right_steering_link:
-                front_right_wheel_link:
+                lidar_link:
                   {}
-              lidar_link:
-                {}
-              rear_left_wheel_link:
-                {}
-              rear_right_wheel_link:
-                {}
-              turret_link:
-                {}
+                rear_left_wheel_link:
+                  {}
+                rear_right_wheel_link:
+                  {}
       Update Interval: 0
       Value: true
   Enabled: true
@@ -311,25 +310,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 8.402616500854492
+      Distance: 10.047365188598633
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.018653450533747673
-        Y: 0.024503644555807114
-        Z: 0.07582949101924896
+        X: 0.36221301555633545
+        Y: 0.5257573127746582
+        Z: 1.2390376329421997
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.370397686958313
+      Pitch: 1.2753968238830566
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz_default_plugins)
-      Yaw: 4.768583297729492
+      Yaw: 4.778585910797119
     Saved: ~
 Window Geometry:
   Displays:

@@ -1,32 +1,32 @@
 #include "robot_description/TwistToAckermann.hpp"
 
-TwistToStamped::TwistToStamped()
-: rclcpp::Node("twist_to_stamped")
-{
-  using std::placeholders::_1;
+using std::placeholders::_1;
 
+TwistToAckermann::TwistToAckermann(): rclcpp::Node("twist_to_ackermann")
+{
   sub_ = this->create_subscription<geometry_msgs::msg::Twist>(
-    "/cmd_vel", 10, std::bind(&TwistToStamped::twistCallback, this, _1));
+    "/cmd_vel", 10, std::bind(&TwistToAckermann::twistCallback, this, _1));
 
   pub_ = this->create_publisher<geometry_msgs::msg::TwistStamped>(
     "ackermann_steering_controller/reference", 10);
 
-  RCLCPP_INFO(this->get_logger(), "TwistToStamped node started");
+  RCLCPP_INFO(this->get_logger(), "TwistToAckermann node started");
 }
 
-void TwistToStamped::twistCallback(const geometry_msgs::msg::Twist::SharedPtr msg)
+
+void TwistToAckermann::twistCallback(const geometry_msgs::msg::Twist::SharedPtr msg)
 {
-  geometry_msgs::msg::TwistStamped out;
-  out.header.stamp = this->now();
-  out.header.frame_id = "base_link";  // or whatever you need
-  out.twist = *msg;
-  pub_->publish(out);
+  std::unique_ptr<geometry_msgs::msg::TwistStamped> out = std::make_unique<geometry_msgs::msg::TwistStamped>();
+  out->header.stamp = this->now();
+  out->header.frame_id = "base_link";
+  out->twist = *msg;
+  pub_->publish(std::move(out));
 }
 
 int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
-  auto node = std::make_shared<TwistToStamped>();
+  auto node = std::make_shared<TwistToAckermann>();
   rclcpp::spin(node);
   rclcpp::shutdown();
   return 0;

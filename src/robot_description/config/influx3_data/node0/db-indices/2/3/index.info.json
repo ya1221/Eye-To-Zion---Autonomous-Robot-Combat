@@ -1,0 +1,21 @@
+{
+  "node_id": "node0",
+  "db_id": 2,
+  "table_id": 3,
+  "files": [
+    {
+      "id": 300,
+      "path": "node0/dbs/2/3/2026-02-28/15-30/0000003433.parquet",
+      "size_bytes": 1732,
+      "row_count": 1,
+      "chunk_time": 1772292600000000000,
+      "min_time": 1772293122011677750,
+      "max_time": 1772293122011677750
+    }
+  ],
+  "latest_snapshot_sequence_number": 4,
+  "parquet_size_bytes": 1732,
+  "row_count": 1,
+  "min_time": 1772293122011677750,
+  "max_time": 1772293122011677750
+}
