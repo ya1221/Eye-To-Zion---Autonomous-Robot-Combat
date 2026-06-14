@@ -1,11 +1,32 @@
 import cv2
 import cv2.aruco as aruco
 import numpy as np
-import redis
 import json
 import math
+import rclpy
+from rclpy.node import Node
+from std_msgs.msg import String
 
-redis_client = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
+def get_team_by_id(robot_id):
+    # עוגנים (0-3) לא שייכים לאף קבוצה
+    if robot_id in {0, 1, 2, 3}:
+        return None
+        
+    # אם ה-ID זוגי -> קבוצת אלפא, אם אי-זוגי -> קבוצת בטא
+    if robot_id % 2 == 0:
+        return 'alpha'
+    else:
+        return 'beta'
+
+# 1. Initialize ROS 2
+rclpy.init()
+node = rclpy.create_node('overhead_tracker_node')
+pub_alpha = node.create_publisher(String, 'teams/alliance_alpha/positions', 10)
+pub_beta = node.create_publisher(String, 'teams/alliance_beta/positions', 10)
+print("[INFO] ROS 2 Node initialized.")
+
+ALPHA_TEAM_IDS = {4, 5}
+BETA_TEAM_IDS = {6}
 
 aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_4X4_50)
 parameters = aruco.DetectorParameters()
@@ -14,7 +35,7 @@ detector = aruco.ArucoDetector(aruco_dict, parameters)
 lk_params = dict(winSize=(15, 15), maxLevel=2, criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
 feature_params = dict(maxCorners=20, qualityLevel=0.3, minDistance=7, blockSize=7)
 
-GRID_N = 5000 #Centimeters
+GRID_N = 2000 #Centimeters
 VALID_IDS = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10} # Anchors: 0-3, Robots: 4+
 
 dst_pts = np.array([
@@ -25,6 +46,7 @@ dst_pts = np.array([
 ], dtype=np.float32)
 
 perspective_matrix = None
+is_matrix_locked = False
 robots_state = {}
 old_gray = None
 
@@ -41,9 +63,10 @@ if not cap.isOpened():
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
-print("[INFO] Tactical Tracker (Grid + KLT) is ONLINE. Press 'q' to exit.")
+print("[INFO] Tactical Tracker (Grid + KLT) is ONLINE. Press 'q' to exit. Press 'r' to reset matrix.")
 
-while True:
+# 2. Main Loop - bind to ROS 2 lifecycle
+while rclpy.ok():
     ret, frame = cap.read()
     if not ret:
         break
@@ -80,33 +103,33 @@ while True:
                 end_y = int(center_y + 50 * math.sin(math.radians(angle_deg)))
                 cv2.line(frame, (center_x, center_y), (end_x, end_y), (0, 0, 255), 3)
             except Exception as e:
-                pass
+                print(f"[ERROR] Failed to process Aruco ID {ids[i][0]}: {e}")
+                continue
 
-    # Strict Anchor Check
-    if all(anchor in corners_dict for anchor in [0, 1, 2, 3]):
-        src_pts = np.array([
-            corners_dict[1][:2],
-            corners_dict[2][:2],
-            corners_dict[3][:2],
-            corners_dict[0][:2]
-        ], dtype=np.float32)
-        perspective_matrix = cv2.getPerspectiveTransform(src_pts, dst_pts)
-    else:
-        # Invalidates the matrix immediately if even one anchor drops
-        perspective_matrix = None
-
-    # Hard Block UI
-    if perspective_matrix is None:
-        cv2.putText(frame, "WAITING FOR 4 ANCHORS...", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 3)
-        cv2.imshow("Eye To Zion - Tactical Map", frame)
-        
-        # Reset tracking history to avoid jumping when anchors return
-        robots_state.clear() 
-        old_gray = None
-        
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-        continue 
+    # 3. Matrix Locking Mechanism
+    if not is_matrix_locked:
+        if all(anchor in corners_dict for anchor in [0, 1, 2, 3]):
+            src_pts = np.array([
+                corners_dict[1][:2],
+                corners_dict[2][:2],
+                corners_dict[3][:2],
+                corners_dict[0][:2]
+            ], dtype=np.float32)
+            perspective_matrix = cv2.getPerspectiveTransform(src_pts, dst_pts)
+            is_matrix_locked = True
+            print("[INFO] Perspective Matrix LOCKED. Tracking initiated.")
+        else:
+            cv2.putText(frame, "WAITING FOR 4 ANCHORS...", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 3)
+            cv2.imshow("Eye To Zion - Tactical Map", frame)
+            robots_state.clear() 
+            old_gray = None
+            
+            # Non-blocking ROS spin while waiting
+            rclpy.spin_once(node, timeout_sec=0.001)
+            
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+            continue 
 
     for marker_id, data in corners_dict.items():
         if marker_id in [0, 1, 2, 3]:
@@ -181,16 +204,75 @@ while True:
 
     old_gray = gray.copy()
 
+    alpha_positions = []
+    beta_positions = []
+
+    # מעבר על כל הרובוטים שזוהו בפריים הנוכחי (או דרך ה-ARUCO או דרך ה-KLT)
+    for rid, data in corners_dict.items():
+        if rid in {0, 1, 2, 3}: # דילוג על העוגנים
+            continue
+            
+        # שליפת המיקומים (מתוך המטריצה שחישבנו)
+        cx, cy, angle_deg, c = data
+        pt_cam = np.array([[[cx, cy]]], dtype=np.float32)
+        pt_grid = cv2.perspectiveTransform(pt_cam, perspective_matrix)
+        grid_x, grid_y = int(pt_grid[0][0][0]), int(pt_grid[0][0][1])
+        
+        robot_data = {
+            "id": rid,
+            "x": grid_x,
+            "y": grid_y,
+            "angle": round(angle_deg, 2)
+        }
+        
+        # מיון אוטומטי לפי זוגי / אי-זוגי
+        team = get_team_by_id(rid)
+        if team == 'alpha':
+            alpha_positions.append(robot_data)
+        elif team == 'beta':
+            beta_positions.append(robot_data)
+
+    # --- שידור החוצה ל-ROS 2 -> Zenoh -> Tailscale ---
     try:
-        if len(fleet_positions) > 0:
-            redis_client.publish('fleet_positions', json.dumps(fleet_positions))
+        if len(alpha_positions) > 0:
+            msg_alpha = String()
+            msg_alpha.data = json.dumps(alpha_positions)
+            pub_alpha.publish(msg_alpha)
+
+        if len(beta_positions) > 0:
+            msg_beta = String()
+            msg_beta.data = json.dumps(beta_positions)
+            pub_beta.publish(msg_beta)
+            
     except Exception as e:
-        print(f"[ERROR] Redis Connection Failed: {e}")
+        print(f"[ERROR] ROS 2 Publish Failed: {e}")
+
+    try:
+        # שידור לקבוצה אלפא (רק אם יש נתונים לשדר)
+        if len(alpha_positions) > 0:
+            msg_alpha = String()
+            msg_alpha.data = json.dumps(alpha_positions)
+            pub_alpha.publish(msg_alpha)
+
+        # שידור לקבוצה בטא
+        if len(beta_positions) > 0:
+            msg_beta = String()
+            msg_beta.data = json.dumps(beta_positions)
+            pub_beta.publish(msg_beta)
+            
+    except Exception as e:
+        print(f"[ERROR] ROS 2 Publish Failed: {e}")
 
     cv2.imshow("Eye To Zion - Tactical Map", frame)
+
+    # 5. Allow ROS to handle background network events
+    rclpy.spin_once(node, timeout_sec=0.001)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
+# 6. Cleanup
 cap.release()
 cv2.destroyAllWindows()
+node.destroy_node()
+rclpy.shutdown()
