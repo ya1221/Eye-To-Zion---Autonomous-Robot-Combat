@@ -35,11 +35,18 @@ def generate_launch_description():
         ),
     )
 
+    telemetry_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([FindPackageShare('telemetry_data'), 'launch', 'launch.py'])
+        ),
+    )
+
     return LaunchDescription([
         LogInfo(msg='========== Robot Bringup Starting =========='),
         hardware_launch,
         localization_launch,
         navigation_launch,
         foxglove_launch,
+        telemetry_launch,
         LogInfo(msg='========== All Subsystems Launched =========='),
     ])

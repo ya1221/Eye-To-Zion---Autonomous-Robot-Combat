@@ -7,9 +7,23 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(fmt REQUIRED)
+find_package(Boost REQUIRED)
+
+add_executable(telegraf_bridge src/telegraf_bridge.cpp src/telemetry_sender.cpp)
+target_include_directories(telegraf_bridge PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+ament_target_dependencies(telegraf_bridge rclcpp nav_msgs Boost)
+target_link_libraries(telegraf_bridge fmt::fmt)
+
+install(TARGETS telegraf_bridge
+  DESTINATION lib/${PROJECT_NAME})
+
+install(DIRECTORY launch/
+  DESTINATION share/${PROJECT_NAME}/launch)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
