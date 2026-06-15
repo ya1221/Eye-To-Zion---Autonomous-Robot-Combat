@@ -1,9 +1,0 @@
-/ros2_ws/build/localization/CMakeFiles/uninstall.dir
-/ros2_ws/build/localization/CMakeFiles/localization_uninstall.dir
-/ros2_ws/build/localization/CMakeFiles/test.dir
-/ros2_ws/build/localization/CMakeFiles/edit_cache.dir
-/ros2_ws/build/localization/CMakeFiles/rebuild_cache.dir
-/ros2_ws/build/localization/CMakeFiles/list_install_components.dir
-/ros2_ws/build/localization/CMakeFiles/install.dir
-/ros2_ws/build/localization/CMakeFiles/install/local.dir
-/ros2_ws/build/localization/CMakeFiles/install/strip.dir
