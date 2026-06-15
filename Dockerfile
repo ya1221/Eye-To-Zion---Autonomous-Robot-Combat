@@ -25,6 +25,8 @@ RUN pip3 install --no-cache-dir \
     py_trees \
     setuptools==58.2.0
 
+RUN pip3 install eclipse-zenoh
+
 # Set environment variable
 ENV PYTHONUNBUFFERED=1
 

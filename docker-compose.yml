@@ -1,30 +1,42 @@
 version: '3.8'
 
 services:
-  # הקונטיינר של הרובוט/המוח (ROS2)
-  tactical_brain:
+  # ==========================================
+  # 1. הקונטיינר של הרובוט (ROS 2 + Zenoh)
+  # ==========================================
+  robot_brain:
     build: 
       context: .
       dockerfile: Dockerfile
     container_name: etz_brain
-    # מחבר את התיקייה במחשב שלך לתוך הקונטיינר כדי שתוכל לערוך קוד מבחוץ
+    
+    # חוק ברזל: חייב להיות על Host כדי לדבר עם Tailscale ו-Zenoh
+    network_mode: "host"
+    
+    # חיבור הקוד שלך מבחוץ פנימה
     volumes:
       - ./ETZ_ws:/app/ETZ_ws
-    # מחבר אותו לרשת המשותפת
-    networks:
-      - etz_network
-    # אומר לדוקר להשאיר את הקונטיינר דולק ברקע
+      
+    # הפקודה שמריצה את המערכת שלך אוטומטית בעלייה
+    # (לחלופין, אפשר להשאיר 'tail -F /dev/null' ולהיכנס ידנית כמו שעשית עד כה)
     command: tail -F /dev/null
 
-  # הקונטיינר של הרדיס (תקשורת)
-  redis_server:
-    image: redis:latest
-    container_name: etz_redis
-    ports:
-      - "6379:6379"
-    networks:
-      - etz_network
-
-networks:
-  etz_network:
-    driver: bridge
+  # ==========================================
+  # 2. הקונטיינר של רשת ה-VPN (Tailscale)
+  # ==========================================
+  tailscale:
+    image: tailscale/tailscale:latest
+    container_name: tailscale
+    privileged: true
+    network_mode: "host"
+    volumes:
+      - ./ts-state:/var/lib/tailscale
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      # מומלץ להעביר את המפתח לתוך קובץ .env נפרד
+      - TS_AUTHKEY=tskey-auth-kDQuVvyKZA11CNTRL-e7hZfXzZzfbvewGFs7pNgbdpEQzeNxMc
+      - TS_EXTRA_ARGS=--accept-dns=false
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_HOSTNAME=shay-laptop # שיניתי את השם לרובוט, כדי שיהיה ברור מול הלפטופ
+      - TS_USERSPACE=false
+    restart: unless-stopped
