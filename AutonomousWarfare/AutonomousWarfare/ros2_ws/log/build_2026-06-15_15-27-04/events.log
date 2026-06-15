@@ -1,0 +1,122 @@
+[0.000000] (-) TimerEvent: {}
+[0.000126] (-) JobUnselected: {'identifier': 'foxglove'}
+[0.000285] (-) JobUnselected: {'identifier': 'localization'}
+[0.000593] (-) JobUnselected: {'identifier': 'navigation'}
+[0.000620] (-) JobUnselected: {'identifier': 'robot_bringup'}
+[0.000929] (-) JobUnselected: {'identifier': 'robot_description'}
+[0.000953] (-) JobUnselected: {'identifier': 'telemetry_data'}
+[0.000971] (-) JobUnselected: {'identifier': 'ydlidar_ros2_driver'}
+[0.001024] (hardware) JobQueued: {'identifier': 'hardware', 'dependencies': OrderedDict()}
+[0.001046] (hardware) JobStarted: {'identifier': 'hardware'}
+[0.031270] (hardware) JobProgress: {'identifier': 'hardware', 'progress': 'cmake'}
+[0.034730] (hardware) JobProgress: {'identifier': 'hardware', 'progress': 'build'}
+[0.035701] (hardware) Command: {'cmd': ['/usr/bin/cmake', '--build', '/ros2_ws/build/hardware', '--', '-j4', '-l4'], 'cwd': '/ros2_ws/build/hardware', 'env': OrderedDict([('HOSTNAME', 'yahav'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/root'), ('OLDPWD', '/ros2_ws'), ('PYTHONUNBUFFERED', '1'), ('ROS_PYTHON_VERSION', '3'), ('ROS_DISTRO', 'humble'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'), ('DISPLAY', ''), ('LANG', 'C.UTF-8'), ('ROS_DOMAIN_ID', '0'), ('AMENT_PREFIX_PATH', '/opt/ros/humble'), ('PWD', '/ros2_ws/build/hardware'), ('LC_ALL', 'C.UTF-8'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/opt/ros/humble')]), 'shell': False}
+[0.099693] (-) TimerEvent: {}
+[0.199911] (-) TimerEvent: {}
+[0.300119] (-) TimerEvent: {}
+[0.400384] (-) TimerEvent: {}
+[0.500594] (-) TimerEvent: {}
+[0.592999] (hardware) StdoutLine: {'line': b'[ 25%] Building CXX object CMakeFiles/motor_driver.dir/src/motor_driver.cpp.o\n'}
+[0.599440] (hardware) StdoutLine: {'line': b'[ 75%] Built target twist_to_ackermann\n'}
+[0.600656] (-) TimerEvent: {}
+[0.700808] (-) TimerEvent: {}
+[0.800993] (-) TimerEvent: {}
+[0.901219] (-) TimerEvent: {}
+[1.001446] (-) TimerEvent: {}
+[1.101664] (-) TimerEvent: {}
+[1.201961] (-) TimerEvent: {}
+[1.302174] (-) TimerEvent: {}
+[1.402403] (-) TimerEvent: {}
+[1.502724] (-) TimerEvent: {}
+[1.602966] (-) TimerEvent: {}
+[1.703192] (-) TimerEvent: {}
+[1.803402] (-) TimerEvent: {}
+[1.903636] (-) TimerEvent: {}
+[2.003847] (-) TimerEvent: {}
+[2.104055] (-) TimerEvent: {}
+[2.204280] (-) TimerEvent: {}
+[2.304500] (-) TimerEvent: {}
+[2.404724] (-) TimerEvent: {}
+[2.504954] (-) TimerEvent: {}
+[2.605184] (-) TimerEvent: {}
+[2.705430] (-) TimerEvent: {}
+[2.806369] (-) TimerEvent: {}
+[2.906657] (-) TimerEvent: {}
+[3.007344] (-) TimerEvent: {}
+[3.107604] (-) TimerEvent: {}
+[3.208307] (-) TimerEvent: {}
+[3.308561] (-) TimerEvent: {}
+[3.408783] (-) TimerEvent: {}
+[3.509003] (-) TimerEvent: {}
+[3.609251] (-) TimerEvent: {}
+[3.709485] (-) TimerEvent: {}
+[3.809734] (-) TimerEvent: {}
+[3.909956] (-) TimerEvent: {}
+[4.010182] (-) TimerEvent: {}
+[4.110405] (-) TimerEvent: {}
+[4.210784] (-) TimerEvent: {}
+[4.311005] (-) TimerEvent: {}
+[4.411216] (-) TimerEvent: {}
+[4.511623] (-) TimerEvent: {}
+[4.612155] (-) TimerEvent: {}
+[4.712376] (-) TimerEvent: {}
+[4.812595] (-) TimerEvent: {}
+[4.912813] (-) TimerEvent: {}
+[5.013034] (-) TimerEvent: {}
+[5.113271] (-) TimerEvent: {}
+[5.213629] (-) TimerEvent: {}
+[5.313849] (-) TimerEvent: {}
+[5.414086] (-) TimerEvent: {}
+[5.514726] (-) TimerEvent: {}
+[5.614959] (-) TimerEvent: {}
+[5.715402] (-) TimerEvent: {}
+[5.817421] (-) TimerEvent: {}
+[5.921322] (-) TimerEvent: {}
+[6.021696] (-) TimerEvent: {}
+[6.122061] (-) TimerEvent: {}
+[6.222418] (-) TimerEvent: {}
+[6.322637] (-) TimerEvent: {}
+[6.422848] (-) TimerEvent: {}
+[6.523060] (-) TimerEvent: {}
+[6.623273] (-) TimerEvent: {}
+[6.723489] (-) TimerEvent: {}
+[6.792763] (hardware) StdoutLine: {'line': b'[100%] Linking CXX shared library libmotor_driver.so\n'}
+[6.823591] (-) TimerEvent: {}
+[6.923807] (-) TimerEvent: {}
+[7.024035] (-) TimerEvent: {}
+[7.124293] (-) TimerEvent: {}
+[7.177078] (hardware) StdoutLine: {'line': b'[100%] Built target motor_driver\n'}
+[7.187918] (hardware) CommandEnded: {'returncode': 0}
+[7.190311] (hardware) JobProgress: {'identifier': 'hardware', 'progress': 'install'}
+[7.198546] (hardware) Command: {'cmd': ['/usr/bin/cmake', '--install', '/ros2_ws/build/hardware'], 'cwd': '/ros2_ws/build/hardware', 'env': OrderedDict([('HOSTNAME', 'yahav'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/root'), ('OLDPWD', '/ros2_ws'), ('PYTHONUNBUFFERED', '1'), ('ROS_PYTHON_VERSION', '3'), ('ROS_DISTRO', 'humble'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'), ('DISPLAY', ''), ('LANG', 'C.UTF-8'), ('ROS_DOMAIN_ID', '0'), ('AMENT_PREFIX_PATH', '/opt/ros/humble'), ('PWD', '/ros2_ws/build/hardware'), ('LC_ALL', 'C.UTF-8'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/opt/ros/humble')]), 'shell': False}
+[7.207568] (hardware) StdoutLine: {'line': b'-- Install configuration: ""\n'}
+[7.210508] (hardware) StdoutLine: {'line': b'-- Execute custom install script\n'}
+[7.210619] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware//hardware_interface_plugins.xml\n'}
+[7.211590] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/lib/libmotor_driver.so\n'}
+[7.212185] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/lib/hardware/twist_to_ackermann\n'}
+[7.213029] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/config/ackermann_steering_controller.yaml\n'}
+[7.213126] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/config/controller_manager.yaml\n'}
+[7.213198] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/config/joint_state_broadcaster.yaml\n'}
+[7.213505] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/launch/launch.py\n'}
+[7.213593] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/ros2_control.xacro\n'}
+[7.213654] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/hardware_interface_plugins.xml\n'}
+[7.213710] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/ament_index/resource_index/package_run_dependencies/hardware\n'}
+[7.213769] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/ament_index/resource_index/parent_prefix_path/hardware\n'}
+[7.213825] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/environment/ament_prefix_path.sh\n'}
+[7.215285] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/environment/ament_prefix_path.dsv\n'}
+[7.215442] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/environment/path.sh\n'}
+[7.215521] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/environment/path.dsv\n'}
+[7.215601] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/local_setup.bash\n'}
+[7.215681] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/local_setup.sh\n'}
+[7.215760] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/local_setup.zsh\n'}
+[7.215830] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/local_setup.dsv\n'}
+[7.215902] (hardware) StdoutLine: {'line': b'-- Symlinking: /ros2_ws/install/hardware/share/hardware/package.dsv\n'}
+[7.222924] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/ament_index/resource_index/packages/hardware\n'}
+[7.223105] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/ament_index/resource_index/hardware_interface__pluginlib__plugin/hardware\n'}
+[7.223659] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/cmake/hardwareConfig.cmake\n'}
+[7.223775] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/cmake/hardwareConfig-version.cmake\n'}
+[7.223839] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/package.xml\n'}
+[7.224344] (-) TimerEvent: {}
+[7.225610] (hardware) CommandEnded: {'returncode': 0}
+[7.274487] (hardware) JobEnded: {'identifier': 'hardware', 'rc': 0}
+[7.275404] (-) EventReactorShutdown: {}
