@@ -17,6 +17,84 @@ bool MotorDriver::write_sysfs(const std::string& path, const std::string& value)
 }
 
 
+bool MotorDriver::open_serial_port() {
+    // Open the serial device in read-write, non-controlling-terminal, non-blocking mode
+    this->serial_fd_ = open(this->serial_device_path_.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
+    if (this->serial_fd_ < 0) {
+        RCLCPP_ERROR(rclcpp::get_logger("motor_driver"),
+            "Failed to open serial port '%s': %s",
+            this->serial_device_path_.c_str(), std::strerror(errno));
+        return false;
+    }
+
+    // Clear the non-blocking flag so writes block until complete
+    fcntl(this->serial_fd_, F_SETFL, 0);
+
+    // Configure the serial port with termios
+    struct termios tty;
+    if (tcgetattr(this->serial_fd_, &tty) != 0) {
+        RCLCPP_ERROR(rclcpp::get_logger("motor_driver"),
+            "tcgetattr failed for '%s': %s",
+            this->serial_device_path_.c_str(), std::strerror(errno));
+        close(this->serial_fd_);
+        this->serial_fd_ = -1;
+        return false;
+    }
+
+    // Set baud rate (115200)
+    speed_t baud;
+    switch (this->serial_baud_) {
+        case 9600:   baud = B9600;   break;
+        case 19200:  baud = B19200;  break;
+        case 38400:  baud = B38400;  break;
+        case 57600:  baud = B57600;  break;
+        case 115200: baud = B115200; break;
+        default:     baud = B115200; break;
+    }
+    cfsetispeed(&tty, baud);
+    cfsetospeed(&tty, baud);
+
+    // 8N1 (8 data bits, no parity, 1 stop bit)
+    tty.c_cflag &= ~PARENB;    // No parity
+    tty.c_cflag &= ~CSTOPB;    // 1 stop bit
+    tty.c_cflag &= ~CSIZE;
+    tty.c_cflag |= CS8;         // 8 data bits
+
+    // No hardware flow control
+    tty.c_cflag &= ~CRTSCTS;
+
+    // Enable receiver, local mode (ignore modem control lines)
+    tty.c_cflag |= (CLOCAL | CREAD);
+
+    // Raw input mode (no canonical processing, no echo, no signals)
+    tty.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
+
+    // No software flow control
+    tty.c_iflag &= ~(IXON | IXOFF | IXANY);
+
+    // Raw output mode
+    tty.c_oflag &= ~OPOST;
+
+    // Read timeout configuration: non-blocking with no minimum bytes
+    tty.c_cc[VMIN]  = 0;
+    tty.c_cc[VTIME] = 0;
+
+    // Apply the configuration
+    if (tcsetattr(this->serial_fd_, TCSANOW, &tty) != 0) {
+        RCLCPP_ERROR(rclcpp::get_logger("motor_driver"),
+            "tcsetattr failed for '%s': %s",
+            this->serial_device_path_.c_str(), std::strerror(errno));
+        close(this->serial_fd_);
+        this->serial_fd_ = -1;
+        return false;
+    }
+
+    // Flush any stale data in the buffers
+    tcflush(this->serial_fd_, TCIOFLUSH);
+
+    return true;
+}
+
 
 hardware_interface::CallbackReturn MotorDriver::on_init(const hardware_interface::HardwareInfo & info) {
     if (hardware_interface::SystemInterface::on_init(info) != hardware_interface::CallbackReturn::SUCCESS) {
@@ -28,6 +106,14 @@ hardware_interface::CallbackReturn MotorDriver::on_init(const hardware_interface
     // Read GPIO chip name for libgpiod (e.g. "gpiochip4" on Pi 5)
     if (this->info_.hardware_parameters.find("gpio_chip") != this->info_.hardware_parameters.end()) {
         this->gpio_chip_name_ = this->info_.hardware_parameters.at("gpio_chip");
+    }
+
+    // Read serial port configuration for Arduino steering control
+    if (this->info_.hardware_parameters.find("serial_device") != this->info_.hardware_parameters.end()) {
+        this->serial_device_path_ = this->info_.hardware_parameters.at("serial_device");
+    }
+    if (this->info_.hardware_parameters.find("serial_baud") != this->info_.hardware_parameters.end()) {
+        this->serial_baud_ = std::stoi(this->info_.hardware_parameters.at("serial_baud"));
     }
 
     size_t total_states = 0;
@@ -76,10 +162,29 @@ hardware_interface::CallbackReturn MotorDriver::on_init(const hardware_interface
             this->active_motors_.push_back(target);
         }
 
-        // 3. Keep counting to allocate enough memory for everything
+        // 3. Check if this joint is a steering servo (controlled via Arduino serial)
+        if (joint.parameters.find("servo_index") != joint.parameters.end()) {
+            ServoTarget servo;
+            servo.servo_index = std::stoi(joint.parameters.at("servo_index"));
+            // Steering uses position command
+            servo.cmd_index = (updater.cmd_pos_idx != -1) ? updater.cmd_pos_idx : total_commands;
+            this->active_servos_.push_back(servo);
+
+            RCLCPP_INFO(rclcpp::get_logger("motor_driver"),
+                "Registered steering servo: joint='%s', servo_index=%d, cmd_index=%zu",
+                joint.name.c_str(), servo.servo_index, servo.cmd_index);
+        }
+
+        // 4. Keep counting to allocate enough memory for everything
         total_states += joint.state_interfaces.size();
         total_commands += joint.command_interfaces.size();
     }
+
+    // Sort servos by index so we always send left (0) before right (1)
+    std::sort(this->active_servos_.begin(), this->active_servos_.end(),
+        [](const ServoTarget& a, const ServoTarget& b) {
+            return a.servo_index < b.servo_index;
+        });
 
     // Allocate memory ONCE. The pointers will remain stable forever.
     this->hw_states_.resize(total_states, 0.0);
@@ -170,6 +275,26 @@ hardware_interface::CallbackReturn MotorDriver::on_activate(const rclcpp_lifecyc
             motor.in1_gpio, motor.in1_line ? "OK" : "N/A",
             motor.in2_gpio, motor.in2_line ? "OK" : "N/A");
     }
+
+    // --- Open serial port for Arduino steering servo control ---
+    if (!this->serial_device_path_.empty() && !this->active_servos_.empty()) {
+        if (!open_serial_port()) {
+            RCLCPP_ERROR(rclcpp::get_logger("motor_driver"),
+                "Failed to open serial port for steering servos. Steering will be unavailable.");
+            // Non-fatal: drive motors can still work without steering
+        } else {
+            // Wait for Arduino bootloader to finish its reset cycle after USB serial open.
+            // The Arduino Uno resets when DTR is asserted on serial port open.
+            RCLCPP_INFO(rclcpp::get_logger("motor_driver"),
+                "Serial port '%s' opened at %d baud. Waiting 2s for Arduino bootloader...",
+                this->serial_device_path_.c_str(), this->serial_baud_);
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+            RCLCPP_INFO(rclcpp::get_logger("motor_driver"),
+                "Arduino ready. Steering servo control active (%zu servos).",
+                this->active_servos_.size());
+        }
+    }
+
     return hardware_interface::CallbackReturn::SUCCESS;
 }
 
@@ -208,6 +333,19 @@ hardware_interface::CallbackReturn MotorDriver::on_deactivate(const rclcpp_lifec
     if (this->gpio_chip_) {
         gpiod_chip_close(this->gpio_chip_);
         this->gpio_chip_ = nullptr;
+    }
+
+    // --- Close serial port for steering ---
+    if (this->serial_fd_ >= 0) {
+        // Send a zeroed steering command before closing so servos center
+        const char* zero_cmd = "S0.0000,0.0000\n";
+        ::write(this->serial_fd_, zero_cmd, strlen(zero_cmd));
+
+        // Small delay to let the data flush out before closing
+        tcdrain(this->serial_fd_);
+        close(this->serial_fd_);
+        this->serial_fd_ = -1;
+        RCLCPP_INFO(rclcpp::get_logger("motor_driver"), "Serial port closed. Steering servos centered.");
     }
 
     return hardware_interface::CallbackReturn::SUCCESS;
@@ -270,6 +408,7 @@ hardware_interface::return_type MotorDriver::read(const rclcpp::Time &, const rc
 }
 
 hardware_interface::return_type MotorDriver::write(const rclcpp::Time &, const rclcpp::Duration &) {
+    // === Drive Motors (PWM + L298N direction via GPIO) ===
     for (const auto& motor : this->active_motors_) {
         if (motor.duty_cycle_fd < 0) {
             RCLCPP_WARN_THROTTLE(rclcpp::get_logger("motor_driver"), this->steady_clock_, 2000,
@@ -320,6 +459,34 @@ hardware_interface::return_type MotorDriver::write(const rclcpp::Time &, const r
         }
     }
 
+    // === Steering Servos (via Arduino serial UART) ===
+    if (this->serial_fd_ >= 0 && !this->active_servos_.empty()) {
+        // Build the command string: S<left_rad>,<right_rad>\n
+        // active_servos_ is sorted by servo_index (0=left, 1=right)
+        char cmd_buf[64];
+        int cmd_len;
+
+        if (this->active_servos_.size() >= 2) {
+            double left_rad  = this->hw_commands_[this->active_servos_[0].cmd_index];
+            double right_rad = this->hw_commands_[this->active_servos_[1].cmd_index];
+
+            cmd_len = snprintf(cmd_buf, sizeof(cmd_buf), "S%.4f,%.4f\n", left_rad, right_rad);
+        } else {
+            // Single servo fallback
+            double rad = this->hw_commands_[this->active_servos_[0].cmd_index];
+            cmd_len = snprintf(cmd_buf, sizeof(cmd_buf), "S%.4f\n", rad);
+        }
+
+        ssize_t ret = ::write(this->serial_fd_, cmd_buf, cmd_len);
+        if (ret < 0) {
+            RCLCPP_WARN_THROTTLE(rclcpp::get_logger("motor_driver"), this->steady_clock_, 2000,
+                "Serial write failed: errno=%d (%s)", errno, std::strerror(errno));
+        }
+
+        RCLCPP_INFO_THROTTLE(rclcpp::get_logger("motor_driver"), this->steady_clock_, 1000,
+            "Steering serial: %.*s", cmd_len - 1, cmd_buf);  // -1 to strip the \n for logging
+    }
+    
     return hardware_interface::return_type::OK;
 }
 

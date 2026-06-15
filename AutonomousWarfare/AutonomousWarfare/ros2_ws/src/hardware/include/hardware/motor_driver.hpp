@@ -15,6 +15,9 @@
 #include <thread>
 #include <chrono>
 
+// Serial port configuration
+#include <termios.h>
+
 // libgpiod for L298N direction pins
 #include <gpiod.h>
 
@@ -55,6 +58,13 @@ private:
         struct gpiod_line* in2_line = nullptr;  // libgpiod line handle for IN2
     };
 
+    // --- Steering Servo Target ---
+    // Maps a steering joint to its command index and servo index for serial transmission.
+    struct ServoTarget {
+        int servo_index;    // 0 = left, 1 = right (from XACRO servo_index param)
+        size_t cmd_index;   // Index into hw_commands_ for the position command
+    };
+
     struct StateUpdater {
         ssize_t cmd_pos_idx = -1;
         ssize_t cmd_vel_idx = -1;
@@ -66,7 +76,16 @@ private:
     // Only stores joints that actively receive commands (ignores passive joints like rear wheels)
     std::vector<MotorTarget> active_motors_;
 
+    // Steering servos controlled via Arduino serial (UART)
+    std::vector<ServoTarget> active_servos_;
+
     bool write_sysfs(const std::string& path, const std::string& value);
+
+    // --- Serial (UART) for Arduino steering ---
+    std::string serial_device_path_;    // e.g. "/dev/ttyACM0"
+    int serial_baud_ = 115200;
+    int serial_fd_ = -1;               // File descriptor for UART port
+    bool open_serial_port();
 
     // libgpiod chip handle (shared across all motors)
     std::string gpio_chip_name_;                // e.g. "gpiochip4" on Pi 5

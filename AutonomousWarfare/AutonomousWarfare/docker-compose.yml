@@ -12,11 +12,14 @@ services:
     # Shares the Pi's IP address directly with the container
     # Required so ROS 2 nodes can find each other via DDS (discovery)
     network_mode: host
+    ipc: host
 
     # The 'Hardware Portal': Connects the physical camera lens to the container
     # [Physical Pi Path] : [Virtual Container Path]
     devices:
       - "/dev/video0:/dev/video0"
+      - "/dev/ttyUSB0:/dev/ttyUSB0"
+      - "/dev/ttyACM0:/dev/ttyACM0"
     
     environment:
       # Sets the ROS 2 communication group (must match your laptop/other robots)

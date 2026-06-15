@@ -8,18 +8,23 @@
       <!-- libgpiod chip name for L298N direction pins -->
       <!-- Pi 5 RP1 = "gpiochip0" (pinctrl-rp1, 54 lines). Verify with: gpiodetect -->
       <param name="gpio_chip">gpiochip0</param>
+      <!-- UART serial port for Arduino Uno steering servo control -->
+      <param name="serial_device">/dev/ttyACM0</param>
+      <param name="serial_baud">115200</param>
     </hardware>
 
     <joint name="front_left_steering_joint">
       <command_interface name="position"/>
       <state_interface name="position"/>
       <state_interface name="effort"/>
+      <param name="servo_index">0</param>
     </joint>
 
     <joint name="front_right_steering_joint">
       <command_interface name="position"/>
       <state_interface name="position"/>
       <state_interface name="effort"/>
+      <param name="servo_index">1</param>
     </joint>
 
     <!-- Left motor: ENA=PWM ch0 (GPIO12/pin32), IN1=GPIO27 (pin13), IN2=GPIO22 (pin15) -->
