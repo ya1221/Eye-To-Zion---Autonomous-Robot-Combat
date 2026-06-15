@@ -1,15 +1,14 @@
-version: '3.8'
-
 services:
-  # 1. עיבוד התמונה ושידור ה-ROS 2 המרכזי
   overhead_tracker:
-    build: .
+    build: ./overhead
     container_name: overhead_tracker
     network_mode: host
     environment:
       - DISPLAY=${DISPLAY}
+      - CNT_TEAM=2
+      - QT_LOGGING_RULES=qt.qpa.fonts.warning=false
     volumes:
-      - .:/app
+      - ./overhead:/app
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
       - /dev:/dev
     group_add:
@@ -18,7 +17,6 @@ services:
       - 'c 81:* rmw'
     restart: always
 
-  # 2. הגשר שמאזין ל-ROS 2 ומנתב ל-Zenoh על גבי Tailscale
   zenoh_bridge:
     image: eclipse/zenoh-bridge-ros2dds:latest
     container_name: zenoh_bridge
