@@ -9,16 +9,18 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: etz_brain
-    
-    # חוק ברזל: חייב להיות על Host כדי לדבר עם Tailscale ו-Zenoh
     network_mode: "host"
     
-    # חיבור הקוד שלך מבחוץ פנימה
+    # --- הוסף את בלוק הסביבה הזה ---
+    environment:
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+      
     volumes:
       - ./ETZ_ws:/app/ETZ_ws
+      # --- הוסף את השורה הזו כדי לחבר את המסך ---
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw 
       
-    # הפקודה שמריצה את המערכת שלך אוטומטית בעלייה
-    # (לחלופין, אפשר להשאיר 'tail -F /dev/null' ולהיכנס ידנית כמו שעשית עד כה)
     command: tail -F /dev/null
 
   # ==========================================

@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<robot name="gazebo_references" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <gazebo reference="base_link">
+    <material>Gazebo/Blue</material>
+  </gazebo>
+
+  <gazebo reference="camera_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+
+  <gazebo reference="turret_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+
+  <gazebo reference="lidar_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+
+  <gazebo reference="base_link"><mu1>0.8</mu1><mu2>0.8</mu2></gazebo>
+  <gazebo reference="front_left_wheel_link">
+    <mu1>2.0</mu1>   
+    <mu2>2.0</mu2>   
+    <kp>500000.0</kp> 
+    <kd>10.0</kd>
+    <minDepth>0.001</minDepth>
+    <maxVel>0.1</maxVel> 
+  </gazebo>
+
+  <gazebo reference="front_right_wheel_link">
+    <mu1>2.0</mu1>
+    <mu2>2.0</mu2>
+    <kp>500000.0</kp> 
+    <kd>10.0</kd>
+    <minDepth>0.001</minDepth>
+    <maxVel>0.1</maxVel> 
+  </gazebo>
+
+  <gazebo reference="rear_left_wheel_link">
+    <mu1>2.0</mu1>
+    <mu2>2.0</mu2>
+    <kp>500000.0</kp> 
+    <kd>10.0</kd>
+    <minDepth>0.001</minDepth>
+    <maxVel>0.1</maxVel> 
+  </gazebo>
+
+  <gazebo reference="rear_right_wheel_link">
+    <mu1>2.0</mu1>
+    <mu2>2.0</mu2>
+    <kp>500000.0</kp> 
+    <kd>10.0</kd>
+    <minDepth>0.001</minDepth>
+    <maxVel>0.1</maxVel> 
+  </gazebo>
+
+</robot>
