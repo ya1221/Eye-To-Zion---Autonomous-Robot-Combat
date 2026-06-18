@@ -132,26 +132,26 @@ def generate_launch_description():
     )
 
     # --- חזרנו למקור: מגדירים במפורש את נתיבי הקבצים ---
-    jsb_yaml = os.path.join(pkg_dir, 'config', 'joint_state_broadcaster.yaml')
-    ackermann_yaml = os.path.join(pkg_dir, 'config', 'ackermann_steering_controller.yaml')
+    # jsb_yaml = os.path.join(pkg_dir, 'config', 'joint_state_broadcaster.yaml')
+    # ackermann_yaml = os.path.join(pkg_dir, 'config', 'ackermann_steering_controller.yaml')
 
-    # --- הבקרים מקבלים את קבצי התצורה שלהם ישירות ---
-    joint_state_broadcaster = Node(
-        package='controller_manager', executable='spawner', output='screen',
-        arguments=['joint_state_broadcaster', '--controller-manager', '/controller_manager', '--param-file', jsb_yaml],
-    )
+    # # --- הבקרים מקבלים את קבצי התצורה שלהם ישירות ---
+    # joint_state_broadcaster = Node(
+    #     package='controller_manager', executable='spawner', output='screen',
+    #     arguments=['joint_state_broadcaster', '--controller-manager', '/controller_manager', '--param-file', jsb_yaml],
+    # )
 
-    ackermann_steering_controller = Node(
-        package='controller_manager', executable='spawner', output='screen',
-        arguments=['ackermann_steering_controller', '--controller-manager', '/controller_manager', '--param-file', ackermann_yaml],
-    )
+    # ackermann_steering_controller = Node(
+    #     package='controller_manager', executable='spawner', output='screen',
+    #     arguments=['ackermann_steering_controller', '--controller-manager', '/controller_manager', '--param-file', ackermann_yaml],
+    # )
 
-    spawn_jsb = RegisterEventHandler(
-        OnProcessExit(target_action=spawn_robot, on_exit=[joint_state_broadcaster])
-    )
-    spawn_ack = RegisterEventHandler(
-        OnProcessExit(target_action=joint_state_broadcaster, on_exit=[ackermann_steering_controller])
-    )
+    # spawn_jsb = RegisterEventHandler(
+    #     OnProcessExit(target_action=spawn_robot, on_exit=[joint_state_broadcaster])
+    # )
+    # spawn_ack = RegisterEventHandler(
+    #     OnProcessExit(target_action=joint_state_broadcaster, on_exit=[ackermann_steering_controller])
+    # )
 
     return LaunchDescription([
         SetEnvironmentVariable(name='RCL_ARGS', value=''),
@@ -163,6 +163,6 @@ def generate_launch_description():
         rsp,
         TimerAction(period=2.0, actions=[spawn_robot]),
         robot_controller,
-        spawn_jsb,
-        spawn_ack,
+        # spawn_jsb,
+        # spawn_ack,
     ])
