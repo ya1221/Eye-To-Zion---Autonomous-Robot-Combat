@@ -27,4 +27,4 @@ RUN echo '#!/bin/bash\nsource /opt/ros/humble/setup.bash\nexec "$@"' > /entrypoi
 ENTRYPOINT ["/entrypoint.sh"]
 
 # Start the container
-CMD ["python3", "overhead_tracker.py"]
+CMD ["ros2", "launch", "/app/tracker_launch.py"]
