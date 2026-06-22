@@ -13,6 +13,9 @@ find_package(pluginlib REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(tf2 REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GPIOD REQUIRED libgpiod)
@@ -21,15 +24,15 @@ pkg_check_modules(GPIOD REQUIRED libgpiod)
 # --- motor_driver --- #
 # -------------------- #
 
-# 1. Build the Hardware Plugin Library
+# Build the Hardware Plugin Library
 add_library(motor_driver SHARED
   src/motor_driver.cpp
 )
 
-# 2. Add include directories
+# Add include directories
 target_include_directories(motor_driver PRIVATE include ${GPIOD_INCLUDE_DIRS})
 
-# 3. Add dependencies to the library
+# Add dependencies to the library
 ament_target_dependencies(motor_driver
   hardware_interface
   pluginlib
@@ -37,13 +40,16 @@ ament_target_dependencies(motor_driver
   rclcpp_lifecycle
 )
 
-# 4. Link libgpiod
+# Link libgpiod
 target_link_libraries(motor_driver ${GPIOD_LIBRARIES})
 
-# 4. Register the plugin (very important!)
+# Register the plugin (very important!)
 pluginlib_export_plugin_description_file(hardware_interface hardware_interface_plugins.xml)
 
 
+install(TARGETS motor_driver
+  DESTINATION lib
+)
 
 
 # -------------------------- #
@@ -65,20 +71,43 @@ ament_target_dependencies(twist_to_ackermann
   geometry_msgs
 )
 
-# --------------- #
-# --- Install --- #
-# --------------- #
-
-# 5. Install the library
-install(TARGETS motor_driver
-  DESTINATION lib
-)
-
 install(TARGETS twist_to_ackermann
   DESTINATION lib/${PROJECT_NAME}
 )
 
-# 6. Install folders (config, launch) so get_package_share_directory can find them
+# -----------------------------
+# --- heading_pid_controller --
+# -----------------------------
+add_executable(heading_pid_controller src/pid_controller.cpp)
+
+target_include_directories(heading_pid_controller PRIVATE
+  include
+)
+
+ament_target_dependencies(
+  heading_pid_controller
+  rclcpp
+  geometry_msgs
+  nav_msgs
+  sensor_msgs
+  tf2
+)
+
+install(TARGETS heading_pid_controller
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(DIRECTORY config
+  DESTINATION share/${PROJECT_NAME}
+)
+
+
+
+# --------------- #
+# --- Install --- #
+# --------------- #
+
+# Install folders (config, launch) so get_package_share_directory can find them
 install(DIRECTORY config launch
   DESTINATION share/${PROJECT_NAME}
 )

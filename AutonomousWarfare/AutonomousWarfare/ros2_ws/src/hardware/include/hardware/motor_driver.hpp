@@ -85,6 +85,9 @@ private:
     std::string serial_device_path_;    // e.g. "/dev/ttyACM0"
     int serial_baud_ = 115200;
     int serial_fd_ = -1;               // File descriptor for UART port
+
+    // --- PWM multiplier (tunable at runtime via hardware_parameters) ---
+    double pwm_multiplier_ = 2.0;      // Scales the duty cycle: duty_ns = pwm_multiplier * |cmd| * 2_000_000
     bool open_serial_port();
 
     // libgpiod chip handle (shared across all motors)

@@ -4,17 +4,11 @@ from launch import LaunchDescription
 from launch_ros.actions import Node
 
 def generate_launch_description():
-    # 1. Locate the YAML file path
-    # Make sure 'your_package_name' matches your actual package
-    ydlidar_config_path = os.path.join(
-        get_package_share_directory('localization'), 'config', 'lidar.yaml'
-    )
+    pkg_share = get_package_share_directory('localization')
+    ydlidar_config_path = os.path.join(pkg_share, 'config', 'lidar.yaml')
+    slam_config_path = os.path.join(pkg_share, 'config', 'slam.yaml')
+    ekf_config = os.path.join(pkg_share, 'config', 'ekf.yaml')
 
-    slam_config_path = os.path.join(
-        get_package_share_directory('localization'), 'config', 'slam.yaml'
-    )
-
-    # 2. Define the Node with the parameter file
     ydlidar_node = Node(
         package='ydlidar_ros2_driver',
         executable='ydlidar_ros2_driver_node',
@@ -32,9 +26,33 @@ def generate_launch_description():
         parameters=[slam_config_path, {'use_sim_time': False}] 
     )
 
-    
+    # ---- EKF Local: odom → base_link (smooth, no jumps) ----
+    ekf_local_node = Node(
+            package='robot_localization',
+            executable='ekf_node',
+            name='ekf_local_node',
+            parameters=[ekf_config],
+            remappings=[
+                ('odometry/filtered', '/odometry/local'),
+            ],
+            output='screen',
+    )
+ 
+    # ---- EKF Global: map → odom (ArUco corrected) ----
+    ekf_global_node = Node(
+        package='robot_localization',
+        executable='ekf_node',
+        name='ekf_global_node',
+        parameters=[ekf_config],
+        remappings=[
+            ('odometry/filtered', '/odometry/filtered'),
+        ],
+        output='screen',
+    )
 
     return LaunchDescription([
         ydlidar_node,
         slam_toolbox_node,
+        ekf_local_node,
+        ekf_global_node
     ])

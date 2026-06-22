@@ -116,6 +116,14 @@ hardware_interface::CallbackReturn MotorDriver::on_init(const hardware_interface
         this->serial_baud_ = std::stoi(this->info_.hardware_parameters.at("serial_baud"));
     }
 
+    // Read optional PWM multiplier (default = 2.0)
+    if (this->info_.hardware_parameters.find("pwm_multiplier") != this->info_.hardware_parameters.end()) {
+        this->pwm_multiplier_ = std::stod(this->info_.hardware_parameters.at("pwm_multiplier"));
+    }
+    RCLCPP_INFO(rclcpp::get_logger("motor_driver"),
+        "PWM multiplier loaded: %.4f (override via hardware_parameter 'pwm_multiplier')",
+        this->pwm_multiplier_);
+
     size_t total_states = 0;
     size_t total_commands = 0;
 
@@ -418,7 +426,12 @@ hardware_interface::return_type MotorDriver::write(const rclcpp::Time &, const r
 
         // Calculate the duty cycle in nanoseconds
         double target_cmd = this->hw_commands_[motor.cmd_index];
-        uint64_t duty_cycle_ns = static_cast<uint64_t>(std::abs(target_cmd) * 2000000.0);
+        uint64_t duty_cycle_ns = 0;
+        if(motor.pwm_channel == 0){
+            duty_cycle_ns = static_cast<uint64_t>(this->pwm_multiplier_ * std::abs(target_cmd) * 2000000.0);
+        } else {
+            duty_cycle_ns = static_cast<uint64_t>(std::abs(target_cmd) * 2000000.0);
+        }
 
         // Clamp to period (20ms = 20,000,000 ns)
         if (duty_cycle_ns > 20000000) {

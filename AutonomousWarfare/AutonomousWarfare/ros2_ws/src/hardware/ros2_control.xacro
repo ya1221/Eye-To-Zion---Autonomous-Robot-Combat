@@ -11,6 +11,7 @@
       <!-- UART serial port for Arduino Uno steering servo control -->
       <param name="serial_device">/dev/ttyACM0</param>
       <param name="serial_baud">115200</param>
+      <param name="pwm_multiplier">1.60</param>
     </hardware>
 
     <joint name="front_left_steering_joint">

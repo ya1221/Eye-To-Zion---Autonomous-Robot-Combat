@@ -17,6 +17,7 @@ def generate_launch_description():
     ackermann_yaml = os.path.join(hardware_pkg, 'config', 'ackermann_steering_controller.yaml')
     joint_state_broadcaster_yaml = os.path.join(hardware_pkg, 'config', 'joint_state_broadcaster.yaml')
     controller_manager_yaml = os.path.join(hardware_pkg, 'config', 'controller_manager.yaml')
+    pid_params_yaml = os.path.join(hardware_pkg, 'config', 'pid_params.yaml')
 
     robot_description = ParameterValue(
         Command(['xacro ', robot_description_path]),
@@ -66,10 +67,19 @@ def generate_launch_description():
         parameters=[{'use_sim_time': False}]
     )
 
+    pid_controller_node = Node(
+        package='hardware',
+        executable='heading_pid_controller',
+        name='heading_pid_controller',
+        parameters=[pid_params_yaml],
+        output='screen'
+    )
+
     return LaunchDescription([
        controller_manager_node,
        rsp,
        joint_state_broadcaster,
        ackermann_steering_controller,
        twist_to_ackermann_node,
+       pid_controller_node
     ])
