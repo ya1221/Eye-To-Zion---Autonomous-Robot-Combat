@@ -1,0 +1,25 @@
+# ===========================================================
+#  rf2o_laser_odometry configuration
+#
+#  Computes 2D odometry from consecutive laser scans
+#  Publishes nav_msgs/Odometry on /odom_rf2o
+#
+#  CHANGE laser_scan_topic to match YOUR lidar topic name
+#  CHANGE base_frame_id if your base frame is not base_link
+# ===========================================================
+rf2o_laser_odometry_node:
+  ros__parameters:
+    # ---- Topic and frame config ----
+    laser_scan_topic: /scan            # CHANGE to your lidar topic
+    odom_topic: /odom_rf2o             # output topic — must match ekf.yaml
+    base_frame_id: base_link
+    odom_frame_id: odom
+
+    # ---- Algorithm settings ----
+    freq: 20.0                          # Hz — how often to compute odometry
+    publish_tf: false                   # IMPORTANT: false — let the EKF handle TF, not rf2o
+    init_pose_from_topic: ""            # empty = start at origin
+
+    # ---- Scan matching tuning ----
+    # These defaults work well for most indoor lidar setups
+    # Adjust if you see poor matching in your environment

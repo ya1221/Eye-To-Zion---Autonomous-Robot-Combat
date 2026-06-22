@@ -3,8 +3,14 @@
 #  robot_localization package
 #
 #  Two EKF instances:
-#    ekf_local:  wheel odom + IMU → smooth local odometry (odom → base_link)
-#    ekf_global: wheel odom + IMU + ArUco → global corrected pose (map → odom)
+#    ekf_local:  wheel odom + IMU + rf2o laser odom → smooth local odometry (odom → base_link)
+#    ekf_global: wheel odom + IMU + rf2o laser odom + ArUco → global corrected pose (map → odom)
+#
+#  Sensor sources:
+#    /odom          - wheel odometry from ackermann_steering_controller
+#    /imu/data      - IMU sensor
+#    /odom_rf2o     - laser odometry from rf2o_laser_odometry
+#    /aruco/odom    - absolute pose from overhead ArUco camera (global EKF only)
 #
 #  The PID controller subscribes to /odometry/filtered (global EKF output)
 #
@@ -21,7 +27,7 @@ ekf_local_node:
   ros__parameters:
     frequency: 50.0
     sensor_timeout: 0.1
-    two_d_mode: true           # ground robot, ignore z/roll/pitch
+    two_d_mode: true
     publish_tf: true
     publish_acceleration: false
 
@@ -31,13 +37,9 @@ ekf_local_node:
     base_link_frame: base_link
     world_frame: odom          # LOCAL EKF works in odom frame
 
-    # Output topic
-    # This is smooth continuous odometry without ArUco jumps
-    # Not used by PID directly, but useful for local planning
-
     # ------ Sensor 0: Wheel Odometry ------
     # From ackermann_steering_controller
-    # Use VELOCITIES only (not pose) to avoid drift accumulation
+    # Use VELOCITIES only to avoid drift accumulation
     odom0: /odom
     odom0_config: [false, false, false,   # x, y, z
                    false, false, false,   # roll, pitch, yaw
@@ -61,9 +63,22 @@ ekf_local_node:
     imu0_remove_gravitational_acceleration: true
     imu0_queue_size: 10
 
-    # Process noise covariance - how much the model trusts its prediction
-    # Smaller values = trusts prediction more, slower to react
-    # Larger values = trusts sensors more, faster to react but noisier
+    # ------ Sensor 2: rf2o Laser Odometry ------
+    # Provides velocity estimates from laser scan matching
+    # Use VELOCITIES only — rf2o pose drifts over time just like wheel odom
+    # This gives the EKF a second independent velocity measurement
+    # which helps when wheels slip on sandy terrain
+    odom1: /odom_rf2o
+    odom1_config: [false, false, false,   # x, y, z
+                   false, false, false,   # roll, pitch, yaw
+                   true,  false, false,   # vx, vy, vz
+                   false, false, true,    # vroll, vpitch, vyaw
+                   false, false, false]   # ax, ay, az
+    odom1_differential: false
+    odom1_relative: false
+    odom1_queue_size: 10
+
+    # Process noise covariance
     process_noise_covariance: [
       0.05,  0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,
       0.0,   0.05,  0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,
@@ -103,7 +118,6 @@ ekf_global_node:
     world_frame: map           # GLOBAL EKF works in map frame
 
     # ------ Sensor 0: Wheel Odometry ------
-    # Same as local - velocities only
     odom0: /odom
     odom0_config: [false, false, false,
                    false, false, false,
@@ -115,7 +129,6 @@ ekf_global_node:
     odom0_queue_size: 10
 
     # ------ Sensor 1: IMU ------
-    # Same as local
     imu0: /imu/data
     imu0_config: [false, false, false,
                   false, false, true,
@@ -127,21 +140,32 @@ ekf_global_node:
     imu0_remove_gravitational_acceleration: true
     imu0_queue_size: 10
 
-    # ------ Sensor 2: ArUco Overhead Camera ------
-    # Provides ABSOLUTE position and heading in map frame
-    # This is what prevents long-term drift
-    # Publish as nav_msgs/Odometry from your ArUco detection node
-    odom1: /aruco/odom
-    odom1_config: [true,  true,  false,   # X, Y, z
-                   false, false, true,    # roll, pitch, YAW
-                   false, false, false,   # vx, vy, vz
-                   false, false, false,   # vroll, vpitch, vyaw
-                   false, false, false]   # ax, ay, az
+    # ------ Sensor 2: rf2o Laser Odometry ------
+    # Same as local EKF — velocities only
+    odom1: /odom_rf2o
+    odom1_config: [false, false, false,
+                   false, false, false,
+                   true,  false, false,
+                   false, false, true,
+                   false, false, false]
     odom1_differential: false
     odom1_relative: false
     odom1_queue_size: 10
 
-    # Process noise covariance - same as local
+    # ------ Sensor 3: ArUco Overhead Camera ------
+    # Provides ABSOLUTE position and heading in map frame
+    # This is the only sensor providing absolute pose
+    odom2: /aruco/odom
+    odom2_config: [true,  true,  false,   # X, Y, z
+                   false, false, true,    # roll, pitch, YAW
+                   false, false, false,   # vx, vy, vz
+                   false, false, false,   # vroll, vpitch, vyaw
+                   false, false, false]   # ax, ay, az
+    odom2_differential: false
+    odom2_relative: false
+    odom2_queue_size: 10
+
+    # Process noise covariance
     process_noise_covariance: [
       0.05,  0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,
       0.0,   0.05,  0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,

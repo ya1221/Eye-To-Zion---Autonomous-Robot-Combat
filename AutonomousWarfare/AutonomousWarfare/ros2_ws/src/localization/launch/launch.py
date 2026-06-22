@@ -8,6 +8,7 @@ def generate_launch_description():
     ydlidar_config_path = os.path.join(pkg_share, 'config', 'lidar.yaml')
     slam_config_path = os.path.join(pkg_share, 'config', 'slam.yaml')
     ekf_config = os.path.join(pkg_share, 'config', 'ekf.yaml')
+    rf2o_config = os.path.join(pkg_share, 'config', 'rf2o.yaml')
 
     ydlidar_node = Node(
         package='ydlidar_ros2_driver',
@@ -50,9 +51,18 @@ def generate_launch_description():
         output='screen',
     )
 
+    rf2o_node = Node(
+        package='rf2o_laser_odometry',
+        executable='rf2o_laser_odometry_node',
+        name='rf2o_laser_odometry_node',
+        parameters=[rf2o_config],
+        output='screen',
+    )
+
     return LaunchDescription([
         ydlidar_node,
         slam_toolbox_node,
         ekf_local_node,
-        ekf_global_node
+        ekf_global_node,
+        rf2o_node
     ])

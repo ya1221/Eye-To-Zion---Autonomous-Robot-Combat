@@ -15,7 +15,8 @@
   <depend>tf2_ros</depend>
   <depend>slam_toolbox</depend>
   <depend>robot_localization</depend>
-
+  <depend>rf2o_laser_odometry</depend>
+  
   <exec_depend>ydlidar_ros2_driver</exec_depend>
   
   <export>
