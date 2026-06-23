@@ -41,6 +41,12 @@ def generate_launch_description():
         ),
     )
 
+    imu_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([FindPackageShare('imu_sensor'), 'launch', 'launch.py'])
+        ),
+    )
+
     return LaunchDescription([
         LogInfo(msg='========== Robot Bringup Starting =========='),
         hardware_launch,
@@ -48,5 +54,6 @@ def generate_launch_description():
         navigation_launch,
         foxglove_launch,
         telemetry_launch,
+        imu_launch,
         LogInfo(msg='========== All Subsystems Launched =========='),
     ])

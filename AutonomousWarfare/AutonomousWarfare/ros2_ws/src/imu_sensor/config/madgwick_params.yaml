@@ -1,0 +1,45 @@
+imu_filter_madgwick_node:
+  ros__parameters:
+
+    # ─── Subscribed Topics ─────────────────────────────────────────────────
+    # These must match what icm20948_driver publishes.
+    # The Madgwick filter reads raw accel+gyro from /imu/data_raw
+    # and magnetometer from /imu/mag, then outputs /imu/data with
+    # orientation (quaternion) filled in.
+
+    use_mag: true               # Fuse magnetometer for absolute yaw heading
+    use_magnetic_field_msg: true # We publish sensor_msgs/MagneticField, not Vector3Stamped
+
+    # ─── Filter Gain ───────────────────────────────────────────────────────
+    # Higher gain = converges faster but noisier orientation.
+    # Lower gain = smoother but slower response.
+    # 0.01 is good for a ground robot that mostly goes straight.
+    gain: 0.01
+
+    # Yaw offset in radians. If your mag North doesn't align with your world
+    # frame, adjust this. For ENU frame convention, 0.0 is correct if your
+    # world X axis = East. For most Nav2 setups, leave at 0.0 and let the
+    # EKF handle frame alignment.
+    zeta: 0.0
+
+    # ─── Frame ─────────────────────────────────────────────────────────────
+    # Do NOT publish a TF from the Madgwick filter — only the EKF should
+    # publish transforms to avoid TF conflicts.
+    publish_tf: false
+
+    # Frequency must match the driver's publish_rate
+    frequency: 100.0
+
+    # Fixed frame for orientation reference. Usually "odom" or "map".
+    fixed_frame: "odom"
+
+    # ─── Magnetic Declination ──────────────────────────────────────────────
+    # Look up your local declination at https://www.ngdc.noaa.gov/geomag/declination.shtml
+    # For Tel Aviv, Israel: ~5.5° East ≈ 0.096 radians
+    # This corrects magnetic North → true North.
+    declination: 0.096
+
+    # ─── Orientation Covariance ────────────────────────────────────────────
+    # The Madgwick filter overwrites the orientation_covariance in the output
+    # /imu/data message. This affects how much the EKF trusts IMU orientation.
+    orientation_stddev: 0.02  # radians (~1.1 degrees)

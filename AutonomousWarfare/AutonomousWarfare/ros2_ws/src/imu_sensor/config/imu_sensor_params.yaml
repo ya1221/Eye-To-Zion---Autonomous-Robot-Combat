@@ -1,0 +1,59 @@
+icm20948_driver:
+  ros__parameters:
+
+    # ─── I2C Hardware ──────────────────────────────────────────────────────
+    # Bus number: /dev/i2c-1 on most Raspberry Pi / Jetson boards.
+    # Use `i2cdetect -y 1` to verify. Change to 0 if your board uses /dev/i2c-0.
+    i2c_bus: 1
+
+    # ICM-20948 I2C address: 0x68 (AD0 LOW, default) or 0x69 (AD0 HIGH).
+    # Run `i2cdetect -y 1` — you should see 0x68 and 0x0c (magnetometer).
+    i2c_address: 0x68
+
+    # ─── ROS Configuration ─────────────────────────────────────────────────
+    # TF frame for all published IMU messages.
+    # Must match the frame used in your URDF/xacro for the IMU mount.
+    frame_id: "imu_link"
+
+    # Publish rate in Hz. 100 Hz is a good default for robot_localization EKF.
+    # The sensor's internal ODR is 1125 Hz; this just controls how fast the
+    # node reads and publishes. Higher than 200 Hz gives diminishing returns.
+    publish_rate: 100.0
+
+    # ─── Sensor Ranges ─────────────────────────────────────────────────────
+    # Gyroscope full-scale range in degrees per second.
+    # Options: 250, 500, 1000, 2000
+    # 500 is good for ground robots — enough headroom for turns, but
+    # more resolution than 2000.
+    gyro_range_dps: 500
+
+    # Accelerometer full-scale range in g.
+    # Options: 2, 4, 8, 16
+    # 4g handles vibration and bumps well. Use 2g if the robot is very smooth.
+    accel_range_g: 4
+
+    # ─── Magnetometer ──────────────────────────────────────────────────────
+    # Enable the AK09916 magnetometer. Needed for absolute yaw from
+    # imu_filter_madgwick. Disable if you only need gyro + accel.
+    enable_magnetometer: true
+
+    # ─── Calibration ───────────────────────────────────────────────────────
+    # Calibrate gyro bias on startup. The robot MUST be stationary during
+    # calibration. Takes about 1 second with 200 samples.
+    calibrate_on_startup: true
+
+    # Number of samples to average for gyro bias. More = more accurate, slower startup.
+    calibration_samples: 200
+
+    # ─── Optional Publishers ───────────────────────────────────────────────
+    publish_temperature: false
+
+    # ─── Noise Covariance (diagonal) ───────────────────────────────────────
+    # These populate the covariance matrices in sensor_msgs/Imu and MagneticField.
+    # Start with these defaults. Tune them based on your Allan Variance results
+    # or empirical observation:
+    #   - If the EKF trusts IMU too much → increase covariance (less trust)
+    #   - If the EKF ignores IMU → decrease covariance (more trust)
+    gyro_covariance:  0.0004   # (rad/s)²  — typical for MEMS gyro
+    accel_covariance: 0.01     # (m/s²)²   — typical for MEMS accel
+    mag_covariance:   0.01     # (Tesla)²   — magnetometers are noisy indoors

@@ -59,6 +59,7 @@ def generate_launch_description():
         output='screen',
     )
 
+
     return LaunchDescription([
         ydlidar_node,
         slam_toolbox_node,

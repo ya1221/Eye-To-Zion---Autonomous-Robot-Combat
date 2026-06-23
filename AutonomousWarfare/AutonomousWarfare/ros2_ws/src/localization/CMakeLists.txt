@@ -7,7 +7,7 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(tf2_ros REQUIRED)
-
+find_package(ament_cmake REQUIRED)
 
 install(DIRECTORY config launch
   DESTINATION share/${PROJECT_NAME}
