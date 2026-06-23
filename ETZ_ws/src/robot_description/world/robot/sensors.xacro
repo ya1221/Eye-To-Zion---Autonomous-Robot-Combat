@@ -58,8 +58,7 @@
     <child link="camera_link"/>
     <origin xyz="0.16 0 0.1" rpy="0 0 0"/>
   </joint>
-
-  <gazebo reference="lidar_link">
+<gazebo reference="lidar_link">
     <sensor name="tg15" type="ray">
       <update_rate>26</update_rate>
       <always_on>true</always_on>
@@ -97,13 +96,20 @@
         <ros>
           <namespace>/lidar/tg15</namespace>
           <remapping>~/out:=/scan</remapping>
+          <qos>
+            <topic name="/scan">
+              <publisher>
+                <reliability>reliable</reliability>
+              </publisher>
+            </topic>
+          </qos>
         </ros>
         <frame_name>lidar_link</frame_name>
         <output_type>sensor_msgs/LaserScan</output_type>
       </plugin>
     </sensor>
   </gazebo>
-
+  
   <gazebo reference="imu_link">
     <sensor name="imu_sensor" type="imu">
       <plugin filename="libgazebo_ros_imu_sensor.so" name="imu_plugin">

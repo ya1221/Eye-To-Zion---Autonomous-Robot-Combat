@@ -670,7 +670,7 @@ class TacticalBrainNode(Node):
         # משתנים לשמירת הסטייה המחושבת
         self.drift_x = 0.0
         self.drift_y = 0.0
-        self.drift_yaw = 0.0
+        self.drift_yaw = 0.0    
 
         # פבלישר לערוץ חטיפת המיקום של מערכת הניווט (איפוס סטייה)
         self.initial_pose_pub = self.create_publisher(

@@ -13,3 +13,5 @@ vision_shm
 
 env/
 **/influx3_data/
+
+core.*

@@ -3,7 +3,7 @@ from launch.actions import TimerAction, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import PathJoinSubstitution
 from launch_ros.substitutions import FindPackageShare
-
+from launch_ros.actions import SetParameter # הייבוא שחזר
 
 def generate_launch_description():
     pkg_share = FindPackageShare('robot_description')
@@ -16,6 +16,9 @@ def generate_launch_description():
         )
 
     return LaunchDescription([
+        # פקודת הברזל: מכריחה את כל עשרות הצמתים במערכת לעבוד רק עם שעון גזיבו!
+        SetParameter(name='use_sim_time', value=True),
+
         # 1. Gazebo + RSP + spawn + controllers (event-driven sequencing inside)
         include('simulation.launch.py'),
 
@@ -27,8 +30,4 @@ def generate_launch_description():
 
         # 4. RViz2 + TelegrafBridge (purely visual, start last)
         TimerAction(period=14.0, actions=[include('visualization.launch.py')]),
-
     ])
-
-
-
