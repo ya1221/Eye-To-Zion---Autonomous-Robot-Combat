@@ -60,10 +60,23 @@ def generate_launch_description():
     )
 
 
+    # ---- Position Listener: ArUco → /aruco/odom (via Zenoh) ----
+    position_listener_node = Node(
+        package='position_listener',
+        executable='position_listener_node',
+        name='position_listener_node',
+        parameters=[{
+            'team_index': 0,
+            'grid_to_meters_scale': 1.0,
+        }],
+        output='screen',
+    )
+
     return LaunchDescription([
         ydlidar_node,
         slam_toolbox_node,
         ekf_local_node,
         ekf_global_node,
-        rf2o_node
+        position_listener_node,
+        # rf2o_node
     ])
