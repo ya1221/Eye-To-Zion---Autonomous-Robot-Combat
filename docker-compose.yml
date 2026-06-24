@@ -1,0 +1,35 @@
+services:
+  cv_processor:
+    build: ./ai_vision/cv_processor  # Adjust path if different
+    container_name: cv_processor
+    network_mode: host
+    ipc: host # Critical for Shared Memory access
+    volumes:
+      - "./ai_vision/cv_processor:/app"
+    command: bash -c "source /opt/ros/humble/setup.bash && python3 cv_processor.py"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  ai_inference:
+    build: ./ai_vision/ai_inference
+    container_name: ai_inference
+    network_mode: host
+    ipc: host # Critical for Shared Memory access
+    cpus: '2.0' # Hard limit to prevent thermal throttling (Thermal Throttling Protection)
+    environment:
+      - OMP_NUM_THREADS=2
+      - YOLO_OFFLINE=True # Prevent background downloads
+      - YOLOV8_NO_TELEMETRY=1 # Disable data collection lags
+    volumes:
+      - "./ai_vision/ai_inference:/app"
+    command: bash -c "source /opt/ros/humble/setup.bash && python3 ai_inference.py"
+    depends_on:
+      - cv_processor
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
