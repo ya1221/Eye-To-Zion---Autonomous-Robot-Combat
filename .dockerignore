@@ -1,2 +1,7 @@
 ts-state/
 /influx3_data/
+ETZ_ws/build/
+ETZ_ws/install/
+ETZ_ws/log/
+ETZ_ws/core.*
+**/__pycache__/

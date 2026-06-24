@@ -43,7 +43,13 @@ RUN pip3 install eclipse-zenoh
 
 # Set environment variable
 ENV PYTHONUNBUFFERED=1
+RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
+
+# Sources ROS 2 (and the workspace overlay, once built) before running
+# whatever command a given docker-compose service passes in.
+COPY ros_entrypoint.sh /ros_entrypoint.sh
+RUN chmod +x /ros_entrypoint.sh
+ENTRYPOINT ["/ros_entrypoint.sh"]
 
 # Default command
 CMD ["bash"]
-RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc

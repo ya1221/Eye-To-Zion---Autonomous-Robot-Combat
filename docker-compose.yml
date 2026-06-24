@@ -1,44 +1,99 @@
-version: '3.8'
-
 services:
   # ==========================================
-  # 1. הקונטיינר של הרובוט (ROS 2 + Zenoh)
+  # 0. Builder - compiles the colcon workspace once, then exits.
+  #    All "run" services below wait for this to finish successfully
+  #    before starting, so they never race each other over build/install/.
+  #    ./ETZ_ws is bind-mounted (not baked into the image), so editing
+  #    source on the host takes effect on the next `docker-compose up`
+  #    without rebuilding the image.
   # ==========================================
-  robot_brain:
-    build: 
+  builder:
+    build:
       context: .
       dockerfile: Dockerfile
-    container_name: etz_brain
+    container_name: etz_builder
+    working_dir: /app/ETZ_ws
+    volumes:
+      - ./ETZ_ws:/app/ETZ_ws
+    command: ["colcon", "build", "--symlink-install"]
+
+  # ==========================================
+  # 1. Simulation - Gazebo + RViz2 + nav2, driven by
+  #    robot_description/launch/launch.py.
+  # ==========================================
+  simulation:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: etz_simulation
+    depends_on:
+      builder:
+        condition: service_completed_successfully
     network_mode: "host"
-    
-    # --- הוסף את בלוק הסביבה הזה ---
+    working_dir: /app/ETZ_ws
     environment:
       - DISPLAY=${DISPLAY}
       - QT_X11_NO_MITSHM=1
-      
+      # Container has no GPU passthrough configured, so hardware GL (iris/DRI)
+      # fails and Mesa has to fall back to software rendering anyway (see the
+      # libGL errors in gzserver/gzclient/rviz2 logs) - this skips the failed
+      # probing and goes straight to llvmpipe. Drop it if you wire up /dev/dri.
+      - LIBGL_ALWAYS_SOFTWARE=1
     volumes:
       - ./ETZ_ws:/app/ETZ_ws
-      # --- הוסף את השורה הזו כדי לחבר את המסך ---
-      - /tmp/.X11-unix:/tmp/.X11-unix:rw 
-      
-    command: tail -F /dev/null
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    command: ["ros2", "launch", "robot_description", "launch.py"]
+    # ros2 launch's multi-process shutdown sequence is tuned for SIGINT
+    # (what Ctrl+C sends); `docker-compose down` defaults to SIGTERM.
+    stop_signal: SIGINT
+    stop_grace_period: 15s
 
   # ==========================================
-  # 2. הקונטיינר של רשת ה-VPN (Tailscale)
+  # (future) Mission control - tactical_brain + sensor_fusion_pkg, via
+  # etz_bringup/launch/main.launch.py (which already includes both).
+  # Uncomment once those packages are ready to run continuously:
+  #
+  # mission_control:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: etz_mission_control
+  #   depends_on:
+  #     builder:
+  #       condition: service_completed_successfully
+  #   network_mode: "host"
+  #   working_dir: /app/ETZ_ws
+  #   environment:
+  #     - ZENOH_ANCHOR_ENDPOINT=${ZENOH_ANCHOR_ENDPOINT}
+  #   volumes:
+  #     - ./ETZ_ws:/app/ETZ_ws
+  #   command: ["ros2", "launch", "etz_bringup", "main.launch.py"]
+  #   stop_signal: SIGINT
+  #   stop_grace_period: 15s
+  # ==========================================
+
+  # ==========================================
+  # 2. Tailscale VPN - cross-machine overlay network (robot <-> overhead
+  #    camera anchor node) that tactical_brain's Zenoh link rides on.
+  #    Behind the "vpn" profile so it's decoupled from the sim/brain
+  #    lifecycle: plain `up -d`/`down` never touch it. Bring it up with
+  #    `docker-compose --profile vpn up -d` and it'll stay running
+  #    independently (restart: unless-stopped) until you explicitly
+  #    `docker-compose --profile vpn down` or stop it by name.
   # ==========================================
   tailscale:
     image: tailscale/tailscale:latest
     container_name: tailscale
+    profiles: ["vpn"]
     privileged: true
     network_mode: "host"
     volumes:
       - ./ts-state:/var/lib/tailscale
       - /dev/net/tun:/dev/net/tun
     environment:
-      # מומלץ להעביר את המפתח לתוך קובץ .env נפרד
-      - TS_AUTHKEY=tskey-auth-kDQuVvyKZA11CNTRL-e7hZfXzZzfbvewGFs7pNgbdpEQzeNxMc
+      - TS_AUTHKEY=${TS_AUTHKEY}
       - TS_EXTRA_ARGS=--accept-dns=false
       - TS_STATE_DIR=/var/lib/tailscale
-      - TS_HOSTNAME=shay-laptop # שיניתי את השם לרובוט, כדי שיהיה ברור מול הלפטופ
+      - TS_HOSTNAME=shay-laptop
       - TS_USERSPACE=false
     restart: unless-stopped
