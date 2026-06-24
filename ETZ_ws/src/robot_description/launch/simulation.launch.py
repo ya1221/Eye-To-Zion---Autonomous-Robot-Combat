@@ -138,17 +138,19 @@ def generate_launch_description():
         parameters=[{'use_sim_time': True}]
     )
 
-    # controller_manager.yaml is already loaded by the gazebo_ros2_control plugin
-    # (see ros2_control.xacro); the spawners below just activate the controllers
-    # by name against the running controller_manager.
+    # --- חזרנו למקור: מגדירים במפורש את נתיבי הקבצים ---
+    jsb_yaml = os.path.join(pkg_dir, 'config', 'joint_state_broadcaster.yaml')
+    ackermann_yaml = os.path.join(pkg_dir, 'config', 'ackermann_steering_controller.yaml')
+
+    # --- הבקרים מקבלים את קבצי התצורה שלהם ישירות ---
     joint_state_broadcaster = Node(
         package='controller_manager', executable='spawner', output='screen',
-        arguments=['joint_state_broadcaster', '--controller-manager', '/controller_manager'],
+        arguments=['joint_state_broadcaster', '--controller-manager', '/controller_manager', '--param-file', jsb_yaml],
     )
 
     ackermann_steering_controller = Node(
         package='controller_manager', executable='spawner', output='screen',
-        arguments=['ackermann_steering_controller', '--controller-manager', '/controller_manager'],
+        arguments=['ackermann_steering_controller', '--controller-manager', '/controller_manager', '--param-file', ackermann_yaml],
     )
 
     spawn_jsb = RegisterEventHandler(
