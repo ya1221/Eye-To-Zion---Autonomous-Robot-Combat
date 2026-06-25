@@ -27,7 +27,8 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'brain_node = tactical_brain.main_brain:main'
+            'brain_node = tactical_brain.main_brain:main',
+            'mock_pose_publisher = tactical_brain.mock_pose_publisher:main',
         ],
     },
 )

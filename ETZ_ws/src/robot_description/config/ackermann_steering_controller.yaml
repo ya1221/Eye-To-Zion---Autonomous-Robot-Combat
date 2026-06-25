@@ -15,7 +15,14 @@ ackermann_steering_controller:
 
     publish_odom:  true
     publish_tf:    false
-    open_loop:     false
+    # Closed-loop mode appears to produce near-zero wheel velocity for
+    # combined linear+angular commands near the MPPI-configured minimum
+    # turning radius (~0.24m), even though the same magnitude with zero
+    # angular component drives the wheels fine - suspect the odometry
+    # feedback loop misbehaving at tight-turn low-speed commands. Testing
+    # open_loop to bypass it, per the team's own prior suspicion (see the
+    # commented note in controller_manager.yaml and controllers.yaml).
+    open_loop:     true
 
     base_frame_id: base_footprint
     odom_frame_id: odom

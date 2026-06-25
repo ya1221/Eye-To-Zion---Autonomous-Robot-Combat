@@ -30,6 +30,13 @@ services:
       builder:
         condition: service_completed_successfully
     network_mode: "host"
+    # network_mode: host only shares the network namespace. FastDDS still
+    # detects "same host" via discovery and prefers its shared-memory
+    # transport for actual data - but each container gets its own /dev/shm
+    # unless the IPC namespace is also shared, so that transport silently
+    # goes nowhere (discovery works, messages don't arrive). ipc: host
+    # fixes it; same pattern as foxglove-docker.yaml elsewhere in this repo.
+    ipc: "host"
     working_dir: /app/ETZ_ws
     environment:
       - DISPLAY=${DISPLAY}
@@ -49,31 +56,39 @@ services:
     stop_grace_period: 15s
 
   # ==========================================
-  # (future) Mission control - tactical_brain + sensor_fusion_pkg, via
-  # etz_bringup/launch/main.launch.py (which already includes both).
-  # Uncomment once those packages are ready to run continuously:
-  #
-  # mission_control:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   container_name: etz_mission_control
-  #   depends_on:
-  #     builder:
-  #       condition: service_completed_successfully
-  #   network_mode: "host"
-  #   working_dir: /app/ETZ_ws
-  #   environment:
-  #     - ZENOH_ANCHOR_ENDPOINT=${ZENOH_ANCHOR_ENDPOINT}
-  #   volumes:
-  #     - ./ETZ_ws:/app/ETZ_ws
-  #   command: ["ros2", "launch", "etz_bringup", "main.launch.py"]
-  #   stop_signal: SIGINT
-  #   stop_grace_period: 15s
+  # 2. Mission control - tactical_brain + sensor_fusion_pkg, via
+  #    etz_bringup/launch/sim_test.launch.py (main.launch.py - the real
+  #    deployment graph - plus a mock pose publisher that stands in for
+  #    the real EKF+ArUco source until that exists). When this moves to
+  #    the RPi5, point the command at etz_bringup main.launch.py instead.
   # ==========================================
+  mission_control:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: etz_mission_control
+    depends_on:
+      builder:
+        condition: service_completed_successfully
+      simulation:
+        condition: service_started
+    network_mode: "host"
+    ipc: "host"
+    working_dir: /app/ETZ_ws
+    environment:
+      - ZENOH_ANCHOR_ENDPOINT=${ZENOH_ANCHOR_ENDPOINT}
+      # main.launch.py defaults to false (correct for the real RPi5, which
+      # has no Gazebo /clock) - this override makes it match the rest of
+      # the simulation stack, which all run on sim time.
+      - USE_SIM_TIME=true
+    volumes:
+      - ./ETZ_ws:/app/ETZ_ws
+    command: ["ros2", "launch", "etz_bringup", "sim_test.launch.py"]
+    stop_signal: SIGINT
+    stop_grace_period: 15s
 
   # ==========================================
-  # 2. Tailscale VPN - cross-machine overlay network (robot <-> overhead
+  # 3. Tailscale VPN - cross-machine overlay network (robot <-> overhead
   #    camera anchor node) that tactical_brain's Zenoh link rides on.
   #    Behind the "vpn" profile so it's decoupled from the sim/brain
   #    lifecycle: plain `up -d`/`down` never touch it. Bring it up with

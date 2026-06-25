@@ -143,7 +143,25 @@ controller_server:
   ros__parameters:
     use_sim_time : True
     controller_frequency: 20.0
-    controller_plugins: ["FollowPath"] 
+    # Diagnostic: log per-cycle MPPI/critic detail while debugging why
+    # tactical_brain's own FollowPath goals produce zero velocity.
+    verbose: true
+    # Was unset, defaulting to /odom which has zero publishers (the real
+    # odometry source is ackermann_steering_controller/odometry) - matches
+    # the odom_topic convention already used by bt_navigator/velocity_smoother.
+    odom_topic: /odometry/filtered
+    # Was implicit nav2 defaults (10s/0.5m). MPPI's heading-correction
+    # maneuver for tactical_brain's short paths is slow (low-speed
+    # rotate+creep), consistently taking longer than the 10s default,
+    # so the goal kept getting aborted as "Failed to make progress"
+    # before it could finish. Diagnostic: loosened to confirm whether
+    # given enough time, it actually converges.
+    progress_checker_plugin: "progress_checker"
+    progress_checker:
+      plugin: "nav2_controller::SimpleProgressChecker"
+      required_movement_radius: 0.5
+      movement_time_allowance: 30.0
+    controller_plugins: ["FollowPath"]
     FollowPath:
       plugin: "nav2_mppi_controller::MPPIController"
       time_steps: 36
@@ -176,7 +194,14 @@ controller_server:
         collision_lookahead_time: 2.0
         consider_footprint: true
       AckermannConstraints:
-        min_turning_r: 0.24
+        # 0.24 looked safe using the simple bicycle-model steering angle,
+        # but ackermann_steering_controller computes separate left/right
+        # angles (steering_odometry.cpp's ACKERMANN_CONFIG branch); for
+        # this chassis (wheelbase=0.235, front_track=0.23) the INNER
+        # wheel's angle at r=0.24 is ~1.09 rad, past the 0.819 rad joint
+        # limit, so steering binds and the vehicle can't actually roll.
+        # 0.4 keeps the inner wheel under ~0.69 rad, safely within limits.
+        min_turning_r: 0.4
       critics: ["ConstraintCritic", "CostCritic", "GoalCritic", "GoalAngleCritic", "PathAlignCritic", "PathFollowCritic", "PathAngleCritic", "PreferForwardCritic"]
       ConstraintCritic:
         enabled: true

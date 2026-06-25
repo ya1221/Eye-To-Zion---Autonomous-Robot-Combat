@@ -1,4 +1,6 @@
+import json
 import math
+import os
 import queue # תור לניהול הודעות Zenoh
 import zenoh # ספריית P2P
 
@@ -22,6 +24,13 @@ MAX_COMBAT_DISTANCE = 5.0 # ערך זמני עד שנשלב את שאר הקבצ
 #######################
 # father action class
 class Nav2BaseAction(py_trees.behaviour.Behaviour):
+    # Replan from scratch at most this often. Re-sending the same cached
+    # path on retry (instead of a fresh A* search from wherever the robot
+    # has drifted to) gives MPPI one stable reference to actually commit
+    # to, instead of restarting against a slightly-different path every
+    # time the previous attempt concludes/aborts.
+    REPLAN_COOLDOWN_SEC = 15.0
+
     def __init__(self, name, ros_node=None):
         super().__init__(name)
         self.ros_node = ros_node
@@ -30,6 +39,8 @@ class Nav2BaseAction(py_trees.behaviour.Behaviour):
             # אנחנו עכשיו מדברים ישירות עם הבקר המקומי (Controller) של Nav2
             self._action_client = ActionClient(self.ros_node, FollowPath, 'follow_path')
         self._is_driving = False
+        self._cached_waypoints = None
+        self._last_plan_time = None
 
     def get_tactical_path(self):
         """
@@ -40,11 +51,42 @@ class Nav2BaseAction(py_trees.behaviour.Behaviour):
     def update(self):
         if self.ros_node is None: return py_trees.common.Status.SUCCESS
         if self._is_driving: return py_trees.common.Status.RUNNING
-        
-        waypoints = self.get_tactical_path()
-        if not waypoints: 
-            return py_trees.common.Status.FAILURE
-            
+
+        # nav2's FollowPath action server isn't constructed until
+        # controller_server's lifecycle activates (on_activate()) - before
+        # that, there's nothing listening, so send_goal_async()'s future
+        # would never resolve and we'd never know to retry. Check
+        # non-blocking readiness instead of sending into the void.
+        if not self._action_client.server_is_ready():
+            self.ros_node.get_logger().warn(
+                f"[{self.name}] Nav2 controller_server not active yet - waiting to send path."
+            )
+            return py_trees.common.Status.RUNNING
+
+        now = self.ros_node.get_clock().now()
+        seconds_since_plan = (
+            (now - self._last_plan_time).nanoseconds / 1e9
+            if self._last_plan_time is not None else None
+        )
+        needs_fresh_plan = (
+            self._cached_waypoints is None
+            or seconds_since_plan is None
+            or seconds_since_plan >= self.REPLAN_COOLDOWN_SEC
+        )
+
+        if needs_fresh_plan:
+            waypoints = self.get_tactical_path()
+            if not waypoints:
+                return py_trees.common.Status.FAILURE
+            self._cached_waypoints = waypoints
+            self._last_plan_time = now
+        else:
+            waypoints = self._cached_waypoints
+            self.ros_node.get_logger().info(
+                f"[{self.name}] Re-sending cached path (planned {seconds_since_plan:.1f}s "
+                "ago) instead of replanning from scratch."
+            )
+
         # בניית הודעת מסלול (Path) תקנית של ROS2
         path_msg = Path()
         path_msg.header.frame_id = 'map'
@@ -65,15 +107,53 @@ class Nav2BaseAction(py_trees.behaviour.Behaviour):
         goal_msg.controller_id = 'FollowPath' # השם הסטנדרטי ב-Nav2
         
         self.ros_node.get_logger().info(f"[{self.name}] Sending Tactical Path ({len(waypoints)} points) to Nav2")
-        self._action_client.send_goal_async(goal_msg)
+        send_future = self._action_client.send_goal_async(goal_msg)
+        send_future.add_done_callback(self._on_goal_response)
         self._is_driving = True
         return py_trees.common.Status.RUNNING
 
-    def terminate(self, new_status):
-        if new_status == py_trees.common.Status.INVALID and self._is_driving:
+    def _on_goal_response(self, future):
+        # controller_server's action server can exist (discoverable) before
+        # nav2's lifecycle bringup actually activates it - goals sent during
+        # that window get rejected. Reset _is_driving so the next tree tick
+        # retries instead of believing forever that it's already driving.
+        goal_handle = future.result()
+        if goal_handle is None or not goal_handle.accepted:
             if self.ros_node:
+                self.ros_node.get_logger().warn(
+                    f"[{self.name}] FollowPath goal rejected (nav2 controller_server "
+                    "may not be active yet) - will retry next tick."
+                )
+            self._is_driving = False
+            return
+
+        # Goal accepted - still need to know when it actually concludes
+        # (success, abort, e.g. nav2's "Failed to make progress"), otherwise
+        # _is_driving stays True forever and the tree never retries.
+        result_future = goal_handle.get_result_async()
+        result_future.add_done_callback(self._on_goal_result)
+
+    def _on_goal_result(self, future):
+        self._is_driving = False
+        try:
+            status = future.result().status
+        except Exception:
+            status = None
+        if self.ros_node:
+            self.ros_node.get_logger().info(
+                f"[{self.name}] FollowPath goal concluded (status={status}) - re-evaluating next tick."
+            )
+            self._is_driving = False
+
+    def terminate(self, new_status):
+        if new_status == py_trees.common.Status.INVALID:
+            if self._is_driving and self.ros_node:
                 self.ros_node.get_logger().info(f"[{self.name}] Interrupted! Canceling FollowPath.")
             self._is_driving = False
+            # A different branch took over - this path is stale, don't
+            # resume it blindly once we're re-selected later.
+            self._cached_waypoints = None
+            self._last_plan_time = None
 
 #######################
 # attack branch
@@ -310,7 +390,7 @@ class MapsToGoalAction(Nav2BaseAction):
             x_path, y_path, theta_path, directions = path_obj
             
             self.ros_node.get_logger().info(f"[{self.name}] A* found path with {len(x_path)} steps. Cost: {cost:.2f}")
-            
+
             # אריזת הנתונים לפורמט [(x, y, yaw), ...] עבור Nav2BaseAction
             tactical_waypoints = []
             for i in range(len(x_path)):
@@ -622,9 +702,33 @@ class TacticalBrainNode(Node):
         # שינוי 1: מחיקת הרדיס והחלפה בהגדרות Zenoh + Queue
         # ---------------------------------------------------------
         self.msg_queue = queue.Queue()
-        conf = zenoh.Config()
-        conf.insert_json5("connect/endpoints", '["tcp/100.107.5.41:7447"]')
-        self.zenoh_session = zenoh.open(conf) # חיבור אוטומטי לרשת עם קונפיגורציה        
+
+        # Anchor IP comes in as a ROS 2 parameter (set from the
+        # ZENOH_ANCHOR_ENDPOINT env var by the launch file) rather than
+        # being hardcoded, per the anchor/gossip architecture. Empty by
+        # default so solo Gazebo testing doesn't require a live anchor.
+        self.declare_parameter('zenoh_anchor_endpoint', os.environ.get('ZENOH_ANCHOR_ENDPOINT', ''))
+        anchor_endpoint = self.get_parameter('zenoh_anchor_endpoint').get_parameter_value().string_value
+
+        self.zenoh_session = None
+        if anchor_endpoint:
+            try:
+                conf = zenoh.Config()
+                conf.insert_json5("mode", '"peer"')
+                conf.insert_json5("scouting/gossip/enabled", "true")
+                conf.insert_json5("connect/endpoints", json.dumps([anchor_endpoint]))
+                self.zenoh_session = zenoh.open(conf)
+                self.get_logger().info(f"Connected to Zenoh anchor at {anchor_endpoint}")
+            except Exception as e:
+                self.get_logger().warn(
+                    f"Could not reach Zenoh anchor at {anchor_endpoint} ({e}). "
+                    "Continuing without fleet comms - enemies/teammates will stay empty."
+                )
+        else:
+            self.get_logger().warn(
+                "zenoh_anchor_endpoint not set - running without fleet comms "
+                "(expected for solo Gazebo testing)."
+            )
 
         # פונקציית הקולבק של Zenoh שדוחפת הודעות לתור שלנו
         def zenoh_listener(sample):
@@ -632,17 +736,21 @@ class TacticalBrainNode(Node):
                 "channel": str(sample.key_expr),
                 "data": bytes(sample.payload).decode('utf-8')
             })
-            
+
         # הרשמה לערוצים - הוספנו קידומת (Namespace) לקבוצה הכחולה!
-        TEAM_PREFIX = "team_blue"
-        self.zenoh_session.declare_subscriber(f'{TEAM_PREFIX}/detected_enemies', zenoh_listener)
-        self.zenoh_session.declare_subscriber(f'{TEAM_PREFIX}/team_positions', zenoh_listener)
-        self.zenoh_session.declare_subscriber(f'{TEAM_PREFIX}/fleet_positions', zenoh_listener)
+        if self.zenoh_session is not None:
+            TEAM_PREFIX = "team_blue"
+            self.zenoh_session.declare_subscriber(f'{TEAM_PREFIX}/detected_enemies', zenoh_listener)
+            self.zenoh_session.declare_subscriber(f'{TEAM_PREFIX}/team_positions', zenoh_listener)
+            self.zenoh_session.declare_subscriber(f'{TEAM_PREFIX}/fleet_positions', zenoh_listener)
         # ---------------------------------------------------------
 
+        # Real pose source is whatever publishes 'itay_amcl_topic' (EKF
+        # fused with the overhead ArUco camera) - NOT /amcl_pose, since
+        # this stack runs slam_toolbox rather than amcl.
         self.pose_sub = self.create_subscription(
             PoseWithCovarianceStamped,
-            '/amcl_pose',  
+            'itay_amcl_topic',
             self.pose_callback,
             10
         )
@@ -723,8 +831,14 @@ class TacticalBrainNode(Node):
         self.blackboard.current_yaw = 0.0
         self.blackboard.hide_x = 2.25
         self.blackboard.hide_y = 4.75
-        self.blackboard.goal_x = 3.5
-        self.blackboard.goal_y = 4.0
+        # Straight ahead from the robot's spawn pose (2.0, 2.0, yaw=0) -
+        # short and well clear of Wall_100 (real maze wall starting at
+        # x~2.64, confirmed by watching the robot physically wedge into
+        # it when the goal was further out at x=4.0). A_planner.py's
+        # obstacle_set is hardcoded empty - it doesn't know walls exist -
+        # so for now the goal itself has to stay in open space.
+        self.blackboard.goal_x = 2.3
+        self.blackboard.goal_y = 2.0
         self.blackboard.teammate_x = 1.5
         self.blackboard.teammate_y = 1.0
         

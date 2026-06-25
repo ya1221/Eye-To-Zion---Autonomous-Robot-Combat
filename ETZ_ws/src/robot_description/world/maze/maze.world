@@ -56,9 +56,19 @@
     </light>
 
     <include>
-      <uri>model://maze</uri>      
+      <uri>model://maze</uri>
       <name>maze</name>
       <pose>0 0 0 0 0 0</pose>
     </include>
+
+    <!-- Publishes /gazebo/model_states (ground-truth world-frame poses) -
+         stands in for the real overhead ArUco camera's fixed-frame view
+         during Gazebo testing. See tactical_brain/mock_pose_publisher.py. -->
+    <plugin name="gazebo_ros_state" filename="libgazebo_ros_state.so">
+      <ros>
+        <namespace>/gazebo</namespace>
+      </ros>
+      <update_rate>30.0</update_rate>
+    </plugin>
   </world>
 </sdf>
