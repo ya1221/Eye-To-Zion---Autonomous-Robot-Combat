@@ -134,7 +134,15 @@ def calc_hybrid_a_star(start, goal, obstacle_set, xy_resolution, yaw_resolution,
 # =========================================================
 def calc_motion(node, xy_res, yaw_res, danger_dict, teammates_aura_set, current_time):
     next_nodes = []
-    steering_inputs = [-math.radians(20), 0, math.radians(20)] 
+    steering_inputs = [-math.radians(20), 0, math.radians(20)]
+    # Forward-only was tried and reverted: it made MPPI execution cleaner
+    # (no more reverse segments to discard going into nav_msgs/Path), but
+    # broke planning outright in tight spaces - confirmed directly, A*
+    # returned "failed to find a path" once obstacle_set had real walls
+    # in a narrow spot, since a forward-only Ackermann turn needs more
+    # room than a real car needing to reverse out of a tight spot. Kept
+    # reverse in the search; Nav2BaseAction now splits the path into
+    # per-direction segments instead of sending one mixed-direction path.
     directions = [1, -1] # קדימה ואחורה
 
     current_yaw = node.yaw_ind * yaw_res

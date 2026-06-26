@@ -125,14 +125,12 @@ def generate_launch_description():
     spawn_robot = Node(
         package='gazebo_ros',
         executable='spawn_entity.py',
-        # x/y match tactical_brain's hardcoded arena assumptions
-        # (A_planner.py's check_collision bounds and the blackboard's
-        # default current_x/current_y of 2.0/2.0). Now that the mock pose
-        # publisher reports real Gazebo ground-truth coordinates (not
-        # slam_toolbox's run-relative map frame), this actually lines up
-        # tactical_brain's notion of "where am I" with where it really is.
+        # User-confirmed clear spot (picked live via RViz "2D Goal Pose",
+        # converted from the slam map frame to Gazebo world coordinates).
+        # Resets to known-open ground after the robot got wedged near a
+        # wall while we were debugging why it wasn't driving there.
         arguments=['-entity', 'robot1', '-topic', 'robot_description',
-                   '-x', '2', '-y', '2', '-z', '1'],
+                   '-x', '1.78', '-y', '1.44', '-z', '1'],
         output='screen'
     )
 
