@@ -11,3 +11,9 @@ vision_shm
 
 .DS_Store
 
+# Tailscale state (machine-specific, contains network metadata)
+tailscale-client/ts-state/
+
+# WAV test files
+*.wav
+

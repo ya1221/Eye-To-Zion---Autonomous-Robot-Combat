@@ -9,7 +9,7 @@ services:
       - ./ts-state:/var/lib/tailscale
       - /dev/net/tun:/dev/net/tun
     environment:
-      - TS_AUTHKEY=tskey-auth-kDQuVvyKZA11CNTRL-e7hZfXzZzfbvewGFs7pNgbdpEQzeNxMc
+      - TS_AUTHKEY=${TS_AUTHKEY}
       - TS_EXTRA_ARGS=--accept-dns=false
       - TS_STATE_DIR=/var/lib/tailscale
       - TS_HOSTNAME=yahav-laptop
