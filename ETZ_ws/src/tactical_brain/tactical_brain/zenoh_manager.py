@@ -164,7 +164,7 @@ import queue # הוספנו את ספריית התורים המובנית של �
 
 # ניסיון ייבוא של ROS2 - כדי שהקובץ יעבוד גם בסימולציה נטולת ROS
 try:
-    from geometry_msgs.msg import PoseStamped
+    from nav_msgs.msg import Odometry
     ROS_AVAILABLE = True
 except ImportError:
     ROS_AVAILABLE = False
@@ -227,37 +227,41 @@ def check_zenoh_updates(msg_queue, enemies_list, teammates_dict, ros_node=None, 
                 if not found_match:
                     enemies_list.append(new_enemy)
 
-        elif "team_positions" in channel_name or "/team/positions" in channel_name:
+        elif channel_name.endswith("/team_positions") or "/team/positions" in channel_name:
             robot_id = parsed_data.get("robot_id")
             if robot_id:
                 # כאן מתעדכנים כל חברי הצוות באופן בלעדי
                 teammates_dict[robot_id] = parsed_data
 
-        elif "fleet_positions" in channel_name:
-            # מעבר על נתוני ההארוקו - חיפוש עצמי בלבד!
+        # הטופיק החדש של מצלמת הארוקו: teams/team_{team_idx}/positions - מערך JSON
+        # של כל הרובוטים בקבוצה. בדיקת startswith/endswith (ולא "in") כדי לא
+        # להתבלבל עם הערוץ הישן "team_positions" שגם מכיל את המילה positions.
+        elif channel_name.startswith("teams/team_") and channel_name.endswith("/positions"):
+            # חיפוש עצמי בלבד - הרובוט שעליו רץ הקוד הזה
             for bot in parsed_data:
-                bot_id = bot.get("id")
-                
-                if bot_id == MY_ARUCO_ID:
+                if bot.get("id") == MY_ARUCO_ID:
                     bot_x_m = bot.get("x", 0) / 100.0
                     bot_y_m = bot.get("y", 0) / 100.0
                     bot_angle_rad = math.radians(bot.get("angle", 0.0))
-                    
-                    # שידור הפוזיציה הגלובלית פנימה למערכת
+
+                    # אריזת המיקום הגלובלי כהודעת Odometry תקנית עבור
+                    # ה-PID הסי++ שמאזין ל-/odometry/filtered
                     if ROS_AVAILABLE and ros_node and aruco_pub:
-                        pose_msg = PoseStamped()
-                        pose_msg.header.stamp = ros_node.get_clock().now().to_msg()
-                        pose_msg.header.frame_id = 'map'
-                        pose_msg.pose.position.x = bot_x_m
-                        pose_msg.pose.position.y = bot_y_m
-                        pose_msg.pose.position.z = 0.0
-                        
-                        pose_msg.pose.orientation.z = math.sin(bot_angle_rad / 2.0)
-                        pose_msg.pose.orientation.w = math.cos(bot_angle_rad / 2.0)
-                        
-                        aruco_pub.publish(pose_msg)
-                        
-    MEMORY_TIMEOUT = 2.0 
+                        odom_msg = Odometry()
+                        odom_msg.header.stamp = ros_node.get_clock().now().to_msg()
+                        odom_msg.header.frame_id = 'map'
+                        odom_msg.child_frame_id = 'base_link'
+                        odom_msg.pose.pose.position.x = bot_x_m
+                        odom_msg.pose.pose.position.y = bot_y_m
+                        odom_msg.pose.pose.position.z = 0.0
+
+                        odom_msg.pose.pose.orientation.z = math.sin(bot_angle_rad / 2.0)
+                        odom_msg.pose.pose.orientation.w = math.cos(bot_angle_rad / 2.0)
+
+                        aruco_pub.publish(odom_msg)
+                    break
+
+    MEMORY_TIMEOUT = 2.0
     enemies_list[:] = [
         enemy for enemy in enemies_list 
         if current_time - enemy.get("timestamp", current_time) < MEMORY_TIMEOUT

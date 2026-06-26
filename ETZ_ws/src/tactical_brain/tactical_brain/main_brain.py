@@ -10,11 +10,16 @@ from tactical_brain import A_planner
 
 import rclpy
 from rclpy.node import Node
+from rclpy.time import Time
 from rclpy.action import ActionClient
+from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
+from rclpy.executors import MultiThreadedExecutor
 from nav2_msgs.action import FollowPath
-from nav_msgs.msg import Path
+from nav_msgs.msg import Path, OccupancyGrid, Odometry
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import PoseWithCovarianceStamped
+from tf2_ros import Buffer, TransformListener
+from tf2_ros import LookupException, ConnectivityException, ExtrapolationException
 import py_trees
 
 
@@ -28,8 +33,14 @@ class Nav2BaseAction(py_trees.behaviour.Behaviour):
     # path on retry (instead of a fresh A* search from wherever the robot
     # has drifted to) gives MPPI one stable reference to actually commit
     # to, instead of restarting against a slightly-different path every
-    # time the previous attempt concludes/aborts.
-    REPLAN_COOLDOWN_SEC = 15.0
+    # time the previous attempt concludes/aborts. Was 15.0 (too slow to
+    # react to walls slam_toolbox only just discovered), then 3.0 (too
+    # fast - cut off A*'s wide forward turn-around arcs before they could
+    # complete, since reversing costs more than arcing forward per
+    # A_planner.py's direction_cost/switch_gear_cost, so it kept
+    # restarting the same early portion of a multi-second turn rather
+    # than ever finishing it). 8.0 splits the difference.
+    REPLAN_COOLDOWN_SEC = 8.0
 
     def __init__(self, name, ros_node=None):
         super().__init__(name)
@@ -39,14 +50,39 @@ class Nav2BaseAction(py_trees.behaviour.Behaviour):
             # אנחנו עכשיו מדברים ישירות עם הבקר המקומי (Controller) של Nav2
             self._action_client = ActionClient(self.ros_node, FollowPath, 'follow_path')
         self._is_driving = False
-        self._cached_waypoints = None
+        self._cached_segments = None
+        self._segment_index = 0
         self._last_plan_time = None
 
     def get_tactical_path(self):
         """
-        חייב להחזיר רשימה של נקודות: [(x, y, yaw), (x, y, yaw), ...]
+        חייב להחזיר רשימה של נקודות: [(x, y, yaw, direction), ...]
+        direction is 1 (forward) or -1 (reverse), as produced by
+        A_planner.py's calc_hybrid_a_star.
         """
         raise NotImplementedError("Child classes must implement get_tactical_path!")
+
+    @staticmethod
+    def _split_into_segments(waypoints):
+        # nav_msgs/Path has no per-pose direction field, and a single
+        # FollowPath goal mixing forward and reverse waypoints left MPPI
+        # with no consistent direction to commit to - it would get stuck
+        # fighting itself (confirmed directly: logged path with 5 of 6
+        # steps reverse matching the robot's stuck/overshoot behavior).
+        # Splitting into same-direction runs gives each FollowPath goal
+        # an unambiguous direction to execute.
+        segments = []
+        current_segment = []
+        current_direction = None
+        for x, y, yaw, direction in waypoints:
+            if direction != current_direction and current_segment:
+                segments.append(current_segment)
+                current_segment = []
+            current_segment.append((x, y, yaw))
+            current_direction = direction
+        if current_segment:
+            segments.append(current_segment)
+        return segments
 
     def update(self):
         if self.ros_node is None: return py_trees.common.Status.SUCCESS
@@ -69,7 +105,7 @@ class Nav2BaseAction(py_trees.behaviour.Behaviour):
             if self._last_plan_time is not None else None
         )
         needs_fresh_plan = (
-            self._cached_waypoints is None
+            self._cached_segments is None
             or seconds_since_plan is None
             or seconds_since_plan >= self.REPLAN_COOLDOWN_SEC
         )
@@ -78,21 +114,29 @@ class Nav2BaseAction(py_trees.behaviour.Behaviour):
             waypoints = self.get_tactical_path()
             if not waypoints:
                 return py_trees.common.Status.FAILURE
-            self._cached_waypoints = waypoints
+            self._cached_segments = self._split_into_segments(waypoints)
+            self._segment_index = 0
             self._last_plan_time = now
+        elif self._segment_index >= len(self._cached_segments):
+            # Finished every segment from the last plan but cooldown
+            # hasn't elapsed yet - force a fresh plan next tick instead
+            # of looping with nothing left to send.
+            self._cached_segments = None
+            return py_trees.common.Status.RUNNING
         else:
-            waypoints = self._cached_waypoints
             self.ros_node.get_logger().info(
-                f"[{self.name}] Re-sending cached path (planned {seconds_since_plan:.1f}s "
+                f"[{self.name}] Re-sending cached segment (planned {seconds_since_plan:.1f}s "
                 "ago) instead of replanning from scratch."
             )
+
+        segment = self._cached_segments[self._segment_index]
 
         # בניית הודעת מסלול (Path) תקנית של ROS2
         path_msg = Path()
         path_msg.header.frame_id = 'map'
         path_msg.header.stamp = self.ros_node.get_clock().now().to_msg()
-        
-        for x, y, yaw in waypoints:
+
+        for x, y, yaw in segment:
             pose = PoseStamped()
             pose.header = path_msg.header
             pose.pose.position.x = float(x)
@@ -105,8 +149,11 @@ class Nav2BaseAction(py_trees.behaviour.Behaviour):
         goal_msg = FollowPath.Goal()
         goal_msg.path = path_msg
         goal_msg.controller_id = 'FollowPath' # השם הסטנדרטי ב-Nav2
-        
-        self.ros_node.get_logger().info(f"[{self.name}] Sending Tactical Path ({len(waypoints)} points) to Nav2")
+
+        self.ros_node.get_logger().info(
+            f"[{self.name}] Sending segment {self._segment_index + 1}/{len(self._cached_segments)} "
+            f"({len(segment)} points) to Nav2"
+        )
         send_future = self._action_client.send_goal_async(goal_msg)
         send_future.add_done_callback(self._on_goal_response)
         self._is_driving = True
@@ -139,20 +186,28 @@ class Nav2BaseAction(py_trees.behaviour.Behaviour):
             status = future.result().status
         except Exception:
             status = None
+
+        # STATUS_SUCCEEDED == 4 (action_msgs/msg/GoalStatus). Only advance
+        # to the next segment on a real success - on abort/cancel, retry
+        # the same segment (still bounded by REPLAN_COOLDOWN_SEC above
+        # before giving up and replanning from scratch).
+        if status == 4:
+            self._segment_index += 1
+
         if self.ros_node:
             self.ros_node.get_logger().info(
-                f"[{self.name}] FollowPath goal concluded (status={status}) - re-evaluating next tick."
+                f"[{self.name}] FollowPath segment concluded (status={status}) - re-evaluating next tick."
             )
-            self._is_driving = False
 
     def terminate(self, new_status):
         if new_status == py_trees.common.Status.INVALID:
             if self._is_driving and self.ros_node:
                 self.ros_node.get_logger().info(f"[{self.name}] Interrupted! Canceling FollowPath.")
             self._is_driving = False
-            # A different branch took over - this path is stale, don't
+            # A different branch took over - this plan is stale, don't
             # resume it blindly once we're re-selected later.
-            self._cached_waypoints = None
+            self._cached_segments = None
+            self._segment_index = 0
             self._last_plan_time = None
 
 #######################
@@ -259,22 +314,22 @@ class HideAndWaitAction(Nav2BaseAction):
                 return None
                 
             path_obj, _ = result
-            x_path, y_path, theta_path, _ = path_obj
-            
-            tactical_waypoints = [(x_path[i], y_path[i], theta_path[i]) for i in range(len(x_path))]
+            x_path, y_path, theta_path, directions = path_obj
+
+            tactical_waypoints = [(x_path[i], y_path[i], theta_path[i], directions[i]) for i in range(len(x_path))]
             return tactical_waypoints
-            
+
         return None
-        
+
 class RunFromEnemyAction(Nav2BaseAction):
     def __init__(self, name="run_from_enemy_action", ros_node=None):
         super().__init__(name, ros_node)
         self.blackboard.register_key(key="robot_command", access=py_trees.common.Access.WRITE)
-        
+
     def get_tactical_path(self):
         self.blackboard.robot_command = "RUNNING_FROM_ENEMY"
         # מחזיר מסלול עם נקודה אחת כדי לא לקרוס (עד שנחבר את A*)
-        return [(0.0, 0.0, 0.0)]
+        return [(0.0, 0.0, 0.0, 1)]
     
 #######################
 # help teammate branch
@@ -340,11 +395,11 @@ class DriveToTeammateAction(Nav2BaseAction):
                 return None
                 
             path_obj, _ = result
-            x_path, y_path, theta_path, _ = path_obj
-            
-            tactical_waypoints = [(x_path[i], y_path[i], theta_path[i]) for i in range(len(x_path))]
+            x_path, y_path, theta_path, directions = path_obj
+
+            tactical_waypoints = [(x_path[i], y_path[i], theta_path[i], directions[i]) for i in range(len(x_path))]
             return tactical_waypoints
-            
+
         return None
 #########################
 # patrol branch
@@ -368,7 +423,7 @@ class MapsToGoalAction(Nav2BaseAction):
             
             start_pos = (cx, cy, cyaw)
             goal_pos = (gx, gy, 0.0) # בינתיים נניח שיעד הסיור לא דורש זווית ספציפית
-            
+
             self.ros_node.get_logger().info(f"[{self.name}] Running Hybrid A* planner...")
             
             # קריאה לאלגוריתם שלכם
@@ -391,10 +446,10 @@ class MapsToGoalAction(Nav2BaseAction):
             
             self.ros_node.get_logger().info(f"[{self.name}] A* found path with {len(x_path)} steps. Cost: {cost:.2f}")
 
-            # אריזת הנתונים לפורמט [(x, y, yaw), ...] עבור Nav2BaseAction
+            # אריזת הנתונים לפורמט [(x, y, yaw, direction), ...] עבור Nav2BaseAction
             tactical_waypoints = []
             for i in range(len(x_path)):
-                tactical_waypoints.append((x_path[i], y_path[i], theta_path[i]))
+                tactical_waypoints.append((x_path[i], y_path[i], theta_path[i], directions[i]))
                 
             return tactical_waypoints
             
@@ -737,36 +792,60 @@ class TacticalBrainNode(Node):
                 "data": bytes(sample.payload).decode('utf-8')
             })
 
+        # איזו קבוצה אנחנו - קובע לאיזה teams/team_{idx}/positions להאזין
+        # (הטופיק החדש שמפרסם ה-overhead ArUco tracker, ללא קידומת team_blue)
+        self.declare_parameter('my_team_idx', 0)
+        my_team_idx = self.get_parameter('my_team_idx').get_parameter_value().integer_value
+
         # הרשמה לערוצים - הוספנו קידומת (Namespace) לקבוצה הכחולה!
         if self.zenoh_session is not None:
             TEAM_PREFIX = "team_blue"
             self.zenoh_session.declare_subscriber(f'{TEAM_PREFIX}/detected_enemies', zenoh_listener)
             self.zenoh_session.declare_subscriber(f'{TEAM_PREFIX}/team_positions', zenoh_listener)
-            self.zenoh_session.declare_subscriber(f'{TEAM_PREFIX}/fleet_positions', zenoh_listener)
+            self.zenoh_session.declare_subscriber(f'teams/team_{my_team_idx}/positions', zenoh_listener)
         # ---------------------------------------------------------
 
         # Real pose source is whatever publishes 'itay_amcl_topic' (EKF
         # fused with the overhead ArUco camera) - NOT /amcl_pose, since
         # this stack runs slam_toolbox rather than amcl.
+        #
+        # Dedicated callback group + MultiThreadedExecutor (see main()):
+        # the default single-threaded executor processes every callback
+        # of a node strictly one at a time, on one thread. sense_and_think
+        # (the 0.5s tree timer, which runs A*'s search) and map_callback
+        # (looping over the full occupancy grid) are both expensive enough
+        # to block that thread for a while - during which pose_callback
+        # never got a turn to run, leaving current_x/current_y frozen at
+        # whatever they were when the blocking started. Confirmed directly:
+        # logged A* start position stayed bit-for-bit identical across
+        # multiple planning cycles spanning ~24s while the real robot had
+        # already driven over a meter away. Every path sent this session
+        # was potentially planned from a stale position as a result.
+        self.pose_callback_group = MutuallyExclusiveCallbackGroup()
         self.pose_sub = self.create_subscription(
             PoseWithCovarianceStamped,
             'itay_amcl_topic',
             self.pose_callback,
+            10,
+            callback_group=self.pose_callback_group
+        )
+
+        # פבלישר ל-/odometry/filtered - הבקר הסי++ (PID) מאזין כאן ישירות,
+        # אז ה-zenoh_manager מפרסם את הודעת ה-Odometry שמומרת מה-JSON של
+        # מצלמת הארוקו ישר לכאן (אין יותר טופיק ביניים aruco_global_pose).
+        self.aruco_odom_pub = self.create_publisher(
+            Odometry,
+            '/odometry/filtered',
             10
         )
 
-        # יצירת ה-Subscriber כדי לקרוא את מה שהמנג'ר משדר
-        self.aruco_pose_sub = self.create_subscription(
-            PoseStamped,
-            '/sensor_fusion_node/aruco_global_pose',
+        # מאזינים גם אנחנו ל-/odometry/filtered (אותו טופיק שהבקר הסי++
+        # מאזין לו) כדי לדעת מה האמת האבסולוטית מהארוקו ולתקן סטיית AMCL -
+        # בלי הצורך בטופיק ביניים נפרד.
+        self.aruco_odom_sub = self.create_subscription(
+            Odometry,
+            '/odometry/filtered',
             self.aruco_callback,
-            10
-        )
-        
-        # פבלישר לערוץ של הארוקו (כדי שה-zenoh_manager יוכל לפרסם אליו)
-        self.aruco_pub = self.create_publisher(
-            PoseStamped, 
-            '/sensor_fusion_node/aruco_global_pose', 
             10
         )
 
@@ -778,7 +857,7 @@ class TacticalBrainNode(Node):
         # משתנים לשמירת הסטייה המחושבת
         self.drift_x = 0.0
         self.drift_y = 0.0
-        self.drift_yaw = 0.0    
+        self.drift_yaw = 0.0
 
         # פבלישר לערוץ חטיפת המיקום של מערכת הניווט (איפוס סטייה)
         self.initial_pose_pub = self.create_publisher(
@@ -787,12 +866,23 @@ class TacticalBrainNode(Node):
             10
         )
 
-        # 2. אתחול משתני מצב מקומיים 
-        self.static_obstacles = set() 
+        # 2. אתחול משתני מצב מקומיים
+        self.static_obstacles = set()
         self.enemies_list = []
         self.teammates_dict = {}
         self.danger_dict = {}
         self.teammates_aura_set = set()
+
+        # slam_toolbox's /map is in its own run-relative TF frame (re-zeros
+        # at wherever the robot started this run), but current_x/current_y
+        # come from itay_amcl_topic's separate, supposedly-stable pose
+        # source. Reconcile the two via the live map->base_footprint TF
+        # vs. the already-tracked current_x/y/yaw, the same way a real
+        # deployment would need to align slam's local map against the
+        # overhead-camera's global pose.
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self.tf_buffer, self)
+        self.map_sub = self.create_subscription(OccupancyGrid, '/map', self.map_callback, 1)
 
         # 1. רישום כל המשתנים שהעץ צריך ב-Blackboard
         self.blackboard = py_trees.blackboard.Client(name="global")
@@ -831,13 +921,14 @@ class TacticalBrainNode(Node):
         self.blackboard.current_yaw = 0.0
         self.blackboard.hide_x = 2.25
         self.blackboard.hide_y = 4.75
-        # Straight ahead from the robot's spawn pose (2.0, 2.0, yaw=0) -
-        # short and well clear of Wall_100 (real maze wall starting at
-        # x~2.64, confirmed by watching the robot physically wedge into
-        # it when the goal was further out at x=4.0). A_planner.py's
-        # obstacle_set is hardcoded empty - it doesn't know walls exist -
-        # so for now the goal itself has to stay in open space.
-        self.blackboard.goal_x = 2.3
+        # Simplest possible test: 0.7m straight ahead of the robot's
+        # settled spawn pose (~1.918, 1.44, yaw~0) along its current
+        # heading - zero turning required, modest distance, to isolate
+        # whether basic straight-line driving works cleanly now that
+        # obstacle_set is wired from /map and the replan cooldown is
+        # short. Not validated clear beyond "some space for sure" -
+        # obstacle-awareness/fast-replan are the safety net if not.
+        self.blackboard.goal_x = 2.6
         self.blackboard.goal_y = 2.0
         self.blackboard.teammate_x = 1.5
         self.blackboard.teammate_y = 1.0
@@ -847,14 +938,14 @@ class TacticalBrainNode(Node):
         זוהי לולאת הליבה של הרובוט: Sense -> Think -> Act
         """
         # שלב א': Sense (קריאה מהתור של Zenoh במקום הרדיס)
-        # שים לב שהעברנו את self.msg_queue וגם את ה-publisher של הארוקו
+        # שים לב שהעברנו את self.msg_queue וגם את ה-publisher של ה-Odometry
         self.danger_dict, self.teammates_aura_set, self.enemies_list, self.teammates_dict = zenoh_manager.get_latest_world_state(
-            self.msg_queue, 
-            self.enemies_list, 
-            self.teammates_dict, 
+            self.msg_queue,
+            self.enemies_list,
+            self.teammates_dict,
             self.static_obstacles,
-            ros_node=self, 
-            aruco_pub=self.aruco_pub
+            ros_node=self,
+            aruco_pub=self.aruco_odom_pub
         )
         
         # שלב ב': Translation 
@@ -907,34 +998,37 @@ class TacticalBrainNode(Node):
 
     
     def aruco_callback(self, msg):
-        self.aruco_x = msg.pose.position.x
-        self.aruco_y = msg.pose.position.y
-        self.aruco_yaw = self.get_yaw_from_quaternion(msg.pose.orientation)
-        
+        # msg is now nav_msgs/Odometry (from /odometry/filtered) instead of
+        # the old geometry_msgs/PoseStamped on aruco_global_pose - position
+        # and orientation live one level deeper, under pose.pose.
+        self.aruco_x = msg.pose.pose.position.x
+        self.aruco_y = msg.pose.pose.position.y
+        self.aruco_yaw = self.get_yaw_from_quaternion(msg.pose.pose.orientation)
+
         self.drift_x = self.aruco_x - self.blackboard.current_x
         self.drift_y = self.aruco_y - self.blackboard.current_y
         yaw_diff = self.aruco_yaw - self.blackboard.current_yaw
         self.drift_yaw = math.atan2(math.sin(yaw_diff), math.cos(yaw_diff))
-        
+
         total_drift_meters = math.hypot(self.drift_x, self.drift_y)
-        
+
         if total_drift_meters > 0.05:
             self.get_logger().warn(f"HIGH ODOM DRIFT: {total_drift_meters*100:.1f}cm! Resetting AMCL to ArUco ground truth.")
-            
+
             reset_msg = PoseWithCovarianceStamped()
             reset_msg.header.stamp = self.get_clock().now().to_msg()
             reset_msg.header.frame_id = 'map'
-            
+
             reset_msg.pose.pose.position.x = self.aruco_x
             reset_msg.pose.pose.position.y = self.aruco_y
-            reset_msg.pose.pose.orientation = msg.pose.orientation
-            
-            reset_msg.pose.covariance[0] = 0.05 
+            reset_msg.pose.pose.orientation = msg.pose.pose.orientation
+
+            reset_msg.pose.covariance[0] = 0.05
             reset_msg.pose.covariance[7] = 0.05
             reset_msg.pose.covariance[35] = 0.05
-            
+
             self.initial_pose_pub.publish(reset_msg)
-            
+
             self.drift_x = 0.0
             self.drift_y = 0.0
 
@@ -947,15 +1041,68 @@ class TacticalBrainNode(Node):
         siny_cosp = 2 * (q.w * q.z + q.x * q.y)
         cosy_cosp = 1 - 2 * (q.y * q.y + q.z * q.z)
         return math.atan2(siny_cosp, cosy_cosp)
-    
+
+    def map_callback(self, msg):
+        # slam_toolbox's /map lives in its own run-relative TF frame (it
+        # re-zeros at wherever the robot started this run). current_x/
+        # current_y come from a separate, supposedly-stable pose source
+        # (itay_amcl_topic). Without reconciling the two, obstacles read
+        # straight off the grid would land in the wrong place relative to
+        # where tactical_brain thinks it is - exactly the mismatch that
+        # let A* plan straight through real walls.
+        try:
+            tf = self.tf_buffer.lookup_transform('map', 'base_footprint', Time())
+        except (LookupException, ConnectivityException, ExtrapolationException):
+            return
+
+        map_x = tf.transform.translation.x
+        map_y = tf.transform.translation.y
+        map_yaw = self.get_yaw_from_quaternion(tf.transform.rotation)
+
+        yaw_offset = self.blackboard.current_yaw - map_yaw
+        cos_o = math.cos(yaw_offset)
+        sin_o = math.sin(yaw_offset)
+        origin_x = self.blackboard.current_x
+        origin_y = self.blackboard.current_y
+
+        width = msg.info.width
+        height = msg.info.height
+        res = msg.info.resolution
+        grid_origin_x = msg.info.origin.position.x
+        grid_origin_y = msg.info.origin.position.y
+        data = msg.data
+
+        obstacles = set()
+        for row in range(height):
+            base = row * width
+            cell_y = grid_origin_y + (row + 0.5) * res
+            dy = cell_y - map_y
+            for col in range(width):
+                if data[base + col] < 50:
+                    continue
+                cell_x = grid_origin_x + (col + 0.5) * res
+                dx = cell_x - map_x
+                wx = origin_x + (dx * cos_o - dy * sin_o)
+                wy = origin_y + (dx * sin_o + dy * cos_o)
+                obstacles.add((round(wx / A_planner.XY_RESOLUTION), round(wy / A_planner.XY_RESOLUTION)))
+
+        self.static_obstacles = obstacles
+        self.get_logger().info(f"static_obstacles updated from /map: {len(obstacles)} occupied cells")
+
 def distance(a, b):
     return math.hypot(a[0] - b[0], a[1] - b[1])
     
 def main(args=None):
     rclpy.init(args=args)
     node = TacticalBrainNode()
+    # MultiThreadedExecutor + pose_callback's own callback group (see
+    # __init__) so pose updates keep flowing while the tree timer's A*
+    # search or map_callback's grid scan are running, instead of being
+    # serialized behind them on a single thread.
+    executor = MultiThreadedExecutor()
+    executor.add_node(node)
     try:
-        rclpy.spin(node)
+        executor.spin()
     except KeyboardInterrupt:
         pass
     finally:
