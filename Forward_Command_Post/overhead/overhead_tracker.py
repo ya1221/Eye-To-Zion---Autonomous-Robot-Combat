@@ -5,7 +5,7 @@ import math
 import rclpy
 from rclpy.node import Node
 import json
-from geometry_msgs.msg import PoseArray, Pose, Point
+from std_msgs.msg import String
 
 class PureModuloTrackerNode(Node):
     def __init__(self):
@@ -22,14 +22,19 @@ class PureModuloTrackerNode(Node):
         self.CAMERA_ID = self.get_parameter('camera_id').value
         self.GRID_N = self.get_parameter('grid_n').value
         self.TARGETS_START = self.get_parameter('targets_start').value
+        
+        if self.CNT_TEAM < 1:
+            self.get_logger().fatal(f"cnt_team must be >= 1, got {self.CNT_TEAM}. Shutting down.")
+            raise SystemExit(1)
+        
         self.ROBOTS_START = self.TARGETS_START + self.CNT_TEAM
         
-        # 3. Dynamic publishers setup
+        # 3. Dynamic publishers setup (Using String for JSON payloads)
         self.team_pubs = {}
         self.target_pubs = {}
         for team_idx in range(self.CNT_TEAM):
-            self.team_pubs[team_idx] = self.create_publisher(PoseArray, f'teams/team_{team_idx}/positions', 10)
-            self.target_pubs[team_idx] = self.create_publisher(Point, f'teams/team_{team_idx}/target_position', 10)
+            self.team_pubs[team_idx] = self.create_publisher(String, f'teams/team_{team_idx}/positions', 10)
+            self.target_pubs[team_idx] = self.create_publisher(String, f'teams/team_{team_idx}/target_position', 10)
         
         # 4. Vision parameters
         self.aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_4X4_50)
@@ -46,6 +51,10 @@ class PureModuloTrackerNode(Node):
         
         self.robots_state = {}
         self.old_gray = None
+        self.frame_count = 0
+        self.FEATURE_UPDATE_INTERVAL = 10
+        self.camera_failure_count = 0
+        self.MAX_CAMERA_RETRIES = 10
         
         # 6. Camera init
         self.cap = cv2.VideoCapture(self.CAMERA_ID)
@@ -57,11 +66,8 @@ class PureModuloTrackerNode(Node):
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
         
         self.timer = self.create_timer(1.0 / 30.0, self.process_frame)
-        self.get_logger().info(f"Modulo Tracker ONLINE ({self.CNT_TEAM} Teams Mode). Architecture: Modular.")
+        self.get_logger().info(f"Modulo Tracker ONLINE ({self.CNT_TEAM} Teams Mode). Architecture: Modular JSON.")
 
-    # ==========================================
-    # Helper Math Functions
-    # ==========================================
     def get_grid_coordinates(self, cx, cy, angle):
         pt_cam = np.array([[[cx, cy]]], dtype=np.float32)
         pt_grid = cv2.perspectiveTransform(pt_cam, self.perspective_matrix)
@@ -71,55 +77,33 @@ class PureModuloTrackerNode(Node):
             "angle": round(angle, 2)
         }
 
-    def degrees_to_quaternion(self, angle_degrees):
-        angle_radians = math.radians(angle_degrees)
-        return {
-            "x": 0.0,
-            "y": 0.0,
-            "z": math.sin(angle_radians / 2.0),
-            "w": math.cos(angle_radians / 2.0)
-        }
-
-    # ==========================================
-    # Main Pipeline Orchestrator
-    # ==========================================
     def process_frame(self):
         ret, frame = self.cap.read()
         if not ret:
+            self._handle_camera_failure()
             return
 
+        self.camera_failure_count = 0
+        self.frame_count += 1
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        
-        # Step 1: Detect all markers
         current_detected_ids, corners_dict = self._detect_markers(frame)
 
-        # Step 2: Ensure arena is locked
         if not self._lock_perspective(frame, corners_dict):
             return
         
-        # Prepare storage for this frame
         frame_teams_data = {i: [] for i in range(self.CNT_TEAM)}
         frame_targets_data = {}
 
-        # Step 3: Process visible entities (Targets & Robots)
         self._process_visible_entities(frame, gray, corners_dict, frame_teams_data, frame_targets_data)
-
-        # Step 4: Track hidden robots using KLT
         self._track_hidden_robots(frame, gray, current_detected_ids, frame_teams_data)
 
         self.old_gray = gray.copy()
-
-        # Step 5: Broadcast telemetry to ROS 2 network
         self._publish_telemetry(frame_teams_data, frame_targets_data)
 
-        # Step 6: Render GUI
         cv2.imshow("Tactical Map", frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             rclpy.shutdown()
 
-    # ==========================================
-    # Pipeline Stages
-    # ==========================================
     def _detect_markers(self, frame):
         corners, ids, _ = self.detector.detectMarkers(frame)
         current_detected_ids = set()
@@ -139,7 +123,6 @@ class PureModuloTrackerNode(Node):
                 angle = math.degrees(math.atan2(dy, dx))
                 corners_dict[rid] = (cx, cy, angle, c)
                 
-                # Draw heading
                 end_x = int(cx + 50 * math.cos(math.radians(angle)))
                 end_y = int(cy + 50 * math.sin(math.radians(angle)))
                 cv2.line(frame, (cx, cy), (end_x, end_y), (0, 0, 255), 3)
@@ -149,7 +132,7 @@ class PureModuloTrackerNode(Node):
     def _lock_perspective(self, frame, corners_dict):
         if not self.is_matrix_locked:
             if all(anchor in corners_dict for anchor in range(4)):
-                src_pts = np.array([corners_dict[i][:2] for i in [1, 2, 3, 0]], dtype=np.float32)
+                src_pts = np.array([corners_dict[i][:2] for i in [0, 1, 2, 3]], dtype=np.float32)
                 self.perspective_matrix = cv2.getPerspectiveTransform(src_pts, self.dst_pts)
                 self.is_matrix_locked = True
                 self.get_logger().info("Arena Perspective Locked!")
@@ -162,27 +145,38 @@ class PureModuloTrackerNode(Node):
     def _process_visible_entities(self, frame, gray, corners_dict, frame_teams_data, frame_targets_data):
         for rid, (cx, cy, angle, c) in corners_dict.items():
             if rid < self.TARGETS_START:
-                continue # Skip corners
+                continue
                 
             assigned_team = rid % self.CNT_TEAM
             
-            # Target Logic
             if self.TARGETS_START <= rid < self.ROBOTS_START:
                 frame_targets_data[assigned_team] = self.get_grid_coordinates(cx, cy, angle)
                 cv2.putText(frame, f"TARGET T{assigned_team} (ID:{rid})", (cx-40, cy-15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
             
-            # Robot Logic
             elif rid >= self.ROBOTS_START:
                 robot_coords = self.get_grid_coordinates(cx, cy, angle)
                 robot_coords["id"] = rid
                 frame_teams_data[assigned_team].append(robot_coords)
                 
-                # Init tracking state for future hidden frames
-                mask = np.zeros_like(gray)
-                cv2.fillPoly(mask, [np.int32(c)], 255)
-                p0 = cv2.goodFeaturesToTrack(gray, mask=mask, **self.feature_params)
-                if p0 is not None:
-                    self.robots_state[rid] = {'center': np.array([cx, cy], dtype=np.float32), 'angle': angle, 'features': p0, 'missed': 0}
+                # Only compute expensive features on first detection or every N frames
+                is_new_robot = rid not in self.robots_state
+                is_update_frame = self.frame_count % self.FEATURE_UPDATE_INTERVAL == 0
+                
+                if is_new_robot or is_update_frame:
+                    mask = np.zeros_like(gray)
+                    cv2.fillPoly(mask, [np.int32(c)], 255)
+                    p0 = cv2.goodFeaturesToTrack(gray, mask=mask, **self.feature_params)
+                    if p0 is not None:
+                        self.robots_state[rid] = {'center': np.array([cx, cy], dtype=np.float32), 'angle': angle, 'features': p0, 'missed': 0}
+                    elif rid in self.robots_state:
+                        self.robots_state[rid]['center'] = np.array([cx, cy], dtype=np.float32)
+                        self.robots_state[rid]['angle'] = angle
+                        self.robots_state[rid]['missed'] = 0
+                else:
+                    # Update position/angle but keep existing features
+                    self.robots_state[rid]['center'] = np.array([cx, cy], dtype=np.float32)
+                    self.robots_state[rid]['angle'] = angle
+                    self.robots_state[rid]['missed'] = 0
 
     def _track_hidden_robots(self, frame, gray, current_detected_ids, frame_teams_data):
         if self.old_gray is None:
@@ -217,42 +211,52 @@ class PureModuloTrackerNode(Node):
                 else:
                     del self.robots_state[rid]
 
+    def _handle_camera_failure(self):
+        self.camera_failure_count += 1
+        self.get_logger().warn(f"Camera read failed (attempt {self.camera_failure_count}/{self.MAX_CAMERA_RETRIES})")
+        
+        if self.camera_failure_count >= self.MAX_CAMERA_RETRIES:
+            self.get_logger().error(f"Camera lost after {self.MAX_CAMERA_RETRIES} consecutive failures. Attempting reconnection...")
+            self.cap.release()
+            self.cap = cv2.VideoCapture(self.CAMERA_ID)
+            if self.cap.isOpened():
+                self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+                self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+                self.camera_failure_count = 0
+                self.get_logger().info("Camera reconnected successfully!")
+            else:
+                self.get_logger().error("Camera reconnection failed. Will retry on next cycle.")
+                self.camera_failure_count = 0  # Reset to allow retry cycle
+
     def _publish_telemetry(self, frame_teams_data, frame_targets_data):
-        current_time = self.get_clock().now().to_msg()
-
         for team_idx in range(self.CNT_TEAM):
-            # Publish Robots PoseArray
+            
+            # Publish Robots as JSON String
             if frame_teams_data[team_idx]:
-                pose_array = PoseArray()
-                pose_array.header.stamp = current_time
-                pose_array.header.frame_id = "map" 
-                
+                robots_payload = []
                 for robot in frame_teams_data[team_idx]:
-                    pose = Pose()
-                    pose.position.x = float(robot["x"])
-                    pose.position.y = float(robot["y"])
-                    pose.position.z = 0.0
-                    
-                    q = self.degrees_to_quaternion(robot["angle"])
-                    pose.orientation.x = q["x"]
-                    pose.orientation.y = q["y"]
-                    pose.orientation.z = q["z"]
-                    pose.orientation.w = q["w"]
-                    
-                    pose_array.poses.append(pose)
-                    
-                self.team_pubs[team_idx].publish(pose_array)
+                    robots_payload.append({
+                        "id": int(robot["id"]),
+                        "x": float(robot["x"]),
+                        "y": float(robot["y"]),
+                        "angle": float(robot["angle"])
+                    })
+                
+                msg = String()
+                msg.data = json.dumps(robots_payload)
+                self.team_pubs[team_idx].publish(msg)
 
-            # Publish Target Point (X, Y, 0)
+            # Publish Target as JSON String
             if team_idx in frame_targets_data:
                 target = frame_targets_data[team_idx]
-    
-                point_msg = Point()
-                point_msg.x = float(target["x"])
-                point_msg.y = float(target["y"])
-                point_msg.z = 0.0
-    
-                self.target_pubs[team_idx].publish(point_msg)
+                target_payload = {
+                    "x": float(target["x"]),
+                    "y": float(target["y"])
+                }
+                
+                msg = String()
+                msg.data = json.dumps(target_payload)
+                self.target_pubs[team_idx].publish(msg)
 
 def main(args=None):
     rclpy.init(args=args)

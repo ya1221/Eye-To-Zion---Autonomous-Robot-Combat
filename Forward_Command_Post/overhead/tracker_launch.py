@@ -6,7 +6,7 @@ from launch.substitutions import LaunchConfiguration
 def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument('cnt_team', default_value='2', description='Number of teams'),
-        DeclareLaunchArgument('camera_id', default_value='0', description='Camera device ID'),
+        DeclareLaunchArgument('camera_id', default_value='2', description='Camera device ID'),
         DeclareLaunchArgument('grid_n', default_value='2000', description='Grid coordinate resolution'),
         DeclareLaunchArgument('targets_start', default_value='4', description='Targets starting ArUco ID'),
 
