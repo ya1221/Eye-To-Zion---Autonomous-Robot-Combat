@@ -161,12 +161,34 @@ controller_server:
       plugin: "nav2_controller::SimpleProgressChecker"
       required_movement_radius: 0.5
       movement_time_allowance: 30.0
+    # Was unset entirely (relying on nav2_controller's compiled-in
+    # SimpleGoalChecker defaults: xy 0.25, yaw 0.25 rad ~14.3deg).
+    # Logged a clean 0.6m straight FollowPath path overshoot by 1.4m+
+    # instead of stopping: ground-truth trace showed the robot passing
+    # within 0.17m of the path's literal endpoint with yaw=14.0deg at
+    # that exact instant - inside the xy tolerance but right on the edge
+    # of (and, a moment later, outside) the yaw tolerance, so it never
+    # latched "reached" and kept driving past. yaw_goal_tolerance loosened
+    # to comfortably cover that measured peak with margin; xy left as-is
+    # since it was never the marginal one.
+    goal_checker_plugins: ["goal_checker"]
+    goal_checker:
+      plugin: "nav2_controller::SimpleGoalChecker"
+      xy_goal_tolerance: 0.25
+      yaw_goal_tolerance: 0.4
+      stateful: true
     controller_plugins: ["FollowPath"]
     FollowPath:
       plugin: "nav2_mppi_controller::MPPIController"
       time_steps: 36
       model_dt: 0.05
-      batch_size: 1000
+      # Was 1000. etz_simulation measured at 1007% CPU on a 12-core host
+      # with controller_server logging "Control loop missed its desired
+      # rate of 20.0000Hz" right before an outright "Optimizer fail to
+      # compute path" crash - lowered to reduce MPPI's per-cycle compute
+      # cost so the 20Hz loop has a realistic chance of holding under the
+      # software-rendered-Gazebo + full nav2 stack sharing one container.
+      batch_size: 500
       vx_std: 0.2
       vy_std: 0.0
       wz_std: 0.4
@@ -184,8 +206,17 @@ controller_server:
       gamma: 0.015
       motion_model: "Ackermann"
       visualize: false
-      reset_period: 1.0 
-      regenerate_noises: false
+      reset_period: 1.0
+      # Was false. Three independent runs of the same trivial straight
+      # path produced near-identical peak heading deviation (13.1, 13.6,
+      # 14.4 degrees) and near-identical overshoot/wedge locations -
+      # suspiciously repeatable for what's supposed to be a stochastic
+      # sampling-based optimizer. With this off, MPPI reuses the same
+      # Gaussian control-perturbation noise sequence every optimization
+      # cycle instead of redrawing it, turning what should be exploration
+      # into a fixed, repeated bias. Enabling regeneration so it actually
+      # explores/corrects cycle to cycle.
+      regenerate_noises: true
       TrajectoryVisualizer:
         trajectory_step: 5
         time_step: 3
@@ -215,6 +246,12 @@ controller_server:
       # 5.0) - reverting all of them at once instead of guessing which
       # combination of incremental tweaks was compounding the
       # heading-over-progress bias that produced near-zero net movement.
+      # Isolated via elimination (2026-06-28): PathFollowCritic alone
+      # reproduces the full wz bump (peak +0.40 rad/s on /cmd_vel_nav for
+      # a path requiring zero turning); GoalCritic alone does not.
+      # PathAlignCritic doesn't matter either way. Re-enabled here since
+      # it's not the cause - GoalCritic still provides goal-seeking
+      # behavior without PathFollowCritic's bug (see below).
       GoalCritic:
         enabled: true
         cost_power: 1
@@ -252,6 +289,9 @@ controller_server:
         trajectory_point_step: 2
         inflation_radius: 0.22
         cost_scaling_factor: 6.0
+      # Tested disabled as a diagnostic (2026-06-28): wz bump on
+      # /cmd_vel_nav was unchanged (still peaks ~+0.40 rad/s at the same
+      # point in execution) - ruled out as the source. Restored to enabled.
       PathAlignCritic:
         enabled: true
         cost_power: 1
@@ -261,8 +301,20 @@ controller_server:
         threshold_to_consider: 0.5
         offset_from_furthest: 20
         use_path_orientations: false
+      # Disabled (2026-06-28): confirmed via elimination + /cmd_vel_nav
+      # logging this is the specific critic producing the persistent
+      # ~14deg heading bias / overshoot on every straight-path test this
+      # session. Its score() (fetched from the matching nav2 1.1.20/humble
+      # source) penalizes each candidate rollout by the distance from its
+      # *predicted endpoint 1.8s out* (36 steps * model_dt 0.05) to a path
+      # point offset_from_furthest indices ahead of current progress - a
+      # pure positional distance, no orientation term, so the bias isn't a
+      # visible bug in this critic's formula; it's some interaction with
+      # the Ackermann motion model/sampling underneath that would need
+      # profiling the compiled optimizer to pin further. GoalCritic alone
+      # still provides goal-seeking behavior without this critic.
       PathFollowCritic:
-        enabled: true
+        enabled: false
         cost_power: 1
         cost_weight: 5.0
         offset_from_furthest: 5

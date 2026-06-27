@@ -46,6 +46,12 @@ class Nav2BaseAction(py_trees.behaviour.Behaviour):
         super().__init__(name)
         self.ros_node = ros_node
         self.blackboard = py_trees.blackboard.Client(name=self.name)
+        # Needed by _world_to_map_pose below, registered here so it's
+        # available to every subclass regardless of which other keys they
+        # individually register.
+        self.blackboard.register_key(key="current_x", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="current_y", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="current_yaw", access=py_trees.common.Access.READ)
         if self.ros_node:
             # אנחנו עכשיו מדברים ישירות עם הבקר המקומי (Controller) של Nav2
             self._action_client = ActionClient(self.ros_node, FollowPath, 'follow_path')
@@ -83,6 +89,64 @@ class Nav2BaseAction(py_trees.behaviour.Behaviour):
         if current_segment:
             segments.append(current_segment)
         return segments
+
+    @staticmethod
+    def _densify_segment(points, max_spacing=0.05):
+        # A_planner's MOVE_STEP is 0.2m, so a short segment can reach
+        # FollowPath as just 3-4 widely-spaced poses. Measured directly
+        # (ground-truth trajectory logging) that MPPI does not slow down
+        # approaching such a sparse path's last pose at all - it sails
+        # through and overshoots by over a meter before it does anything
+        # resembling stopping. Interpolating extra poses in between (without
+        # touching A*'s own search step, which would blow up Hybrid A*'s
+        # search cost) gives the controller a denser breadcrumb trail to
+        # actually track near the goal.
+        if len(points) < 2:
+            return points
+        dense = [points[0]]
+        for (x0, y0, yaw0), (x1, y1, yaw1) in zip(points[:-1], points[1:]):
+            dist = math.hypot(x1 - x0, y1 - y0)
+            steps = max(1, int(math.ceil(dist / max_spacing)))
+            dyaw = math.atan2(math.sin(yaw1 - yaw0), math.cos(yaw1 - yaw0))
+            for i in range(1, steps + 1):
+                t = i / steps
+                dense.append((
+                    x0 + (x1 - x0) * t,
+                    y0 + (y1 - y0) * t,
+                    yaw0 + dyaw * t,
+                ))
+        return dense
+
+    def _world_to_map_pose(self, wx, wy, wyaw):
+        # ROOT CAUSE of this whole investigation's overshoot (confirmed
+        # directly, 2026-06-28): A_planner computes waypoints in the same
+        # ground-truth/ "world" frame as current_x/current_y (itay_amcl_topic),
+        # but every FollowPath path was being declared frame_id='map' while
+        # still carrying those raw world-frame numbers. slam_toolbox's real
+        # 'map' frame origin is the robot's SPAWN point, not the world
+        # origin - verified live: map->base_link reads ~(0,0) at spawn while
+        # ground truth reads the real spawn coordinates (~1.78, 1.44). So
+        # every goal was silently getting the entire spawn-point offset
+        # added on top of where it was actually meant to be - nav2 was
+        # correctly, faithfully driving to the (wrongly-labeled) coordinates
+        # the whole time. This is the exact inverse of map_callback's
+        # map->world obstacle transform, reusing the same live TF lookup +
+        # current_x/y/yaw correspondence.
+        tf = self.ros_node.tf_buffer.lookup_transform('map', 'base_footprint', Time())
+        map_x = tf.transform.translation.x
+        map_y = tf.transform.translation.y
+        map_yaw = self.ros_node.get_yaw_from_quaternion(tf.transform.rotation)
+
+        yaw_offset = self.blackboard.current_yaw - map_yaw
+        cos_o = math.cos(yaw_offset)
+        sin_o = math.sin(yaw_offset)
+
+        dx_w = wx - self.blackboard.current_x
+        dy_w = wy - self.blackboard.current_y
+        dx_m = dx_w * cos_o + dy_w * sin_o
+        dy_m = -dx_w * sin_o + dy_w * cos_o
+
+        return (map_x + dx_m, map_y + dy_m, wyaw - yaw_offset)
 
     def update(self):
         if self.ros_node is None: return py_trees.common.Status.SUCCESS
@@ -136,15 +200,24 @@ class Nav2BaseAction(py_trees.behaviour.Behaviour):
         path_msg.header.frame_id = 'map'
         path_msg.header.stamp = self.ros_node.get_clock().now().to_msg()
 
-        for x, y, yaw in segment:
-            pose = PoseStamped()
-            pose.header = path_msg.header
-            pose.pose.position.x = float(x)
-            pose.pose.position.y = float(y)
-            # המרת הזווית (Yaw) לקווטרניון ש-ROS2 דורש
-            pose.pose.orientation.z = float(math.sin(yaw / 2.0))
-            pose.pose.orientation.w = float(math.cos(yaw / 2.0))
-            path_msg.poses.append(pose)
+        try:
+            for x, y, yaw in self._densify_segment(segment):
+                mx, my, myaw = self._world_to_map_pose(x, y, yaw)
+                pose = PoseStamped()
+                pose.header = path_msg.header
+                pose.pose.position.x = float(mx)
+                pose.pose.position.y = float(my)
+                # המרת הזווית (Yaw) לקווטרניון ש-ROS2 דורש
+                pose.pose.orientation.z = float(math.sin(myaw / 2.0))
+                pose.pose.orientation.w = float(math.cos(myaw / 2.0))
+                path_msg.poses.append(pose)
+        except (LookupException, ConnectivityException, ExtrapolationException) as e:
+            self.ros_node.get_logger().warn(
+                f"[{self.name}] map->base_footprint not available yet ({e}) - "
+                "retrying next tick instead of sending a world-frame path "
+                "mislabeled as map-frame."
+            )
+            return py_trees.common.Status.RUNNING
 
         goal_msg = FollowPath.Goal()
         goal_msg.path = path_msg
@@ -295,8 +368,13 @@ class HideAndWaitAction(Nav2BaseAction):
             self.blackboard.robot_command = "HIDING (A* PATH)"
             
             start_pos = (cx, cy, cyaw)
-            goal_pos = (hx, hy, 0.0) # כיוון לא משנה במחסה
-            
+            # calc_hybrid_a_star's stop condition only checks x/y distance
+            # (A_planner.py:100-101) - goal yaw is currently inert either
+            # way - but compute it from the vector to goal anyway instead
+            # of a hardcoded value, since "face east" has no more tactical
+            # meaning here than "face the way you're driving."
+            goal_pos = (hx, hy, math.atan2(hy - cy, hx - cx))
+
             self.ros_node.get_logger().info(f"[{self.name}] Calculating A* evasion route...")
             
             result = A_planner.calc_hybrid_a_star(
@@ -376,8 +454,8 @@ class DriveToTeammateAction(Nav2BaseAction):
             self.blackboard.robot_command = "DRIVE_TO_TEAMMATE (A* PATH)"
             
             start_pos = (cx, cy, cyaw)
-            goal_pos = (tx, ty, 0.0) 
-            
+            goal_pos = (tx, ty, math.atan2(ty - cy, tx - cx))
+
             self.ros_node.get_logger().info(f"[{self.name}] Calculating A* rescue route...")
             
             result = A_planner.calc_hybrid_a_star(
@@ -422,7 +500,7 @@ class MapsToGoalAction(Nav2BaseAction):
             self.blackboard.robot_command = "NAVIGATING (A* PATH)"
             
             start_pos = (cx, cy, cyaw)
-            goal_pos = (gx, gy, 0.0) # בינתיים נניח שיעד הסיור לא דורש זווית ספציפית
+            goal_pos = (gx, gy, math.atan2(gy - cy, gx - cx))
 
             self.ros_node.get_logger().info(f"[{self.name}] Running Hybrid A* planner...")
             
@@ -921,15 +999,22 @@ class TacticalBrainNode(Node):
         self.blackboard.current_yaw = 0.0
         self.blackboard.hide_x = 2.25
         self.blackboard.hide_y = 4.75
-        # Simplest possible test: 0.7m straight ahead of the robot's
-        # settled spawn pose (~1.918, 1.44, yaw~0) along its current
-        # heading - zero turning required, modest distance, to isolate
-        # whether basic straight-line driving works cleanly now that
-        # obstacle_set is wired from /map and the replan cooldown is
-        # short. Not validated clear beyond "some space for sure" -
-        # obstacle-awareness/fast-replan are the safety net if not.
+        # Diagnostic direction-change test: every prior straight-east
+        # test (goal ~0.8m east of spawn) converged on the same overshoot
+        # magnitude (~13-14.4deg peak heading deviation) AND the same
+        # final wedge position/heading (~5.3-5.4, ~2-3.1, ~70-75deg)
+        # regardless of goal_checker tuning, path density, MPPI batch_size,
+        # or noise regeneration - suspicious for a goal-driven controller.
+        # Pointing the goal north instead (perpendicular, same ~0.8m
+        # distance, clear of every wall in maze/model.sdf by >0.7m) tests
+        # whether the robot still converges on that same east-side
+        # location/heading regardless of where the goal actually is -
+        # which would prove the attractor is goal-independent.
+        # Back to the pure-straight test (zero planned curvature, yaw=0
+        # throughout) so any angular.z seen on /cmd_vel_nav is unambiguous
+        # MPPI bias, not legitimate path-curvature-following.
         self.blackboard.goal_x = 2.6
-        self.blackboard.goal_y = 2.0
+        self.blackboard.goal_y = 1.44
         self.blackboard.teammate_x = 1.5
         self.blackboard.teammate_y = 1.0
         

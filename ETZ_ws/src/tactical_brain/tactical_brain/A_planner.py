@@ -12,12 +12,20 @@ ROBOT_RADIUS = 0.25   # רדיוס פיזי של הרובוט להתנגשויו
 
 # === פרמטרי עלויות (Costs) ===
 H_WEIGHT = 1.2        # משקל ההיוריסטיקה (Weighted A*) - מאוזן למניעת תקיעה
+# Minimum consecutive steps (0.6m at MOVE_STEP=0.2) a direction run must
+# last before another gear switch is "free" - see calc_motion's
+# switching/run_length handling. Confirmed directly: without this, A*'s
+# raw step-by-step direction output sometimes alternated every step,
+# producing 1-2 point same-direction runs that Nav2BaseAction then had to
+# send to FollowPath as their own degenerate segments.
+MIN_RUN_STEPS = 3
+SHORT_RUN_PENALTY = MOVE_STEP * 3.0
 TEAMMATE_DISCOUNT = MOVE_STEP * 0.5
 ENEMY_MAX_COST = 1.0  # קנס אויב נמוך לעידוד אגרסיביות (חציית שטח השמדה)
 ENEMY_TTL = 15        # זמן חיים של זיהוי אויב [שניות]
 
 class Node:
-    def __init__(self, x_ind, y_ind, yaw_ind, direction, p_node, cost, steering=0):
+    def __init__(self, x_ind, y_ind, yaw_ind, direction, p_node, cost, steering=0, run_length=1):
         self.x_ind = x_ind
         self.y_ind = y_ind
         self.yaw_ind = yaw_ind
@@ -25,6 +33,13 @@ class Node:
         self.p_node = p_node
         self.cost = cost
         self.steering = steering
+        # Consecutive steps taken in the current direction. Used to
+        # penalize switching gear again too soon (see MIN_RUN_STEPS in
+        # calc_motion) - without this, the search could produce paths
+        # that flip direction every step, which Nav2BaseAction then has
+        # to split into degenerate 1-2 point FollowPath segments that
+        # MPPI can't track sensibly.
+        self.run_length = run_length
 
     def __lt__(self, other):
         return self.cost < other.cost
@@ -161,10 +176,18 @@ def calc_motion(node, xy_res, yaw_res, danger_dict, teammates_aura_set, current_
             yaw_ind = int(round(yaw / yaw_res))
             
             # חישוב עלויות צעד
-            direction_cost = 0 if direction == 1 else MOVE_STEP * 1.0 
-            switch_gear_cost = 0 if direction == node.direction else MOVE_STEP * 2.0
+            direction_cost = 0 if direction == 1 else MOVE_STEP * 1.0
+            switching = direction != node.direction
+            switch_gear_cost = 0 if not switching else MOVE_STEP * 2.0
+            if switching and node.run_length < MIN_RUN_STEPS:
+                # Switched again before finishing a minimum-length leg -
+                # escalating penalty per step short, on top of the flat
+                # switch_gear_cost above, so the search prefers fewer,
+                # longer same-direction runs over flip-flopping.
+                switch_gear_cost += (MIN_RUN_STEPS - node.run_length) * SHORT_RUN_PENALTY
+            new_run_length = node.run_length + 1 if not switching else 1
             steer_cost = abs(steering) * MOVE_STEP * 0.5
-            
+
             step_cost = MOVE_STEP + direction_cost + switch_gear_cost + steer_cost
             
             # הנחת חבר צוות
@@ -179,7 +202,10 @@ def calc_motion(node, xy_res, yaw_res, danger_dict, teammates_aura_set, current_
                     enemy_penalty = (-ENEMY_MAX_COST / ENEMY_TTL) * time_since_danger + ENEMY_MAX_COST
                     step_cost += max(0, enemy_penalty)
 
-            next_nodes.append(Node(x_ind, y_ind, yaw_ind, direction, node, node.cost + step_cost, steering))
+            next_nodes.append(Node(
+                x_ind, y_ind, yaw_ind, direction, node, node.cost + step_cost,
+                steering, new_run_length
+            ))
         
     return next_nodes
 
