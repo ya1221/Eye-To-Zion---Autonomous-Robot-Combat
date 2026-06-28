@@ -82,12 +82,12 @@ class Nav2BaseAction(py_trees.behaviour.Behaviour):
         current_direction = None
         for x, y, yaw, direction in waypoints:
             if direction != current_direction and current_segment:
-                segments.append(current_segment)
+                segments.append((current_direction, current_segment))
                 current_segment = []
             current_segment.append((x, y, yaw))
             current_direction = direction
         if current_segment:
-            segments.append(current_segment)
+            segments.append((current_direction, current_segment))
         return segments
 
     @staticmethod
@@ -193,7 +193,7 @@ class Nav2BaseAction(py_trees.behaviour.Behaviour):
                 "ago) instead of replanning from scratch."
             )
 
-        segment = self._cached_segments[self._segment_index]
+        direction, segment = self._cached_segments[self._segment_index]
 
         # בניית הודעת מסלול (Path) תקנית של ROS2
         path_msg = Path()
@@ -221,7 +221,19 @@ class Nav2BaseAction(py_trees.behaviour.Behaviour):
 
         goal_msg = FollowPath.Goal()
         goal_msg.path = path_msg
-        goal_msg.controller_id = 'FollowPath' # השם הסטנדרטי ב-Nav2
+        # PreferForwardCritic fights the reversing motion a reverse
+        # segment needs to finish (it activates near any segment's end,
+        # regardless of direction) - FollowPathReverse is identical to
+        # FollowPath but without it, confirmed via /cmd_vel_nav that
+        # reverse segments stalled 44s/85s under plain FollowPath.
+        goal_msg.controller_id = 'FollowPath' if direction == 1 else 'FollowPathReverse'
+        # Tight 5cm+stopped checker only for a plan's truly final segment -
+        # intermediate segments end at arbitrary A* waypoints, not
+        # somewhere the robot is meant to actually stop, and requiring
+        # 5cm+stopped there too turned ordinary transitions into 50+
+        # second stalls (confirmed directly).
+        is_final_segment = self._segment_index == len(self._cached_segments) - 1
+        goal_msg.goal_checker_id = 'goal_checker' if is_final_segment else 'loose_goal_checker'
 
         self.ros_node.get_logger().info(
             f"[{self.name}] Sending segment {self._segment_index + 1}/{len(self._cached_segments)} "

@@ -114,7 +114,19 @@ def calc_hybrid_a_star(start, goal, obstacle_set, xy_resolution, yaw_resolution,
         
         dist_to_goal = math.hypot(current.x_ind - goal_node.x_ind, current.y_ind - goal_node.y_ind) * xy_resolution
         if dist_to_goal <= 0.3:
-            return (extract_path(current, xy_resolution, yaw_resolution), current.cost)
+            rx, ry, rt, rd = extract_path(current, xy_resolution, yaw_resolution)
+            # The search only needs to get within 0.3m to stop expanding -
+            # that's a planning shortcut, not the actual requested target.
+            # Snap the literal last waypoint to the exact goal coordinate
+            # so FollowPath's final pose is the real goal, not whatever
+            # quantized grid cell happened to first satisfy the 0.3m
+            # radius. Needed (together with the tightened goal_checker in
+            # nav2.yaml) for sub-5cm final positioning.
+            rx.append(goal[0])
+            ry.append(goal[1])
+            rt.append(rt[-1])
+            rd.append(rd[-1])
+            return ((rx, ry, rt, rd), current.cost)
         
         curr_id = (current.x_ind, current.y_ind, current.yaw_ind)
         if curr_id in closed_set: continue

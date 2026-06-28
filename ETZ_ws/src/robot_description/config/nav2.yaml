@@ -161,23 +161,49 @@ controller_server:
       plugin: "nav2_controller::SimpleProgressChecker"
       required_movement_radius: 0.5
       movement_time_allowance: 30.0
-    # Was unset entirely (relying on nav2_controller's compiled-in
-    # SimpleGoalChecker defaults: xy 0.25, yaw 0.25 rad ~14.3deg).
-    # Logged a clean 0.6m straight FollowPath path overshoot by 1.4m+
-    # instead of stopping: ground-truth trace showed the robot passing
-    # within 0.17m of the path's literal endpoint with yaw=14.0deg at
-    # that exact instant - inside the xy tolerance but right on the edge
-    # of (and, a moment later, outside) the yaw tolerance, so it never
-    # latched "reached" and kept driving past. yaw_goal_tolerance loosened
-    # to comfortably cover that measured peak with margin; xy left as-is
-    # since it was never the marginal one.
-    goal_checker_plugins: ["goal_checker"]
+    # Was SimpleGoalChecker at xy 0.25/yaw 0.4 - way looser than the
+    # stated sub-5cm final-positioning requirement, and SimpleGoalChecker
+    # has no velocity check, so it can latch "reached" while still
+    # cruising through the tolerance disk rather than actually stopped
+    # there. Switched to StoppedGoalChecker (requires position+yaw
+    # tolerance AND near-zero velocity simultaneously) with xy tightened
+    # to 0.05m. Only meaningful now that A_planner snaps the path's final
+    # waypoint to the exact goal coordinate (see calc_hybrid_a_star) -
+    # tightening this alone, against a target that could still be up to
+    # 0.3m off the real goal, would just converge precisely on the wrong
+    # point.
+    # Tightening this one globally made EVERY segment of a multi-segment
+    # path - not just the truly final one - require 5cm+stopped to
+    # complete, including intermediate legs that were never meant to be
+    # precise. That turned ordinary mid-path transitions into 50+ second
+    # stalls (confirmed directly) since an intermediate target is an
+    # arbitrary A* waypoint, not somewhere the robot is meant to actually
+    # stop. Added a second, loose checker for intermediate segments;
+    # Nav2BaseAction picks "goal_checker" (tight) only for a segment's
+    # final leg via goal_checker_id, "loose_goal_checker" otherwise.
+    goal_checker_plugins: ["goal_checker", "loose_goal_checker"]
     goal_checker:
+      plugin: "nav2_controller::StoppedGoalChecker"
+      xy_goal_tolerance: 0.05
+      yaw_goal_tolerance: 0.4
+      trans_stopped_velocity: 0.05
+      rot_stopped_velocity: 0.1
+      stateful: true
+    loose_goal_checker:
       plugin: "nav2_controller::SimpleGoalChecker"
       xy_goal_tolerance: 0.25
       yaw_goal_tolerance: 0.4
       stateful: true
-    controller_plugins: ["FollowPath"]
+    # FollowPathReverse added (2026-06-28): PreferForwardCritic's
+    # threshold_to_consider 0.5 means it activates during exactly the
+    # final approach of ANY segment, including reverse ones - actively
+    # pushing toward forward motion while the segment still needs to
+    # reverse to finish. Confirmed directly: reverse-direction segments
+    # stalled 44s and 85s before completing/aborting, while forward
+    # segments on the same paths completed in seconds. Nav2BaseAction
+    # selects this plugin via controller_id for reverse segments; it's
+    # identical to FollowPath except PreferForwardCritic is disabled.
+    controller_plugins: ["FollowPath", "FollowPathReverse"]
     FollowPath:
       plugin: "nav2_mppi_controller::MPPIController"
       time_steps: 36
@@ -233,7 +259,7 @@ controller_server:
         # limit, so steering binds and the vehicle can't actually roll.
         # 0.4 keeps the inner wheel under ~0.69 rad, safely within limits.
         min_turning_r: 0.4
-      critics: ["ConstraintCritic", "CostCritic", "GoalCritic", "GoalAngleCritic", "PathAlignCritic", "PathFollowCritic", "PathAngleCritic", "PreferForwardCritic"]
+      critics: ["ConstraintCritic", "CostCritic", "GoalCritic", "GoalAngleCritic", "PathAlignCritic", "PathFollowCritic", "PathAngleCritic", "PreferForwardCritic", "VelocityDeadbandCritic"]
       ConstraintCritic:
         enabled: true
         cost_power: 1
@@ -257,6 +283,9 @@ controller_server:
         cost_power: 1
         cost_weight: 5.0
         threshold_to_consider: 1.4
+      # Tested disabled (along with PathAngleCritic, on FollowPathReverse)
+      # as a diagnostic, 2026-06-28: didn't fix the reverse-segment stall.
+      # Restored to enabled here.
       GoalAngleCritic:
         enabled: true
         cost_power: 1
@@ -327,15 +356,136 @@ controller_server:
         threshold_to_consider: 0.5
         max_angle_to_furthest: 1.0
         mode: 0
-      # VelocityDeadbandCritic:
-      #   enabled: true
-      #   cost_power: 1
-      #   cost_weight: 35.0
-      #   deadband_velocities: [0.05, 0.05, 0.05]
+      # Enabled (2026-06-28) to try improving final settling precision:
+      # robot was settling ~9.6cm from goal with a slow (~1cm/s) residual
+      # creep rather than a clean stop. This critic penalizes any nonzero
+      # speed BELOW the deadband (max(deadband - |v|, 0)) - it discourages
+      # exactly that "creeping slowly forever" behavior, pushing the
+      # optimizer toward committing to either a real stop (v=0) or
+      # actually moving, instead of dawdling in a low-speed dead zone.
+      VelocityDeadbandCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 35.0
+        deadband_velocities: [0.05, 0.05, 0.05]
       # TwirlingCritic:
       #   enabled: true
       #   twirling_cost_power: 1
       #   twirling_cost_weight: 10.0
+
+    # Identical to FollowPath above except PreferForwardCritic is
+    # disabled - see the controller_plugins comment for why.
+    FollowPathReverse:
+      plugin: "nav2_mppi_controller::MPPIController"
+      time_steps: 36
+      model_dt: 0.05
+      batch_size: 500
+      vx_std: 0.2
+      vy_std: 0.0
+      wz_std: 0.4
+      vx_max: 1.0
+      vx_min: -0.5
+      vy_max: 0.0
+      wz_max: 1.9
+      ax_max: 3.0
+      ax_min: -3.0
+      ay_min: -3.0
+      ay_max: 3.0
+      az_max: 3.5
+      iteration_count: 1
+      temperature: 0.3
+      gamma: 0.015
+      # Tested swapped to "DiffDrive" as a structural diagnostic
+      # (2026-06-28): reverse-segment stall persisted with the SAME
+      # signature (slow monotonic yaw drift, near-zero net translation) -
+      # rules out the Ackermann rollout math specifically. Reverted - the
+      # real chassis can't strafe/pivot like DiffDrive assumes anyway, so
+      # it was only ever valid as a one-off diagnostic.
+      motion_model: "Ackermann"
+      visualize: false
+      reset_period: 1.0
+      regenerate_noises: true
+      TrajectoryVisualizer:
+        trajectory_step: 5
+        time_step: 3
+      TrajectoryValidator:
+        plugin: "mppi::DefaultOptimalTrajectoryValidator"
+        collision_lookahead_time: 2.0
+        consider_footprint: true
+      AckermannConstraints:
+        min_turning_r: 0.4
+      critics: ["ConstraintCritic", "CostCritic", "GoalCritic", "GoalAngleCritic", "PathAlignCritic", "PathFollowCritic", "PathAngleCritic", "PreferForwardCritic", "VelocityDeadbandCritic"]
+      ConstraintCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 4.0
+      # Tried disabling GoalCritic/GoalAngleCritic/PathAlignCritic/
+      # PathFollowCritic/PathAngleCritic/VelocityDeadbandCritic here too
+      # (binary-search elimination, 2026-06-28, down to bare
+      # ConstraintCritic+CostCritic) chasing the reverse-segment stall -
+      # didn't help, restored to match FollowPath. See
+      # etz_crux_investigation memory for the full elimination trail.
+      GoalCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 5.0
+        threshold_to_consider: 1.4
+      GoalAngleCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 3.0
+        threshold_to_consider: 0.5
+      # The one intentional difference from FollowPath - disabled for
+      # reverse segments (didn't turn out to explain the stall, but no
+      # reason to revert this part - it's still a reasonable choice).
+      PreferForwardCritic:
+        enabled: false
+        cost_power: 1
+        cost_weight: 5.0
+        threshold_to_consider: 0.5
+      # Also tried disabled, down to bare ConstraintCritic only - stall
+      # persisted (2026-06-28). Conclusively ruled out the entire critic
+      # layer; root cause found via open-loop /cmd_vel test instead, see
+      # etz_crux_investigation memory. Restored to match FollowPath.
+      CostCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 3.81
+        critical_cost: 300.0
+        consider_footprint: false
+        collision_cost: 1000000.0
+        near_goal_distance: 1.0
+        trajectory_point_step: 2
+        inflation_radius: 0.22
+        cost_scaling_factor: 6.0
+      PathAlignCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 14.0
+        max_path_occupancy_ratio: 0.05
+        trajectory_point_step: 4
+        threshold_to_consider: 0.5
+        offset_from_furthest: 20
+        use_path_orientations: false
+      PathFollowCritic:
+        enabled: false
+        cost_power: 1
+        cost_weight: 5.0
+        offset_from_furthest: 5
+        threshold_to_consider: 1.4
+      PathAngleCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 2.0
+        offset_from_furthest: 4
+        threshold_to_consider: 0.5
+        max_angle_to_furthest: 1.0
+        mode: 0
+      VelocityDeadbandCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 35.0
+        deadband_velocities: [0.05, 0.05, 0.05]
 
 #############################################
 #               SMOOTHER SERVER
