@@ -1,11 +1,7 @@
 import json
 import math
-import os
-import queue # תור לניהול הודעות Zenoh
-import zenoh # ספריית P2P
 
-# שים לב ששינינו מ-redis_manager ל-zenoh_manager
-from tactical_brain import zenoh_manager
+from tactical_brain import world_model
 from tactical_brain import A_planner
 
 import rclpy
@@ -18,6 +14,7 @@ from nav2_msgs.action import FollowPath
 from nav_msgs.msg import Path, OccupancyGrid, Odometry
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import PoseWithCovarianceStamped
+from std_msgs.msg import String
 from tf2_ros import Buffer, TransformListener
 from tf2_ros import LookupException, ConnectivityException, ExtrapolationException
 import py_trees
@@ -842,58 +839,6 @@ class TacticalBrainNode(Node):
     def __init__(self):
         super().__init__('tactical_brain_node')
         self.get_logger().info("Tactical Brain is waking up and planting the tree...")
-        
-        # ---------------------------------------------------------
-        # שינוי 1: מחיקת הרדיס והחלפה בהגדרות Zenoh + Queue
-        # ---------------------------------------------------------
-        self.msg_queue = queue.Queue()
-
-        # Anchor IP comes in as a ROS 2 parameter (set from the
-        # ZENOH_ANCHOR_ENDPOINT env var by the launch file) rather than
-        # being hardcoded, per the anchor/gossip architecture. Empty by
-        # default so solo Gazebo testing doesn't require a live anchor.
-        self.declare_parameter('zenoh_anchor_endpoint', os.environ.get('ZENOH_ANCHOR_ENDPOINT', ''))
-        anchor_endpoint = self.get_parameter('zenoh_anchor_endpoint').get_parameter_value().string_value
-
-        self.zenoh_session = None
-        if anchor_endpoint:
-            try:
-                conf = zenoh.Config()
-                conf.insert_json5("mode", '"peer"')
-                conf.insert_json5("scouting/gossip/enabled", "true")
-                conf.insert_json5("connect/endpoints", json.dumps([anchor_endpoint]))
-                self.zenoh_session = zenoh.open(conf)
-                self.get_logger().info(f"Connected to Zenoh anchor at {anchor_endpoint}")
-            except Exception as e:
-                self.get_logger().warn(
-                    f"Could not reach Zenoh anchor at {anchor_endpoint} ({e}). "
-                    "Continuing without fleet comms - enemies/teammates will stay empty."
-                )
-        else:
-            self.get_logger().warn(
-                "zenoh_anchor_endpoint not set - running without fleet comms "
-                "(expected for solo Gazebo testing)."
-            )
-
-        # פונקציית הקולבק של Zenoh שדוחפת הודעות לתור שלנו
-        def zenoh_listener(sample):
-            self.msg_queue.put({
-                "channel": str(sample.key_expr),
-                "data": bytes(sample.payload).decode('utf-8')
-            })
-
-        # איזו קבוצה אנחנו - קובע לאיזה teams/team_{idx}/positions להאזין
-        # (הטופיק החדש שמפרסם ה-overhead ArUco tracker, ללא קידומת team_blue)
-        self.declare_parameter('my_team_idx', 0)
-        my_team_idx = self.get_parameter('my_team_idx').get_parameter_value().integer_value
-
-        # הרשמה לערוצים - הוספנו קידומת (Namespace) לקבוצה הכחולה!
-        if self.zenoh_session is not None:
-            TEAM_PREFIX = "team_blue"
-            self.zenoh_session.declare_subscriber(f'{TEAM_PREFIX}/detected_enemies', zenoh_listener)
-            self.zenoh_session.declare_subscriber(f'{TEAM_PREFIX}/team_positions', zenoh_listener)
-            self.zenoh_session.declare_subscriber(f'teams/team_{my_team_idx}/positions', zenoh_listener)
-        # ---------------------------------------------------------
 
         # Real pose source is whatever publishes 'itay_amcl_topic' (EKF
         # fused with the overhead ArUco camera) - NOT /amcl_pose, since
@@ -920,23 +865,33 @@ class TacticalBrainNode(Node):
             callback_group=self.pose_callback_group
         )
 
-        # פבלישר ל-/odometry/filtered - הבקר הסי++ (PID) מאזין כאן ישירות,
-        # אז ה-zenoh_manager מפרסם את הודעת ה-Odometry שמומרת מה-JSON של
-        # מצלמת הארוקו ישר לכאן (אין יותר טופיק ביניים aruco_global_pose).
-        self.aruco_odom_pub = self.create_publisher(
-            Odometry,
-            '/odometry/filtered',
-            10
-        )
-
-        # מאזינים גם אנחנו ל-/odometry/filtered (אותו טופיק שהבקר הסי++
-        # מאזין לו) כדי לדעת מה האמת האבסולוטית מהארוקו ולתקן סטיית AMCL -
-        # בלי הצורך בטופיק ביניים נפרד.
+        # מאזינים ל-/odometry/filtered (זה zenoh_node שמפרסם לשם את פוזיציית
+        # האמת מצמלת הארוקו) כדי לדעת מה האמת האבסולוטית ולתקן סטיית AMCL -
+        # main_brain רק קורא מהטופיק הזה, לא מפרסם אליו.
         self.aruco_odom_sub = self.create_subscription(
             Odometry,
             '/odometry/filtered',
             self.aruco_callback,
             10
+        )
+
+        # zenoh_node הוא זה שמחזיק את חיבור ה-Zenoh ומפרסם את מצב העולם
+        # המפורק (אויבים/חברי צוות) על טופיקי ROS רגילים - main_brain רק
+        # מאזין, בדיוק כמו לכל חיישן אחר. אותה קבוצת קולבק כמו pose_callback
+        # כדי שעדכוני מצב קטנים אלה לא ייחסמו מאחורי חיפוש ה-A* הכבד.
+        self.world_enemies_sub = self.create_subscription(
+            String,
+            '/world/enemies',
+            self.world_enemies_callback,
+            10,
+            callback_group=self.pose_callback_group
+        )
+        self.world_teammates_sub = self.create_subscription(
+            String,
+            '/world/teammates',
+            self.world_teammates_callback,
+            10,
+            callback_group=self.pose_callback_group
         )
 
         # משתנים לשמירת האמת האבסולוטית מהארוקו
@@ -1034,26 +989,28 @@ class TacticalBrainNode(Node):
         """
         זוהי לולאת הליבה של הרובוט: Sense -> Think -> Act
         """
-        # שלב א': Sense (קריאה מהתור של Zenoh במקום הרדיס)
-        # שים לב שהעברנו את self.msg_queue וגם את ה-publisher של ה-Odometry
-        self.danger_dict, self.teammates_aura_set, self.enemies_list, self.teammates_dict = zenoh_manager.get_latest_world_state(
-            self.msg_queue,
-            self.enemies_list,
-            self.teammates_dict,
-            self.static_obstacles,
-            ros_node=self,
-            aruco_pub=self.aruco_odom_pub
-        )
-        
-        # שלב ב': Translation 
-        self.update_blackboard_from_zenoh_state()
-        
+        # שלב א': Sense (enemies_list/teammates_dict כבר מתעדכנים ישירות
+        # ע"י world_enemies_callback/world_teammates_callback - כאן רק
+        # מחשבים מהם את הרשתות הטקטיות, בעזרת static_obstacles שרק אנחנו
+        # מחזיקים)
+        self.danger_dict = world_model.get_danger_dict(self.danger_dict, self.enemies_list, self.static_obstacles)
+        self.danger_dict = world_model.delete_old_danger_squares(self.danger_dict)
+        self.teammates_aura_set = world_model.get_teammates_aura_set(self.teammates_dict)
+
+        # שלב ב': Translation
+        self.update_blackboard_from_world_state()
+
         # שלב ג': Think
         self.tree.tick()
         self.get_logger().info(f"Tree Output Command ---> {self.blackboard.robot_command}")
-    
 
-    def update_blackboard_from_zenoh_state(self):
+    def world_enemies_callback(self, msg):
+        self.enemies_list = json.loads(msg.data)
+
+    def world_teammates_callback(self, msg):
+        self.teammates_dict = json.loads(msg.data)
+
+    def update_blackboard_from_world_state(self):
         # 1. עדכון נתוני אויבים
         self.blackboard.num_enemies = len(self.enemies_list)
         
@@ -1065,8 +1022,7 @@ class TacticalBrainNode(Node):
             
             for enemy in self.enemies_list:
                 enemy_pos = (enemy['x'], enemy['y'])
-                # שים לב לשינוי הקריאה מ-redis_manager ל-zenoh_manager
-                if zenoh_manager.line_of_sight_clear(current_pos, enemy_pos, self.static_obstacles):
+                if world_model.line_of_sight_clear(current_pos, enemy_pos, self.static_obstacles):
                     visible_enemies.append(enemy)
                 else:
                     hidden_enemies.append(enemy)
