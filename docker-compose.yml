@@ -33,3 +33,58 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+
+  dataset_collector:
+    build: ./ai_audio/dataset_collector
+    container_name: dataset_collector
+    user: "1000:1000" # matches host uid/gid so recorded clips aren't root-owned
+    devices:
+      - "/dev/snd:/dev/snd"
+    group_add:
+      - audio
+    volumes:
+      - "./ai_audio/dataset_collector:/app"
+      - "./ai_audio/dataset:/app/dataset"
+    stdin_open: true
+    tty: true
+    profiles:
+      - tools # not started by `docker compose up`; run explicitly, see below
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  preprocessing:
+    build: ./ai_audio/preprocessing
+    container_name: preprocessing
+    user: "1000:1000"
+    environment:
+      - NUMBA_CACHE_DIR=/tmp/numba_cache
+    volumes:
+      - "./ai_audio/preprocessing:/app"
+      - "./ai_audio/dataset:/app/dataset"
+    profiles:
+      - tools # one-off tool, run explicitly with `docker compose run`
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  training:
+    build: ./ai_audio/training
+    container_name: training
+    user: "1000:1000"
+    cpus: '4.0'
+    volumes:
+      - "./ai_audio/training:/app"
+      - "./ai_audio/dataset:/app/dataset"
+      - "./ai_audio/training/runs:/app/runs"
+    profiles:
+      - tools # one-off tool, run explicitly with `docker compose run`
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

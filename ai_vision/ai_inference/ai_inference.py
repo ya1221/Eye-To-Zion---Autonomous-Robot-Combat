@@ -55,7 +55,7 @@ class AIInferenceNode(Node):
         self.processed_msgs = 0
         self._frame_buffer = None
         self._avg_fps = 30.0
-        self.get_logger().info("AI Brain Online (GC Disabled).")
+        self.get_logger().info("AI Brain Online.")
 
     def _calculate_threat_level(self, box_height, is_predicted, angular_velocity):
         score = 0
