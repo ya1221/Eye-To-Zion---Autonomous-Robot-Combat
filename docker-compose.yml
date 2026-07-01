@@ -72,11 +72,21 @@ services:
         condition: service_completed_successfully
       simulation:
         condition: service_started
+      zenoh_bridge:
+        condition: service_started
     network_mode: "host"
     ipc: "host"
     working_dir: /app/ETZ_ws
     environment:
-      - ZENOH_ANCHOR_ENDPOINT=${ZENOH_ANCHOR_ENDPOINT}
+      # Our identity on the overhead-camera tracker - see
+      # tactical_brain/launch/main.launch.py. ROBOT_ID must not collide with
+      # any teammate's ROBOT_ID (theirs is 4). Pulled from .env (not
+      # hardcoded here) so zenoh_bridge's MY_TEAM_IDX below can never
+      # silently drift from this one - same single source for both.
+      - ROBOT_ID=${ROBOT_ID}
+      - MY_TEAM_IDX=${MY_TEAM_IDX}
+      - ARENA_SIZE_METERS=${ARENA_SIZE_METERS}
+      - GRID_N=${GRID_N}
       # main.launch.py defaults to false (correct for the real RPi5, which
       # has no Gazebo /clock) - this override makes it match the rest of
       # the simulation stack, which all run on sim time.
@@ -88,27 +98,83 @@ services:
     stop_grace_period: 15s
 
   # ==========================================
-  # 3. Tailscale VPN - cross-machine overlay network (robot <-> overhead
-  #    camera anchor node) that tactical_brain's Zenoh link rides on.
-  #    Behind the "vpn" profile so it's decoupled from the sim/brain
-  #    lifecycle: plain `up -d`/`down` never touch it. Bring it up with
-  #    `docker-compose --profile vpn up -d` and it'll stay running
-  #    independently (restart: unless-stopped) until you explicitly
-  #    `docker-compose --profile vpn down` or stop it by name.
+  # 2b. Zenoh<->ROS2/DDS bridge - vendor image (eclipse-zenoh), not our
+  #    code. Transparently mirrors real ROS2 topics (teams/team_*/positions
+  #    from the overhead camera, etc.) across Zenoh to/from the anchor, so
+  #    tactical_brain can just subscribe to plain ROS2 topics. Replaces the
+  #    previous custom zenoh_node.py, which hand-rolled a raw zenoh-python
+  #    session - incompatible with teammates who also run this same vendor
+  #    bridge, since it expects real ROS2/DDS topics on the other end, not
+  #    a raw Zenoh pub/sub client.
   # ==========================================
-  tailscale:
-    image: tailscale/tailscale:latest
-    container_name: tailscale
-    profiles: ["vpn"]
-    privileged: true
+  zenoh_bridge:
+    image: eclipse/zenoh-bridge-ros2dds:latest
+    container_name: etz_zenoh_bridge
+    # The MagicDNS hostnames below only resolve if the standalone
+    # tailscale-vpn compose file (see the note where the old tailscale
+    # service used to live, below) is already up and connected on this
+    # machine - that's not managed by this project's compose file anymore.
     network_mode: "host"
-    volumes:
-      - ./ts-state:/var/lib/tailscale
-      - /dev/net/tun:/dev/net/tun
+    ipc: "host"
+    restart: always
     environment:
-      - TS_AUTHKEY=${TS_AUTHKEY}
-      - TS_EXTRA_ARGS=--accept-dns=false
-      - TS_STATE_DIR=/var/lib/tailscale
-      - TS_HOSTNAME=shay-laptop
-      - TS_USERSPACE=false
-    restart: unless-stopped
+      - ROS_DISTRO=humble
+      # Same single source of truth main_brain.py reads (see
+      # tactical_brain/launch/main.launch.py) - rendered into the allow-list
+      # below at container startup rather than checked in as a literal, so
+      # the two can never silently drift apart if this ever changes.
+      - MY_TEAM_IDX=${MY_TEAM_IDX}
+    volumes:
+      # Template, not the final config - @@MY_TEAM_IDX@@ gets substituted
+      # by $MY_TEAM_IDX at container startup (see entrypoint/command below).
+      - ./zenoh_bridge_config.json5.template:/zenoh_bridge_config.json5.template:ro
+    # Overriding entrypoint to render the allow-list template before
+    # exec'ing the real bridge binary (confirmed via `docker run --entrypoint
+    # sh ... cat /entrypoint.sh`: the image's own entrypoint is just
+    # `exec /$BINARY $@`, so this preserves that, just with one step first).
+    entrypoint: ["/bin/ash", "-c"]
+    # -c loads the rendered publishers/subscribers allow-list (restricts
+    # mirroring to our own team's /teams/team_N/* only - see the template
+    # file for why); -e/--connect is repeatable: every teammate's laptop (up
+    # to 3 devices each, -01/-02/-03) is its own potential anchor, by stable
+    # Tailscale (MagicDNS) hostname instead of a raw IP. As long as any one
+    # of these is reachable and running its own zenoh router/bridge on 7447,
+    # the mesh connects - no single point of failure on one specific
+    # machine. Neither MagicDNS nor Zenoh's connect endpoints support
+    # regex/wildcard matching, so this has to be a literal enumerated list
+    # rather than a pattern like (itay|shay|yahav)-laptop-\d{2}.
+    # remote-pc is the overhead-camera/anchor machine's actual registered
+    # Tailscale hostname (confirmed in the admin console) - the original
+    # raw-IP anchor (100.107.5.41) before the MagicDNS switch.
+    command:
+      - >
+        sed "s/@@MY_TEAM_IDX@@/$$MY_TEAM_IDX/g" /zenoh_bridge_config.json5.template > /tmp/zenoh_bridge_config.json5 &&
+        exec /zenoh-bridge-ros2dds
+        -c /tmp/zenoh_bridge_config.json5
+        -e tcp/remote-pc:7447
+        -e tcp/itay-laptop:7447
+        -e tcp/itay-laptop-1:7447
+        -e tcp/itay-laptop-2:7447
+        -e tcp/itay-laptop-3:7447
+        -e tcp/shay-laptop:7447
+        -e tcp/shay-laptop-1:7447
+        -e tcp/shay-laptop-2:7447
+        -e tcp/shay-laptop-3:7447
+        -e tcp/yahav-laptop:7447
+        -e tcp/yahav-laptop-1:7447
+        -e tcp/yahav-laptop-2:7447
+        -e tcp/yahav-laptop-3:7447
+
+  # ==========================================
+  # 3. Tailscale VPN - intentionally NOT defined here anymore. It now lives
+  #    in its own standalone compose file (~/tailscale-vpn/docker-compose.yml)
+  #    so the persistent tailnet connection's lifecycle is fully decoupled
+  #    from this project's stack - `docker-compose down` here never risks
+  #    tearing down the VPN, and it can't spawn a second competing identity
+  #    under the same hostname by racing against a second tailscale service
+  #    defined in two places. Bring it up once on this machine with
+  #    `docker-compose -f ~/tailscale-vpn/docker-compose.yml up -d` and
+  #    leave it running; MagicDNS needs to be enabled there
+  #    (TS_EXTRA_ARGS, not set here) for the zenoh_bridge hostnames above
+  #    to resolve.
+  # ==========================================

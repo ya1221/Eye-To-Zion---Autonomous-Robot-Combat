@@ -7,6 +7,22 @@ from tactical_brain.A_planner import XY_RESOLUTION, ENEMY_TTL
 # קבועים
 R_ENEMY = 0.5  # meters
 R_TEAMMATE = 0.3  # meters
+# Separate from A_planner.ENEMY_TTL (which ages danger-grid cells out over
+# 15s) - this is how long a single enemy detection (no "no enemy visible"
+# message exists upstream) stays believed before being dropped outright.
+ENEMY_MEMORY_TIMEOUT = 2.0
+
+
+def prune_stale_enemies(enemies_by_detector, memory_timeout=ENEMY_MEMORY_TIMEOUT):
+    # Keyed by whichever robot_id reported each sighting (my own onboard
+    # detection, or a teammate's broadcast) - a dict rather than a flat list
+    # so two robots simultaneously tracking different enemies don't clobber
+    # each other.
+    current_time = time.time()
+    return {
+        detector_id: enemy for detector_id, enemy in enemies_by_detector.items()
+        if current_time - enemy.get("timestamp", current_time) < memory_timeout
+    }
 
 
 def get_danger_dict(danger_dict, enemies_list, static_obstacles):

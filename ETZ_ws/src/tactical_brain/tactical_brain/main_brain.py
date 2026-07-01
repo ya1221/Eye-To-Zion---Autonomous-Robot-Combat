@@ -1,5 +1,7 @@
 import json
 import math
+import os
+import time
 
 from tactical_brain import world_model
 from tactical_brain import A_planner
@@ -168,6 +170,7 @@ class Nav2BaseAction(py_trees.behaviour.Behaviour):
         needs_fresh_plan = (
             self._cached_segments is None
             or seconds_since_plan is None
+            or seconds_since_plan < 0  # sim clock jumped backward (sim restarted) - cached plan is stale
             or seconds_since_plan >= self.REPLAN_COOLDOWN_SEC
         )
 
@@ -234,7 +237,8 @@ class Nav2BaseAction(py_trees.behaviour.Behaviour):
 
         self.ros_node.get_logger().info(
             f"[{self.name}] Sending segment {self._segment_index + 1}/{len(self._cached_segments)} "
-            f"({len(segment)} points) to Nav2"
+            f"({len(segment)} points, direction={direction}, controller={goal_msg.controller_id}, "
+            f"goal_checker={goal_msg.goal_checker_id}) to Nav2"
         )
         send_future = self._action_client.send_goal_async(goal_msg)
         send_future.add_done_callback(self._on_goal_response)
@@ -840,6 +844,23 @@ class TacticalBrainNode(Node):
         super().__init__('tactical_brain_node')
         self.get_logger().info("Tactical Brain is waking up and planting the tree...")
 
+        # Our identity on the overhead-camera tracker (PureModuloTrackerNode,
+        # relayed to us via zenoh-bridge-ros2dds): which ArUco-marker id is
+        # "us" within our own team's positions array, which numeric team_idx
+        # we are (camera assigns team = marker_id % CNT_TEAM), and the
+        # grid_n/arena_size_meters scale factor to convert the camera's
+        # calibrated 0..grid_n perspective-grid units into real meters.
+        self.declare_parameter('robot_id', int(os.environ.get('ROBOT_ID', 3)))
+        self.robot_id = self.get_parameter('robot_id').get_parameter_value().integer_value
+        self.declare_parameter('my_team_idx', int(os.environ.get('MY_TEAM_IDX', 0)))
+        self.my_team_idx = self.get_parameter('my_team_idx').get_parameter_value().integer_value
+        self.declare_parameter('arena_size_meters', float(os.environ.get('ARENA_SIZE_METERS', 2.0)))
+        self.declare_parameter('grid_n', int(os.environ.get('GRID_N', 2000)))
+        self.grid_to_meters = (
+            self.get_parameter('arena_size_meters').get_parameter_value().double_value
+            / self.get_parameter('grid_n').get_parameter_value().integer_value
+        )
+
         # Real pose source is whatever publishes 'itay_amcl_topic' (EKF
         # fused with the overhead ArUco camera) - NOT /amcl_pose, since
         # this stack runs slam_toolbox rather than amcl.
@@ -865,33 +886,57 @@ class TacticalBrainNode(Node):
             callback_group=self.pose_callback_group
         )
 
-        # מאזינים ל-/odometry/filtered (זה zenoh_node שמפרסם לשם את פוזיציית
-        # האמת מצמלת הארוקו) כדי לדעת מה האמת האבסולוטית ולתקן סטיית AMCL -
-        # main_brain רק קורא מהטופיק הזה, לא מפרסם אליו.
-        self.aruco_odom_sub = self.create_subscription(
-            Odometry,
-            '/odometry/filtered',
-            self.aruco_callback,
-            10
+        # zenoh-bridge-ros2dds (a separate container, not our code) mirrors
+        # the overhead camera's real ROS2 topics across Zenoh transparently -
+        # we just subscribe to the plain ROS2 topics like any other sensor,
+        # no custom Zenoh client needed on our side anymore. Same callback
+        # group as pose_callback so these small JSON updates don't queue
+        # behind the tree timer's A* search.
+        self.my_team_sub = self.create_subscription(
+            String,
+            f'teams/team_{self.my_team_idx}/positions',
+            self.my_team_positions_callback,
+            10,
+            callback_group=self.pose_callback_group
+        )
+        # אויבים מגיעים מהזיהוי המקומי (YOLO+לידאר) של sensor_fusion_node,
+        # לא מטופיק הקבוצה היריבה - teams/team_X/positions הוא הברודקאסט
+        # העצמי של הקבוצה ההיא, לא משהו שאנחנו אמורים להאזין לו בכלל.
+        self.local_enemy_sub = self.create_subscription(
+            PoseStamped,
+            '/sensor_fusion_node/local_enemy_position',
+            self.local_enemy_position_callback,
+            10,
+            callback_group=self.pose_callback_group
         )
 
-        # zenoh_node הוא זה שמחזיק את חיבור ה-Zenoh ומפרסם את מצב העולם
-        # המפורק (אויבים/חברי צוות) על טופיקי ROS רגילים - main_brain רק
-        # מאזין, בדיוק כמו לכל חיישן אחר. אותה קבוצת קולבק כמו pose_callback
-        # כדי שעדכוני מצב קטנים אלה לא ייחסמו מאחורי חיפוש ה-A* הכבד.
-        self.world_enemies_sub = self.create_subscription(
+        # Sharing what I personally see with the rest of the team, and
+        # receiving what they see - both directions on the same team-scoped
+        # topic, mirrored across Zenoh exactly like teams/team_X/positions.
+        # enemies_by_detector is keyed by whichever robot_id reported each
+        # sighting, so my own detection and a teammate's don't clobber each
+        # other if both are currently tracking (possibly different) enemies.
+        self.enemies_by_detector = {}
+        self.team_enemy_pub = self.create_publisher(
             String,
-            '/world/enemies',
-            self.world_enemies_callback,
+            f'teams/team_{self.my_team_idx}/detected_enemies',
+            10
+        )
+        self.team_enemy_sub = self.create_subscription(
+            String,
+            f'teams/team_{self.my_team_idx}/detected_enemies',
+            self.team_enemy_callback,
             10,
             callback_group=self.pose_callback_group
         )
-        self.world_teammates_sub = self.create_subscription(
-            String,
-            '/world/teammates',
-            self.world_teammates_callback,
-            10,
-            callback_group=self.pose_callback_group
+
+        # הבקר הסי++ (PID) מאזין כאן ישירות לפוזיציית האמת מצמלת הארוקו -
+        # אנחנו מחשבים אותה ישירות מ-my_team_positions_callback ומפרסמים
+        # לכאן (אין יותר zenoh_node ביניים).
+        self.aruco_odom_pub = self.create_publisher(
+            Odometry,
+            '/odometry/filtered',
+            10
         )
 
         # משתנים לשמירת האמת האבסולוטית מהארוקו
@@ -911,7 +956,8 @@ class TacticalBrainNode(Node):
             10
         )
 
-        # 2. אתחול משתני מצב מקומיים
+        # 2. אתחול משתני מצב מקומיים (enemies_by_detector כבר אותחל למעלה,
+        # ליד team_enemy_pub/team_enemy_sub; enemies_list נגזר ממנו כל טיק)
         self.static_obstacles = set()
         self.enemies_list = []
         self.teammates_dict = {}
@@ -980,8 +1026,8 @@ class TacticalBrainNode(Node):
         # Back to the pure-straight test (zero planned curvature, yaw=0
         # throughout) so any angular.z seen on /cmd_vel_nav is unambiguous
         # MPPI bias, not legitimate path-curvature-following.
-        self.blackboard.goal_x = 2.6
-        self.blackboard.goal_y = 1.44
+        self.blackboard.goal_x = 3.9
+        self.blackboard.goal_y = 1.3
         self.blackboard.teammate_x = 1.5
         self.blackboard.teammate_y = 1.0
         
@@ -989,10 +1035,13 @@ class TacticalBrainNode(Node):
         """
         זוהי לולאת הליבה של הרובוט: Sense -> Think -> Act
         """
-        # שלב א': Sense (enemies_list/teammates_dict כבר מתעדכנים ישירות
-        # ע"י world_enemies_callback/world_teammates_callback - כאן רק
-        # מחשבים מהם את הרשתות הטקטיות, בעזרת static_obstacles שרק אנחנו
-        # מחזיקים)
+        # שלב א': Sense (enemies_by_detector/teammates_dict כבר מתעדכנים
+        # ישירות ע"י local_enemy_position_callback/team_enemy_callback/
+        # my_team_positions_callback - כאן רק מנקים זיהויים ישנים (מכל
+        # הרובוטים שדיווחו) ומחשבים מהם את הרשתות הטקטיות, בעזרת
+        # static_obstacles שרק אנחנו מחזיקים)
+        self.enemies_by_detector = world_model.prune_stale_enemies(self.enemies_by_detector)
+        self.enemies_list = list(self.enemies_by_detector.values())
         self.danger_dict = world_model.get_danger_dict(self.danger_dict, self.enemies_list, self.static_obstacles)
         self.danger_dict = world_model.delete_old_danger_squares(self.danger_dict)
         self.teammates_aura_set = world_model.get_teammates_aura_set(self.teammates_dict)
@@ -1004,11 +1053,68 @@ class TacticalBrainNode(Node):
         self.tree.tick()
         self.get_logger().info(f"Tree Output Command ---> {self.blackboard.robot_command}")
 
-    def world_enemies_callback(self, msg):
-        self.enemies_list = json.loads(msg.data)
+    def my_team_positions_callback(self, msg):
+        try:
+            robots = json.loads(msg.data)
+        except json.JSONDecodeError:
+            return
 
-    def world_teammates_callback(self, msg):
-        self.teammates_dict = json.loads(msg.data)
+        my_entry = next((r for r in robots if r.get('id') == self.robot_id), None)
+        if my_entry is None:
+            self.get_logger().warn(
+                f"Robot id {self.robot_id} not visible in teams/team_{self.my_team_idx}/positions this frame."
+            )
+        else:
+            aruco_x = my_entry['x'] * self.grid_to_meters
+            aruco_y = my_entry['y'] * self.grid_to_meters
+            aruco_yaw = math.radians(my_entry['angle'])
+            self._publish_self_pose(aruco_x, aruco_y, aruco_yaw)
+            self._check_drift(aruco_x, aruco_y, aruco_yaw)
+
+        self.teammates_dict = {
+            r['id']: {'x': r['x'] * self.grid_to_meters, 'y': r['y'] * self.grid_to_meters, 'needs_help': False}
+            for r in robots if r.get('id') != self.robot_id
+        }
+
+    def local_enemy_position_callback(self, msg):
+        # sensor_fusion_node only publishes when it actually has a fused
+        # YOLO+lidar detection (no "no enemy visible" message exists) -
+        # staleness pruning happens in sense_and_think via
+        # world_model.prune_stale_enemies so an old detection doesn't linger
+        # forever once the enemy is no longer seen.
+        now = time.time()
+        self.enemies_by_detector[self.robot_id] = {
+            'x': msg.pose.position.x,
+            'y': msg.pose.position.y,
+            'timestamp': now,
+        }
+        # Don't just keep this to myself - broadcast it on the team-scoped
+        # topic (mirrored across Zenoh exactly like teams/team_X/positions)
+        # so every teammate's main_brain merges it into their own picture.
+        self.team_enemy_pub.publish(String(data=json.dumps({
+            'detector_id': self.robot_id,
+            'x': msg.pose.position.x,
+            'y': msg.pose.position.y,
+            'timestamp': now,
+        })))
+
+    def team_enemy_callback(self, msg):
+        try:
+            data = json.loads(msg.data)
+        except json.JSONDecodeError:
+            return
+
+        detector_id = data.get('detector_id')
+        if detector_id is None or detector_id == self.robot_id:
+            # Our own broadcast echoing back - already recorded directly
+            # in local_enemy_position_callback, no need to process again.
+            return
+
+        self.enemies_by_detector[detector_id] = {
+            'x': data['x'],
+            'y': data['y'],
+            'timestamp': data.get('timestamp', time.time()),
+        }
 
     def update_blackboard_from_world_state(self):
         # 1. עדכון נתוני אויבים
@@ -1050,13 +1156,22 @@ class TacticalBrainNode(Node):
             self.blackboard.teammate_requested_help = teammate_data.get('needs_help', False)
 
     
-    def aruco_callback(self, msg):
-        # msg is now nav_msgs/Odometry (from /odometry/filtered) instead of
-        # the old geometry_msgs/PoseStamped on aruco_global_pose - position
-        # and orientation live one level deeper, under pose.pose.
-        self.aruco_x = msg.pose.pose.position.x
-        self.aruco_y = msg.pose.pose.position.y
-        self.aruco_yaw = self.get_yaw_from_quaternion(msg.pose.pose.orientation)
+    def _publish_self_pose(self, x_m, y_m, yaw_rad):
+        odom_msg = Odometry()
+        odom_msg.header.stamp = self.get_clock().now().to_msg()
+        odom_msg.header.frame_id = 'map'
+        odom_msg.child_frame_id = 'base_link'
+        odom_msg.pose.pose.position.x = x_m
+        odom_msg.pose.pose.position.y = y_m
+        odom_msg.pose.pose.position.z = 0.0
+        odom_msg.pose.pose.orientation.z = math.sin(yaw_rad / 2.0)
+        odom_msg.pose.pose.orientation.w = math.cos(yaw_rad / 2.0)
+        self.aruco_odom_pub.publish(odom_msg)
+
+    def _check_drift(self, aruco_x, aruco_y, aruco_yaw):
+        self.aruco_x = aruco_x
+        self.aruco_y = aruco_y
+        self.aruco_yaw = aruco_yaw
 
         self.drift_x = self.aruco_x - self.blackboard.current_x
         self.drift_y = self.aruco_y - self.blackboard.current_y
@@ -1074,7 +1189,8 @@ class TacticalBrainNode(Node):
 
             reset_msg.pose.pose.position.x = self.aruco_x
             reset_msg.pose.pose.position.y = self.aruco_y
-            reset_msg.pose.pose.orientation = msg.pose.pose.orientation
+            reset_msg.pose.pose.orientation.z = math.sin(self.aruco_yaw / 2.0)
+            reset_msg.pose.pose.orientation.w = math.cos(self.aruco_yaw / 2.0)
 
             reset_msg.pose.covariance[0] = 0.05
             reset_msg.pose.covariance[7] = 0.05

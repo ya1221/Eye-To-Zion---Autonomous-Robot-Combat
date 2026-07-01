@@ -8,6 +8,10 @@ def generate_launch_description():
     # docker-compose so timestamps match the rest of the nav2/TF stack.
     use_sim_time = os.environ.get('USE_SIM_TIME', 'false').lower() == 'true'
 
+    # Identity/calibration on the overhead-camera tracker, relayed to us via
+    # the zenoh-bridge-ros2dds container (see docker-compose.yml) instead of
+    # a custom Zenoh client - tactical_brain_node just subscribes to its
+    # plain ROS2 topics directly.
     return LaunchDescription([
         Node(
             package='tactical_brain',
@@ -15,20 +19,11 @@ def generate_launch_description():
             name='tactical_brain_node',
             output='screen',
             parameters=[{
-                'use_sim_time': use_sim_time
-            }]
-        ),
-        # zenoh_node owns the Zenoh session/subscriptions and republishes
-        # the parsed fleet world-state on /world/enemies, /world/teammates,
-        # and /odometry/filtered - tactical_brain_node only subscribes.
-        Node(
-            package='tactical_brain',
-            executable='zenoh_node',
-            name='zenoh_node',
-            output='screen',
-            parameters=[{
-                'zenoh_anchor_endpoint': os.environ.get('ZENOH_ANCHOR_ENDPOINT', ''),
-                'use_sim_time': use_sim_time
+                'use_sim_time': use_sim_time,
+                'robot_id': int(os.environ.get('ROBOT_ID', 3)),
+                'my_team_idx': int(os.environ.get('MY_TEAM_IDX', 0)),
+                'arena_size_meters': float(os.environ.get('ARENA_SIZE_METERS', 2.0)),
+                'grid_n': int(os.environ.get('GRID_N', 2000)),
             }]
         )
     ])
