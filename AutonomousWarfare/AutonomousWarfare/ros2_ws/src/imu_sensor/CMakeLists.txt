@@ -26,6 +26,7 @@ ament_target_dependencies(imu_sensor_driver_node
   sensor_msgs
   std_srvs
 )
+target_link_libraries(imu_sensor_driver_node i2c)
 
 target_compile_features(imu_sensor_driver_node PUBLIC c_std_99 cxx_std_17)
 

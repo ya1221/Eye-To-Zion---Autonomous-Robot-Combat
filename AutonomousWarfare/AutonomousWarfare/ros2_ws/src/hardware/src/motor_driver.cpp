@@ -303,6 +303,20 @@ hardware_interface::CallbackReturn MotorDriver::on_activate(const rclcpp_lifecyc
         }
     }
 
+    // --- Internal node for shooting topic subscription ---
+    // Hardware interfaces don't have their own node handle, so we create a lightweight
+    // internal node. Its callbacks are processed via spin_some() inside read().
+    this->internal_node_ = rclcpp::Node::make_shared("motor_driver_internal");
+    this->flag_sub_ = this->internal_node_->create_subscription<std_msgs::msg::Bool>(
+        "/shooting_cmd", rclcpp::QoS(1),
+        [this](const std_msgs::msg::Bool::SharedPtr msg) {
+            this->flag_active_.store(msg->data);
+            RCLCPP_INFO(rclcpp::get_logger("motor_driver"),
+                "Shooting command received: %s", msg->data ? "FIRE" : "CEASE");
+        });
+    RCLCPP_INFO(rclcpp::get_logger("motor_driver"),
+        "Subscribed to /shooting_cmd for flag pin control.");
+
     return hardware_interface::CallbackReturn::SUCCESS;
 }
 
@@ -345,6 +359,10 @@ hardware_interface::CallbackReturn MotorDriver::on_deactivate(const rclcpp_lifec
 
     // --- Close serial port for steering ---
     if (this->serial_fd_ >= 0) {
+        // Safety: deactivate shooting flag before closing
+        const char* flag_off = "F0\n";
+        ::write(this->serial_fd_, flag_off, strlen(flag_off));
+
         // Send a zeroed steering command before closing so servos center
         const char* zero_cmd = "S0.0000,0.0000\n";
         ::write(this->serial_fd_, zero_cmd, strlen(zero_cmd));
@@ -353,8 +371,14 @@ hardware_interface::CallbackReturn MotorDriver::on_deactivate(const rclcpp_lifec
         tcdrain(this->serial_fd_);
         close(this->serial_fd_);
         this->serial_fd_ = -1;
-        RCLCPP_INFO(rclcpp::get_logger("motor_driver"), "Serial port closed. Steering servos centered.");
+        RCLCPP_INFO(rclcpp::get_logger("motor_driver"), "Serial port closed. Steering servos centered. Shooting deactivated.");
     }
+
+    // --- Tear down internal node ---
+    this->flag_sub_.reset();
+    this->internal_node_.reset();
+    this->flag_active_.store(false);
+    this->flag_last_sent_ = false;
 
     return hardware_interface::CallbackReturn::SUCCESS;
 }
@@ -388,6 +412,11 @@ std::vector<hardware_interface::CommandInterface> MotorDriver::export_command_in
 }
 
 hardware_interface::return_type MotorDriver::read(const rclcpp::Time &, const rclcpp::Duration & period) {
+    // Process any pending shooting topic callbacks (non-blocking)
+    if (this->internal_node_) {
+        rclcpp::spin_some(this->internal_node_);
+    }
+
     // Open-Loop mapping: update states based on commands for ALL joints
     double dt = period.seconds();
 
@@ -457,13 +486,10 @@ hardware_interface::return_type MotorDriver::write(const rclcpp::Time &, const r
             motor.pwm_channel, motor.cmd_index, target_cmd, duty_cycle_ns, motor.duty_cycle_fd);
 
         // REAL-TIME SAFE CONVERSION:
-        // We use snprintf instead of std::to_string() to avoid heap memory allocations in the RT loop
         char buf[32];
         int len = snprintf(buf, sizeof(buf), "%lu", duty_cycle_ns);
 
         // REAL-TIME SAFE WRITE:
-        // We use `pwrite` instead of `write`. Normal `write` advances the file cursor. 
-        // `pwrite(..., 0)` forces the kernel to overwrite from the very beginning of the file every time.
         ssize_t ret = pwrite(motor.duty_cycle_fd, buf, len, 0);
         if (ret < 0) {
             RCLCPP_WARN_THROTTLE(rclcpp::get_logger("motor_driver"), this->steady_clock_, 2000,
@@ -498,6 +524,19 @@ hardware_interface::return_type MotorDriver::write(const rclcpp::Time &, const r
 
         RCLCPP_INFO_THROTTLE(rclcpp::get_logger("motor_driver"), this->steady_clock_, 1000,
             "Steering serial: %.*s", cmd_len - 1, cmd_buf);  // -1 to strip the \n for logging
+    }
+
+    // === Shooting Flag (via Arduino serial UART — send only on state change) ===
+    if (this->serial_fd_ >= 0) {
+        bool current = this->flag_active_.load();
+        if (current != this->flag_last_sent_) {
+            const char* cmd = current ? "F1\n" : "F0\n";
+            ::write(this->serial_fd_, cmd, strlen(cmd));
+            this->flag_last_sent_ = current;
+
+            RCLCPP_INFO(rclcpp::get_logger("motor_driver"),
+                "Shooting flag sent to Arduino: %s", current ? "F1 (ACTIVE)" : "F0 (OFF)");
+        }
     }
     
     return hardware_interface::return_type::OK;

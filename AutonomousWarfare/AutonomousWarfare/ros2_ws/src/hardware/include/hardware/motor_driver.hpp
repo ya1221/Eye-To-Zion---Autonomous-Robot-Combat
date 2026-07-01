@@ -2,11 +2,14 @@
 
 #include <vector>
 #include <string>
+#include <atomic>
 
 #include "hardware_interface/system_interface.hpp"
 #include "hardware_interface/types/hardware_interface_return_values.hpp"
+#include "rclcpp/rclcpp.hpp"
 #include "rclcpp/macros.hpp"
 #include "rclcpp/clock.hpp"
+#include "std_msgs/msg/bool.hpp"
 
 // Headers for sysfs PWM
 #include <fcntl.h>      // For open()
@@ -41,28 +44,24 @@ private:
     std::string device_path_;
 
     // --- The Flat Memory Buffers ---
-    // These hold the raw numerical data for ALL joints dynamically.
     std::vector<double> hw_states_;
     std::vector<double> hw_commands_;
 
     // --- The Real-Time Execution Map ---
-    // This struct is highly optimized for the write/read loops.
-    // It maps a physical PWM channel directly to its memory index.
     struct MotorTarget {
         int pwm_channel;
-        size_t cmd_index;   // Where to find the command in hw_commands_
+        size_t cmd_index;
         int duty_cycle_fd = -1;
-        int in1_gpio = -1;              // BCM GPIO line offset for IN1 (L298N direction)
-        int in2_gpio = -1;              // BCM GPIO line offset for IN2 (L298N direction)
-        struct gpiod_line* in1_line = nullptr;  // libgpiod line handle for IN1
-        struct gpiod_line* in2_line = nullptr;  // libgpiod line handle for IN2
+        int in1_gpio = -1;
+        int in2_gpio = -1;
+        struct gpiod_line* in1_line = nullptr;
+        struct gpiod_line* in2_line = nullptr;
     };
 
     // --- Steering Servo Target ---
-    // Maps a steering joint to its command index and servo index for serial transmission.
     struct ServoTarget {
-        int servo_index;    // 0 = left, 1 = right (from XACRO servo_index param)
-        size_t cmd_index;   // Index into hw_commands_ for the position command
+        int servo_index;
+        size_t cmd_index;
     };
 
     struct StateUpdater {
@@ -71,31 +70,35 @@ private:
         ssize_t state_pos_idx = -1;
         ssize_t state_vel_idx = -1;
     };
+
     std::vector<StateUpdater> state_updaters_;
-
-    // Only stores joints that actively receive commands (ignores passive joints like rear wheels)
     std::vector<MotorTarget> active_motors_;
-
-    // Steering servos controlled via Arduino serial (UART)
     std::vector<ServoTarget> active_servos_;
 
     bool write_sysfs(const std::string& path, const std::string& value);
 
-    // --- Serial (UART) for Arduino steering ---
-    std::string serial_device_path_;    // e.g. "/dev/ttyACM0"
+    // --- Serial (UART) for Arduino ---
+    std::string serial_device_path_;
     int serial_baud_ = 115200;
-    int serial_fd_ = -1;               // File descriptor for UART port
+    int serial_fd_ = -1;
 
-    // --- PWM multiplier (tunable at runtime via hardware_parameters) ---
-    double pwm_multiplier_ = 2.0;      // Scales the duty cycle: duty_ns = pwm_multiplier * |cmd| * 2_000_000
+    // --- PWM multiplier ---
+    double pwm_multiplier_ = 2.0;
+
     bool open_serial_port();
 
-    // libgpiod chip handle (shared across all motors)
-    std::string gpio_chip_name_;                // e.g. "gpiochip4" on Pi 5
+    // libgpiod chip handle
+    std::string gpio_chip_name_;
     struct gpiod_chip* gpio_chip_ = nullptr;
 
-    // Persistent clock for throttled logging — avoids dangling pointer from temporaries
+    // --- Shooting flag (received via ROS2 topic, forwarded over serial) ---
+    rclcpp::Node::SharedPtr internal_node_;
+    rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr flag_sub_;
+    std::atomic<bool> flag_active_{false};
+    bool flag_last_sent_ = false;   // Tracks last state sent to Arduino to avoid redundant writes
+
+    // Persistent clock for throttled logging
     rclcpp::Clock steady_clock_{RCL_STEADY_TIME};
 };
 
-} 
+} // namespace motor_driver

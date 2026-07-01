@@ -53,7 +53,7 @@ HeadingPIDController::HeadingPIDController()
 
   // EKF fused odometry (accurate heading, corrected by ArUco)
   odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
-    "/odometry/filtered", 10,
+    "/odometry/global", 10,
     std::bind(&HeadingPIDController::odomCallback, this, std::placeholders::_1));
 
   // IMU direct (fast yaw rate)

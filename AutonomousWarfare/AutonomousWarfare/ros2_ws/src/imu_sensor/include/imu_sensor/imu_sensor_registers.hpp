@@ -8,7 +8,7 @@ namespace imu_sensor
 // ─── I2C Addresses ───────────────────────────────────────────────────────────
 constexpr uint8_t ICM20948_ADDR_LOW  = 0x68;  // AD0 pin LOW (default)
 constexpr uint8_t ICM20948_ADDR_HIGH = 0x69;  // AD0 pin HIGH
-constexpr uint8_t AK09916_ADDR       = 0x0C;  // Magnetometer (accessed via bypass)
+constexpr uint8_t AK09916_ADDR       = 0x0C;  // Magnetometer (internal via I2C master)
 
 // ─── Device IDs ──────────────────────────────────────────────────────────────
 constexpr uint8_t ICM20948_WHO_AM_I_VAL = 0xEA;
@@ -28,6 +28,8 @@ namespace bank0
   constexpr uint8_t INT_PIN_CFG    = 0x0F;
   constexpr uint8_t INT_ENABLE     = 0x10;
   constexpr uint8_t INT_ENABLE_1   = 0x11;
+  constexpr uint8_t INT_ENABLE_3   = 0x13;
+  constexpr uint8_t I2C_MST_STATUS = 0x17;
   constexpr uint8_t INT_STATUS     = 0x19;
   constexpr uint8_t INT_STATUS_1   = 0x1A;
   constexpr uint8_t ACCEL_XOUT_H   = 0x2D;
@@ -44,6 +46,10 @@ namespace bank0
   constexpr uint8_t GYRO_ZOUT_L    = 0x38;
   constexpr uint8_t TEMP_OUT_H     = 0x39;
   constexpr uint8_t TEMP_OUT_L     = 0x3A;
+
+  // External sensor data registers — populated by I2C master (SLV0)
+  constexpr uint8_t EXT_SLV_SENS_DATA_00 = 0x3B;
+  // Bytes 0x3B..0x42 = 8 bytes read from AK09916 (ST1, HXL..HZH, ST2)
 }  // namespace bank0
 
 // PWR_MGMT_1 bits
@@ -79,6 +85,28 @@ namespace bank2
   constexpr uint8_t ACCEL_CONFIG       = 0x14;
   constexpr uint8_t ACCEL_CONFIG_2     = 0x15;
 }  // namespace bank2
+
+// ═══ BANK 3 REGISTERS (I2C Master) ══════════════════════════════════════════
+namespace bank3
+{
+  constexpr uint8_t I2C_MST_CTRL    = 0x01;  // I2C master clock + settings
+  constexpr uint8_t I2C_MST_DELAY_CTRL = 0x02;
+
+  // SLV0 — used for continuous mag reads
+  constexpr uint8_t I2C_SLV0_ADDR   = 0x03;  // [6:0]=slave addr, bit7=1 for read
+  constexpr uint8_t I2C_SLV0_REG    = 0x04;  // Register to start reading from
+  constexpr uint8_t I2C_SLV0_CTRL   = 0x05;  // bit7=enable, [3:0]=byte count
+
+  // SLV4 — used for single-shot mag register writes during init
+  constexpr uint8_t I2C_SLV4_ADDR   = 0x13;
+  constexpr uint8_t I2C_SLV4_REG    = 0x14;
+  constexpr uint8_t I2C_SLV4_CTRL   = 0x15;  // bit7=enable, triggers transaction
+  constexpr uint8_t I2C_SLV4_DO     = 0x16;  // Data out (byte to write)
+  constexpr uint8_t I2C_SLV4_DI    = 0x17;
+}  // namespace bank3
+
+// I2C_MST_CTRL: clock = 7 → 345.6 kHz (good default for AK09916 ≤ 400 kHz)
+constexpr uint8_t I2C_MST_CLK_345KHZ = 0x07;
 
 // GYRO_CONFIG_1: bits [2:1] = FS_SEL, bit [0] = FCHOICE (1=enable DLPF)
 // DLPF bits [5:3] select bandwidth when FCHOICE=1
@@ -152,5 +180,4 @@ constexpr double MAG_SENSITIVITY_UT = 0.15;  // µT per LSB
 // Convert µT to Tesla for sensor_msgs/MagneticField (which uses Tesla)
 constexpr double UT_TO_TESLA = 1e-6;
 
-}  // namespace icm20948
-
+}  // namespace imu_sensor

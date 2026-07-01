@@ -63,6 +63,6 @@ def generate_launch_description():
     )
     return LaunchDescription([
         use_mag_arg,
-        imu_sensor_driver_node,
+        # imu_sensor_driver_node,
         imu_filter_madgwick_node,
     ])

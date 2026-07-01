@@ -7,7 +7,8 @@ def generate_launch_description():
     pkg_share = get_package_share_directory('localization')
     ydlidar_config_path = os.path.join(pkg_share, 'config', 'lidar.yaml')
     slam_config_path = os.path.join(pkg_share, 'config', 'slam.yaml')
-    ekf_config = os.path.join(pkg_share, 'config', 'ekf.yaml')
+    ekf_local_config = os.path.join(pkg_share, 'config', 'ekf_local.yaml')
+    ekf_global_config = os.path.join(pkg_share, 'config', 'ekf_global.yaml')
     rf2o_config = os.path.join(pkg_share, 'config', 'rf2o.yaml')
 
     ydlidar_node = Node(
@@ -31,24 +32,22 @@ def generate_launch_description():
     ekf_local_node = Node(
             package='robot_localization',
             executable='ekf_node',
-            name='ekf_local_node',
-            parameters=[ekf_config],
+            name='ekf_local',
+            parameters=[ekf_local_config],
             remappings=[
-                ('odometry/filtered', '/odometry/local'),
+                ('odometry/filtered', 'odometry/local'),
             ],
-            output='screen',
     )
  
     # ---- EKF Global: map → odom (ArUco corrected) ----
     ekf_global_node = Node(
-        package='robot_localization',
-        executable='ekf_node',
-        name='ekf_global_node',
-        parameters=[ekf_config],
-        remappings=[
-            ('odometry/filtered', '/odometry/filtered'),
-        ],
-        output='screen',
+            package='robot_localization',
+            executable='ekf_node',
+            name='ekf_global',
+            parameters=[ekf_global_config],
+            remappings=[
+                ('odometry/filtered', 'odometry/global'),
+            ],
     )
 
     rf2o_node = Node(
@@ -78,5 +77,5 @@ def generate_launch_description():
         ekf_local_node,
         ekf_global_node,
         position_listener_node,
-        # rf2o_node
+        rf2o_node,
     ])

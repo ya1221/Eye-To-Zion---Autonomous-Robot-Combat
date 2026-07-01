@@ -35,7 +35,7 @@ icm20948_driver:
     # ─── Magnetometer ──────────────────────────────────────────────────────
     # Enable the AK09916 magnetometer. Needed for absolute yaw from
     # imu_filter_madgwick. Disable if you only need gyro + accel.
-    enable_magnetometer: true
+    enable_magnetometer: false
 
     # ─── Calibration ───────────────────────────────────────────────────────
     # Calibrate gyro bias on startup. The robot MUST be stationary during

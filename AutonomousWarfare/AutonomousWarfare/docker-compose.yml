@@ -87,5 +87,17 @@ services:
   #     - NET_RAW    # Allows deep packet handling and ping functionality
   #   restart: unless-stopped
 
+  zenoh_bridge:
+    image: eclipse/zenoh-bridge-ros2dds:latest
+    container_name: zenoh_bridge
+    network_mode: host
+    restart: always
+    environment:
+      - ROS_DISTRO=humble
+    # -l  = listen for incoming connections on all interfaces
+    # -e  = connect to the remote PC's Zenoh bridge over Tailscale
+    # ⚠️  Replace REMOTE_PC_TAILSCALE_IP with the actual Tailscale IP of the remote PC
+    command: ["-l", "tcp/0.0.0.0:7447", "-e", "tcp/100.72.140.5:7447"]
+
 volumes:
   telegraf-sock:

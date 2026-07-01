@@ -43,7 +43,13 @@ def generate_launch_description():
 
     imu_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            PathJoinSubstitution([FindPackageShare('imu_sensor'), 'launch', 'launch.py'])
+            PathJoinSubstitution([FindPackageShare('icm20948_ros2'), 'launch', 'icm20948.launch.py'])
+        ),
+    )
+
+    shooting_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([FindPackageShare('shooting'), 'launch', 'launch.py'])
         ),
     )
 
@@ -55,5 +61,6 @@ def generate_launch_description():
         foxglove_launch,
         telemetry_launch,
         imu_launch,
+        shooting_launch,
         LogInfo(msg='========== All Subsystems Launched =========='),
     ])

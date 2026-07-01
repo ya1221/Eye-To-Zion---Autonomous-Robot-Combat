@@ -23,22 +23,10 @@ RUN apt-get update && apt-get install -y \
     gnupg \
     && rm -rf /var/lib/apt/lists/*
 
-# 2. Add Raspberry Pi APT repository (Required for Pi 5 libcamera)
-# RUN curl -fsSL https://archive.raspberrypi.com/debian/raspberrypi.gpg.key | gpg --dearmor -o /usr/share/keyrings/raspberrypi-archive-keyring.gpg \
-#     && echo "deb [signed-by=/usr/share/keyrings/raspberrypi-archive-keyring.gpg] http://archive.raspberrypi.com/debian/ jammy main" > /etc/apt/sources.list.d/raspberrypi.list
-
-# # 3. Install libcamera and ROS 2 camera drivers
-# RUN apt-get update && apt-get install -y \
-#     libcamera-dev \
-#     libcamera-apps-lite \
-#     ros-humble-camera-ros \
-#     ros-humble-image-transport-plugins \
-#     && rm -rf /var/lib/apt/lists/*
-    
-# Build and Install YDLidar-SDK (Required for the driver to work)
 
 WORKDIR /ros2_ws/src
 
+# For lidar 
 RUN git clone https://github.com/YDLIDAR/YDLidar-SDK.git /tmp/YDLidar-SDK && \
     mkdir -p /tmp/YDLidar-SDK/build && \
     cd /tmp/YDLidar-SDK/build && \
@@ -47,9 +35,29 @@ RUN git clone https://github.com/YDLIDAR/YDLidar-SDK.git /tmp/YDLidar-SDK && \
     make install && \
     rm -rf /tmp/YDLidar-SDK
 
+
+# For IMU sensor (This can be install by rosdep))
+RUN apt-get update && apt-get install -y \
+    libi2c-dev \
+    && rm -rf /var/lib/apt/lists/*
+    
+# For foxglove bridge
 RUN apt-get update && apt-get install -y \
     ros-humble-foxglove-bridge \
     && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && apt-get install -y \
+    python3-pip \
+    i2c-tools \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install the required Python hardware drivers
+# --no-cache-dir prevents pip from saving downloaded packages, keeping the image small
+RUN pip3 install --no-cache-dir \
+    icm20948 \
+    smbus2 \
+    sparkfun-qwiic-icm20948
+
 # Set the internal container workspace(root)
 WORKDIR /ros2_ws
 
@@ -61,6 +69,7 @@ RUN apt-get update && \
     rosdep update && \
     rosdep install -i --from-path src --rosdistro humble -y && \
     rm -rf /var/lib/apt/lists/*
+
 
 # Environment setup
 RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc && \

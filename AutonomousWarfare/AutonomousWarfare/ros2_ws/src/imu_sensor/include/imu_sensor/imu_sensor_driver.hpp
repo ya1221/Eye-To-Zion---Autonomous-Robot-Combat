@@ -36,10 +36,14 @@ private:
   void read_and_publish();
 
   // ─── I2C low-level helpers ───────────────────────────────────────────────
-  bool write_register(int fd, uint8_t reg, uint8_t value);
-  bool read_register(int fd, uint8_t reg, uint8_t & value);
-  bool read_registers(int fd, uint8_t start_reg, uint8_t * buffer, size_t length);
+  bool write_register(uint8_t reg, uint8_t value);
+  bool read_register(uint8_t reg, uint8_t & value);
+  bool read_registers(uint8_t start_reg, uint8_t * buffer, size_t length);
   bool select_bank(uint8_t bank);
+
+  // ─── I2C master helpers (for magnetometer via SLV4) ──────────────────────
+  bool i2c_master_write(uint8_t slave_addr, uint8_t reg, uint8_t value);
+  bool i2c_master_read(uint8_t slave_addr, uint8_t reg, uint8_t & value);
 
   // ─── Sensor reading ──────────────────────────────────────────────────────
   bool read_accel_gyro(
@@ -59,9 +63,8 @@ private:
   uint8_t get_gyro_fs_bits() const;
   uint8_t get_accel_fs_bits() const;
 
-  // ─── I2C file descriptors ────────────────────────────────────────────────
-  int icm_fd_{-1};   // File descriptor for ICM-20948
-  int mag_fd_{-1};   // File descriptor for AK09916 (via I2C bypass)
+  // ─── I2C file descriptor (single fd for everything) ──────────────────────
+  int i2c_fd_{-1};
   uint8_t current_bank_{0xFF};  // Track current register bank (0xFF = unknown)
 
   // ─── Parameters ──────────────────────────────────────────────────────────
@@ -99,4 +102,3 @@ private:
 };
 
 }  // namespace imu_sensor
-
