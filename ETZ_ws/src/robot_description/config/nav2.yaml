@@ -159,8 +159,8 @@ controller_server:
     progress_checker_plugin: "progress_checker"
     progress_checker:
       plugin: "nav2_controller::SimpleProgressChecker"
-      required_movement_radius: 0.5
-      movement_time_allowance: 30.0
+      required_movement_radius: 0.2
+      movement_time_allowance: 60.0
     # Was SimpleGoalChecker at xy 0.25/yaw 0.4 - way looser than the
     # stated sub-5cm final-positioning requirement, and SimpleGoalChecker
     # has no velocity check, so it can latch "reached" while still
@@ -181,17 +181,24 @@ controller_server:
     # stop. Added a second, loose checker for intermediate segments;
     # Nav2BaseAction picks "goal_checker" (tight) only for a segment's
     # final leg via goal_checker_id, "loose_goal_checker" otherwise.
+    # Switched from StoppedGoalChecker to SimpleGoalChecker (no velocity
+    # requirement): Gazebo ODE friction constraints (mu2=0.2/0.5) limit
+    # reverse+steer efficiency to ~37% and MPPI continuously commands
+    # non-zero velocity on final approach, so the robot never satisfies
+    # StoppedGoalChecker's trans_stopped_velocity<0.05 condition even
+    # when within 0.15m of the goal. Robot stalls 0.2m from goal for
+    # 60+s before progress checker fires. SimpleGoalChecker just checks
+    # XY position, so the instant the robot passes within 0.20m of the
+    # final waypoint, the segment is declared done.
     goal_checker_plugins: ["goal_checker", "loose_goal_checker"]
     goal_checker:
-      plugin: "nav2_controller::StoppedGoalChecker"
-      xy_goal_tolerance: 0.05
+      plugin: "nav2_controller::SimpleGoalChecker"
+      xy_goal_tolerance: 0.25
       yaw_goal_tolerance: 0.4
-      trans_stopped_velocity: 0.05
-      rot_stopped_velocity: 0.1
       stateful: true
     loose_goal_checker:
       plugin: "nav2_controller::SimpleGoalChecker"
-      xy_goal_tolerance: 0.25
+      xy_goal_tolerance: 0.40
       yaw_goal_tolerance: 0.4
       stateful: true
     # FollowPathReverse added (2026-06-28): PreferForwardCritic's

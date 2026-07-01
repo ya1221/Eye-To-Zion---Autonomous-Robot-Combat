@@ -9,6 +9,17 @@ YAW_RESOLUTION = math.radians(5.0) # רזולוציית זווית [רדיאני
 MOVE_STEP = 0.2       # מרחק תנועה בכל צעד [מטרים]
 TURNING_RADIUS = 0.7  # רדיוס סיבוב מינימלי של הרובוט [מטרים]
 ROBOT_RADIUS = 0.25   # רדיוס פיזי של הרובוט להתנגשויות [מטרים]
+# nav2's real keepout is bigger than this: footprint [0.18,0.13]'s diagonal
+# reach (~0.22m) plus costmap inflation_radius (0.22m, nav2.yaml) means MPPI
+# won't actually let the robot within ~0.44m of a wall in the worst-case
+# orientation. A* using only ROBOT_RADIUS could approve a goal/path nav2
+# then can never physically execute (confirmed directly: goal (1.3, 1.7)
+# had 0.25-0.44m clearance - passed this check, but the robot stalled
+# ~0.25-0.3m short of it every attempt and got progress-checker-aborted).
+# PLANNING_CLEARANCE is what check_collision actually enforces, so A* only
+# ever proposes goals/paths nav2 can genuinely reach.
+PLANNING_CLEARANCE = 0.45
+BUCKET_CELLS = math.ceil(PLANNING_CLEARANCE / XY_RESOLUTION) + 1  # spatial-index bucket size for check_collision
 
 # === פרמטרי עלויות (Costs) ===
 H_WEIGHT = 1.2        # משקל ההיוריסטיקה (Weighted A*) - מאוזן למניעת תקיעה
@@ -95,7 +106,8 @@ def calc_hybrid_a_star(start, goal, obstacle_set, xy_resolution, yaw_resolution,
     goal_node = Node(gx_ind, gy_ind, gyaw_ind, 1, None, 0)
     
     h_map = calc_holonomic_heuristic_with_obstacle(goal_node, obstacle_set, xy_resolution)
-    
+    spatial_index = build_spatial_index(obstacle_set)
+
     open_set = { (sx_ind, sy_ind, syaw_ind): start_node }
     closed_set = {}
     pq = [] 
@@ -113,15 +125,21 @@ def calc_hybrid_a_star(start, goal, obstacle_set, xy_resolution, yaw_resolution,
         _, current = heapq.heappop(pq)
         
         dist_to_goal = math.hypot(current.x_ind - goal_node.x_ind, current.y_ind - goal_node.y_ind) * xy_resolution
-        if dist_to_goal <= 0.3:
+        # Require the final approach step to be forward: reverse+steer near
+        # the goal is where Gazebo ODE friction makes the robot stall (see
+        # etz-open-issues memory). The goal's heading param is otherwise
+        # unused by this search (termination/heuristic are x,y-only), so it
+        # can't bias this - direction must be checked on the terminal node
+        # itself instead.
+        if dist_to_goal <= 0.1 and current.direction == 1:
             rx, ry, rt, rd = extract_path(current, xy_resolution, yaw_resolution)
-            # The search only needs to get within 0.3m to stop expanding -
-            # that's a planning shortcut, not the actual requested target.
-            # Snap the literal last waypoint to the exact goal coordinate
-            # so FollowPath's final pose is the real goal, not whatever
-            # quantized grid cell happened to first satisfy the 0.3m
-            # radius. Needed (together with the tightened goal_checker in
-            # nav2.yaml) for sub-5cm final positioning.
+            # Stop expanding once within 0.1m of goal (one grid cell) and
+            # snap the last waypoint to the exact goal coordinate so
+            # FollowPath's final pose is the real target. Tight radius keeps
+            # the path geometrically complete: anything larger (e.g. 0.3m)
+            # causes A* to return a trivial 2-step [current→goal] path when
+            # the robot is near the goal with a large heading mismatch,
+            # which MPPI can't execute in tight spaces.
             rx.append(goal[0])
             ry.append(goal[1])
             rt.append(rt[-1])
@@ -136,7 +154,7 @@ def calc_hybrid_a_star(start, goal, obstacle_set, xy_resolution, yaw_resolution,
         next_nodes = calc_motion(current, xy_resolution, yaw_resolution, danger_dict, teammates_aura_set, current_time)
         
         for next_node in next_nodes:
-            if not check_collision(next_node, obstacle_set, xy_resolution):
+            if not check_collision(next_node, obstacle_set, xy_resolution, spatial_index):
                 continue
             
             next_id = (next_node.x_ind, next_node.y_ind, next_node.yaw_ind)
@@ -252,10 +270,23 @@ def calc_motion(node, xy_res, yaw_res, danger_dict, teammates_aura_set, current_
 
 #     return True
 
-def check_collision(node, obstacle_set, xy_res):
+def build_spatial_index(obstacle_set):
+    # check_collision's radius check used to scan the entire obstacle_set
+    # per candidate node - fine early in a run (~200 cells) but scaled
+    # linearly with how much slam_toolbox has mapped, confirmed directly
+    # to blow up to ~300s per A* search once the map grew past ~1600
+    # occupied cells. Bucketing lets check_collision only look at the
+    # handful of obstacles actually near the candidate point.
+    index = {}
+    for (ox, oy) in obstacle_set:
+        key = (ox // BUCKET_CELLS, oy // BUCKET_CELLS)
+        index.setdefault(key, []).append((ox, oy))
+    return index
+
+def check_collision(node, obstacle_set, xy_res, spatial_index):
     curr_x = node.x_ind * xy_res
     curr_y = node.y_ind * xy_res
-    
+
     # 1. גבולות המגרש
     if curr_x <= 0.1 or curr_x >= 4.9 or curr_y <= 0.1 or curr_y >= 4.9:
         return False
@@ -263,26 +294,28 @@ def check_collision(node, obstacle_set, xy_res):
     # 2. בדיקה שהמשבצת הנוכחית אינה קיר
     if (node.x_ind, node.y_ind) in obstacle_set:
         return False
-        
+
     # 3. מניעת חיתוך קירות באלכסון (Tunneling Fix)
     if node.p_node:
         px_ind = node.p_node.x_ind
         py_ind = node.p_node.y_ind
         cx_ind = node.x_ind
         cy_ind = node.y_ind
-        
+
         # מניעת חיתוך קירות באלכסון (Tunneling Fix)
         if px_ind != cx_ind and py_ind != cy_ind:
             # בודקים את שתי המשבצות שיוצרות את ה"פינה" של הקיר
             if (px_ind, cy_ind) in obstacle_set or (cx_ind, py_ind) in obstacle_set:
                 return False # חוסם!
-            
-    # 4. בדיקת רדיוס רובוט מול כל הקירות (הקוד המקורי שלך שעובד מצוין)
-    for (ox_ind, oy_ind) in obstacle_set:
-        dist = math.hypot(curr_x - ox_ind * xy_res, curr_y - oy_ind * xy_res)
-        if dist <= ROBOT_RADIUS:
-            return False
 
+    # 4. בדיקת רדיוס רובוט מול קירות קרובים בלבד (spatial index, ראה build_spatial_index)
+    bx, by = node.x_ind // BUCKET_CELLS, node.y_ind // BUCKET_CELLS
+    for dbx in (-1, 0, 1):
+        for dby in (-1, 0, 1):
+            for (ox_ind, oy_ind) in spatial_index.get((bx + dbx, by + dby), ()):
+                dist = math.hypot(curr_x - ox_ind * xy_res, curr_y - oy_ind * xy_res)
+                if dist <= PLANNING_CLEARANCE:
+                    return False
     return True
 
 def extract_path(end_node, xy_res, yaw_res):
