@@ -10,15 +10,25 @@ MOVE_STEP = 0.2       # מרחק תנועה בכל צעד [מטרים]
 TURNING_RADIUS = 0.7  # רדיוס סיבוב מינימלי של הרובוט [מטרים]
 ROBOT_RADIUS = 0.25   # רדיוס פיזי של הרובוט להתנגשויות [מטרים]
 # nav2's real keepout is bigger than this: footprint [0.18,0.13]'s diagonal
-# reach (~0.22m) plus costmap inflation_radius (0.22m, nav2.yaml) means MPPI
-# won't actually let the robot within ~0.44m of a wall in the worst-case
-# orientation. A* using only ROBOT_RADIUS could approve a goal/path nav2
+# reach (~0.22m) plus costmap inflation_radius (0.22m, nav2.yaml) is a
+# worst-case theoretical bound of ~0.44m (corner-on approach to a wall,
+# treating the soft inflation cost gradient as a hard cutoff - it isn't
+# really one). A* using only ROBOT_RADIUS could approve a goal/path nav2
 # then can never physically execute (confirmed directly: goal (1.3, 1.7)
-# had 0.25-0.44m clearance - passed this check, but the robot stalled
-# ~0.25-0.3m short of it every attempt and got progress-checker-aborted).
-# PLANNING_CLEARANCE is what check_collision actually enforces, so A* only
-# ever proposes goals/paths nav2 can genuinely reach.
-PLANNING_CLEARANCE = 0.45
+# had 0.25-0.44m clearance - passed the old ROBOT_RADIUS-only check, but
+# the robot stalled ~0.25-0.3m short of it every attempt and got
+# progress-checker-aborted). PLANNING_CLEARANCE is what check_collision
+# actually enforces, so A* only ever proposes goals/paths nav2 can
+# genuinely reach.
+#
+# 0.44 (the theoretical worst case above) is stricter than necessary in
+# practice - empirically binary-searched down: 0.35 failed cleanly (2/2
+# aborts) on that same (1.3, 1.7) goal, 0.40 succeeded cleanly (dozens of
+# consecutive successes on both (1.3, 1.7) and a known-good goal). Kept
+# at 0.40 rather than narrowing further - the gap to 0.35 is not large
+# enough to be worth more search time, and a real margin below the
+# theoretical 0.44 bound is reassuring rather than concerning.
+PLANNING_CLEARANCE = 0.40
 BUCKET_CELLS = math.ceil(PLANNING_CLEARANCE / XY_RESOLUTION) + 1  # spatial-index bucket size for check_collision
 
 # === פרמטרי עלויות (Costs) ===
