@@ -15,12 +15,12 @@ ackermann_steering_controller:
     rear_wheels_radius:  0.05
 
     publish_odom:  true
-    publish_tf:    true
+    publish_tf:    false
     open_loop:     true
 
     base_frame_id: base_footprint
     odom_frame_id: odom
-    enable_odom_tf: true
+    enable_odom_tf: false
 
     twist_covariance_diagonal: [0.001, 7.0, 14.0, 21.0, 28.0, 35.0]
     pose_covariance_diagonal:  [0.001, 7.0, 14.0, 21.0, 28.0, 35.0]

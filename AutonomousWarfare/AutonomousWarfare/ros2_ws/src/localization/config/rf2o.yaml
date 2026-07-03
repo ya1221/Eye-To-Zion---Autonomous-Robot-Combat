@@ -12,7 +12,7 @@ rf2o_laser_odometry_node:
     # ---- Topic and frame config ----
     laser_scan_topic: /scan            # CHANGE to your lidar topic
     odom_topic: /odom_rf2o             # output topic — must match ekf.yaml
-    base_frame_id: base_link
+    base_frame_id: base_footprint
     odom_frame_id: odom
 
     # ---- Algorithm settings ----

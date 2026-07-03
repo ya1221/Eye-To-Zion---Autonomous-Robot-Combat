@@ -13,6 +13,7 @@ slam_toolbox:
     map_update_interval: 1.0
 
     transform_timeout: 0.5
+    transform_publish_period: 0.0  # Disable SLAM TF publishing, let EKF handle map->odom
 
     min_laser_range: 0.02
     max_laser_range: 15.0

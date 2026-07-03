@@ -3,6 +3,9 @@ from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch_ros.actions import Node
 
+from launch.actions import IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+
 def generate_launch_description():
     pkg_share = get_package_share_directory('localization')
     ydlidar_config_path = os.path.join(pkg_share, 'config', 'lidar.yaml')
@@ -19,6 +22,12 @@ def generate_launch_description():
         emulate_tty=True,
         parameters=[ydlidar_config_path, {'use_sim_time': False}]  
     )
+
+    # ldlidar_launch = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource(
+    #         os.path.join(get_package_share_directory('ldlidar_stl_ros2'), 'launch', 'ld06.launch.py')
+    #     )
+    # )
 
     slam_toolbox_node = Node(
         package='slam_toolbox',
@@ -73,6 +82,7 @@ def generate_launch_description():
 
     return LaunchDescription([
         ydlidar_node,
+        # ldlidar_launch,
         slam_toolbox_node,
         ekf_local_node,
         ekf_global_node,
