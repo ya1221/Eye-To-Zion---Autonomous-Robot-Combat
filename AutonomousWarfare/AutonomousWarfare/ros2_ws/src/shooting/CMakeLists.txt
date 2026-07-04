@@ -9,9 +9,10 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
 
 add_executable(shooting_node src/shooting_node.cpp)
-ament_target_dependencies(shooting_node rclcpp std_msgs)
+ament_target_dependencies(shooting_node rclcpp std_msgs std_srvs)
 target_include_directories(shooting_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
