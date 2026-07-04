@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# ROS2 build artifacts
+build/
+install/
+log/
+
+# Environments
+.venv/
+venv/
+
+# OS
+.DS_Store
+
+# Claude Code local settings (per-user, not shared)
+.claude

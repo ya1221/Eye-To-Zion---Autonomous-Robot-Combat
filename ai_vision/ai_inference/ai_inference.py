@@ -1,15 +1,26 @@
 import rclpy
 import json
+import math
 import numpy as np
+import cv2
 import os
 import time
 import gc
 from rclpy.node import Node
 from rclpy.executors import ExternalShutdownException
+from rclpy._rclpy_pybind11 import RCLError
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 from std_msgs.msg import String
+from builtin_interfaces.msg import Time
+from foxglove_msgs.msg import ImageAnnotations, PointsAnnotation, TextAnnotation, Point2, Color
 from ultralytics import YOLO
 from multiprocessing import shared_memory
+
+THREAT_COLORS = {
+    "HIGH": (1.0, 0.0, 0.0, 1.0),
+    "MEDIUM": (1.0, 1.0, 0.0, 1.0),
+    "LOW": (0.0, 1.0, 0.0, 1.0),
+}
 
 class AIInferenceNode(Node):
     def __init__(self):
@@ -43,12 +54,30 @@ class AIInferenceNode(Node):
         self.FPS_LOG_INTERVAL = 15
 
         self.model = YOLO(self.MODEL_PATH, task='detect')
-        
+
         # Zero-Lag QoS Profile
         qos_profile = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, history=HistoryPolicy.KEEP_LAST, depth=1)
         self.subscription = self.create_subscription(String, '/camera/metadata', self.metadata_callback, qos_profile)
         self.publisher_ = self.create_publisher(String, '/ai/detections', 10)
-        
+        self.annotations_publisher_ = self.create_publisher(ImageAnnotations, '/foxglove/annotations', 10)
+
+        # Placeholder intrinsics for a 141 deg HFOV lens at 640x320.
+        # NOT calibrated against real hardware - swap in a proper
+        # cv2.calibrateCamera() result (checkerboard) before trusting
+        # absolute pixel accuracy off-axis.
+        hfov_rad = math.radians(self.HFOV)
+        fx = self.IMG_WIDTH / (2.0 * math.tan(hfov_rad / 2.0))
+        cx, cy = self.IMG_WIDTH / 2.0, self.IMG_HEIGHT / 2.0
+        self.camera_matrix = np.array([
+            [fx, 0.0, cx],
+            [0.0, fx, cy],
+            [0.0, 0.0, 1.0],
+        ], dtype=np.float64)
+        # k1, k2, p1, p2 - mild barrel distortion, typical of a wide-angle lens
+        self.dist_coeffs = np.array([-0.30, 0.08, 0.0, 0.0], dtype=np.float64)
+        self._zero_rvec = np.zeros((3, 1), dtype=np.float64)
+        self._zero_tvec = np.zeros((3, 1), dtype=np.float64)
+
         self.shms = {}
         self.targets_history = {}  
         self.last_time = time.time()
@@ -144,7 +173,8 @@ class AIInferenceNode(Node):
                 visual_detections.append({
                     "id": track_id, "angle": round(angle_degrees, 2),
                     "threat": threat_lvl, "exp_rate": round(expansion_rate, 2),
-                    "predicted": False 
+                    "box_height": round(box_height, 1),
+                    "predicted": False
                 })
         return visual_detections, current_visible_ids
 
@@ -170,14 +200,69 @@ class AIInferenceNode(Node):
                     all_detections.append({
                         "id": t_id, "angle": round(predicted_angle, 2),
                         "threat": threat_lvl, "exp_rate": round(data['exp_rate'], 2),
-                        "predicted": True 
+                        "box_height": round(data['last_height'], 1),
+                        "predicted": True
                     })
             else:
                 lost_ids.append(t_id)
                 
         return all_detections, lost_ids
 
+    def _angle_to_pixel(self, angle_degrees):
+        # Azimuth-only ray (Y=0, horizon-level) - NOT linear pixel scaling.
+        theta = math.radians(angle_degrees)
+        ray = np.array([[math.sin(theta), 0.0, math.cos(theta)]], dtype=np.float64)
+        image_points, _ = cv2.projectPoints(ray, self._zero_rvec, self._zero_tvec, self.camera_matrix, self.dist_coeffs)
+        px, py = image_points[0, 0]
+        return float(px), float(py)
+
+    def _build_box_annotation(self, center_x, center_y, box_height, color, stamp):
+        half = box_height / 2.0  # fixed square aspect ratio
+        corners = [
+            (center_x - half, center_y - half),
+            (center_x + half, center_y - half),
+            (center_x + half, center_y + half),
+            (center_x - half, center_y + half),
+        ]
+        annotation = PointsAnnotation()
+        annotation.timestamp = stamp
+        annotation.type = PointsAnnotation.LINE_LOOP
+        annotation.points = [Point2(x=x, y=y) for x, y in corners]
+        annotation.outline_color = Color(r=color[0], g=color[1], b=color[2], a=color[3])
+        annotation.thickness = 2.0
+        return annotation
+
+    def _build_label_annotation(self, center_x, center_y, box_height, text, color, stamp):
+        label = TextAnnotation()
+        label.timestamp = stamp
+        label.position = Point2(x=center_x - box_height / 2.0, y=center_y - box_height / 2.0 - 4.0)
+        label.text = text
+        label.font_size = 12.0
+        label.text_color = Color(r=color[0], g=color[1], b=color[2], a=color[3])
+        label.background_color = Color(r=0.0, g=0.0, b=0.0, a=0.5)
+        return label
+
+    def _publish_annotations(self, final_detections, stamp):
+        annotations = ImageAnnotations()
+        for det in final_detections:
+            color = THREAT_COLORS.get(det['threat'], THREAT_COLORS["LOW"])
+            center_x, center_y = self._angle_to_pixel(det['angle'])
+            box_height = det['box_height']
+
+            annotations.points.append(self._build_box_annotation(center_x, center_y, box_height, color, stamp))
+
+            label_text = f"ID:{det['id']}"
+            if det['predicted']:
+                label_text += " (PRED)"
+            annotations.texts.append(self._build_label_annotation(center_x, center_y, box_height, label_text, color, stamp))
+
+        self.annotations_publisher_.publish(annotations)
+
     def metadata_callback(self, msg):
+        # A subscription callback already queued when SIGINT/SIGTERM arrives
+        # can still fire once after shutdown starts tearing down the context -
+        # skip it rather than publish into an invalid context.
+        if not rclpy.ok(): return
         current_time = self._update_fps()
         data = json.loads(msg.data)
         
@@ -195,10 +280,14 @@ class AIInferenceNode(Node):
         if final_detections:
             det_details = ", ".join([f"[ID:{d['id']} | Ang:{d['angle']}° | Threat:{d['threat']} | Pred:{d['predicted']}]" for d in final_detections])
             self.get_logger().info(f"Targets: {det_details}")
-            
+
             detection_msg = String()
             detection_msg.data = json.dumps(final_detections)
             self.publisher_.publish(detection_msg)
+
+            stamp_data = data.get('stamp')
+            stamp = Time(sec=int(stamp_data['sec']), nanosec=int(stamp_data['nanosec'])) if stamp_data else self.get_clock().now().to_msg()
+            self._publish_annotations(final_detections, stamp)
         
         # Incremental GC: gen-0 sweep every 150 frames, full sweep every 1500
         self.frame_count += 1
@@ -221,7 +310,15 @@ def main(args=None):
     node = AIInferenceNode()
     try: rclpy.spin(node)
     except (KeyboardInterrupt, ExternalShutdownException): pass
-    finally: node.cleanup(); node.destroy_node(); rclpy.shutdown()
-
+    except RCLError as e:
+        # Residual race: a queued callback can still hit an invalid context
+        # between the rclpy.ok() check and the actual publish call. Benign
+        # on shutdown, not a bug to fail loud on.
+        node.get_logger().warn(f"RCLError during shutdown, ignoring: {e}")
+    finally:
+        node.cleanup()
+        node.destroy_node()
+        if rclpy.ok():
+            rclpy.shutdown()
 if __name__ == '__main__':
     main()

@@ -1,2 +1,0 @@
-{"logtail":{"client_time":"2026-07-01T19:46:40.779988862Z","proc_id":47216600,"proc_seq":318},"text":"wgengine: sending TSMP disco key advertisement to 100.72.140.5\n"}
-{"logtail":{"client_time":"2026-07-01T19:46:40.782831884Z","proc_id":47216600,"proc_seq":319},"text":"localapi: [POST] /localapi/v0/debug\n"}
