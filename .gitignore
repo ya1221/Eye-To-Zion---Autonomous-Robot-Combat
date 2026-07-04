@@ -17,3 +17,4 @@ tailscale-client/ts-state/
 # WAV test files
 *.wav
 
+.claude
