@@ -41,6 +41,26 @@ class Nav2BaseAction(py_trees.behaviour.Behaviour):
     # than ever finishing it). 8.0 splits the difference.
     REPLAN_COOLDOWN_SEC = 8.0
 
+    # A* failing this many ticks in a row (from roughly the same spot) is
+    # treated as genuinely stuck rather than a one-off blip - see
+    # _build_recovery_segment. A* is deterministic, so repeated failures
+    # here mean check_collision rejects every candidate move from the
+    # current position, not transient noise.
+    CONSECUTIVE_PLAN_FAILURE_THRESHOLD = 3
+    # Candidate step distances used to get unstuck (see
+    # _build_recovery_segment, which probes several directions at each
+    # distance in turn and validates each via check_collision), smallest
+    # first. A single fixed distance isn't enough: a direction can fail
+    # either because the step doesn't travel far enough to clear a
+    # boundary/obstacle (needs MORE distance) or because its endpoint
+    # lands too close to a real obstacle (needs LESS, or a different
+    # direction) - confirmed directly that both failure modes occur in
+    # practice, so no single value covers both. Escalating distances
+    # (rather than one), tried smallest-first, prefers the least movement
+    # that actually works. Makes no "arena center"/maze-size assumption,
+    # so it behaves the same in sim or on a real robot.
+    RECOVERY_STEP_DISTANCES = (0.3, 0.5, 0.8, 1.2)
+
     def __init__(self, name, ros_node=None):
         super().__init__(name)
         self.ros_node = ros_node
@@ -58,6 +78,9 @@ class Nav2BaseAction(py_trees.behaviour.Behaviour):
         self._cached_segments = None
         self._segment_index = 0
         self._last_plan_time = None
+        self._consecutive_plan_failures = 0
+        self._last_plan_failure_pos = None
+        self._is_recovery_segment = False
 
     def get_tactical_path(self):
         """
@@ -115,6 +138,73 @@ class Nav2BaseAction(py_trees.behaviour.Behaviour):
                     yaw0 + dyaw * t,
                 ))
         return dense
+
+    def _build_recovery_segment(self):
+        # Bypasses calc_hybrid_a_star's search entirely (that's the whole
+        # point: A* has just failed CONSECUTIVE_PLAN_FAILURE_THRESHOLD
+        # times in a row from this same spot, so it can't be trusted to
+        # find a way out of it) - but the escape *direction* still has to
+        # be validated somehow, rather than assumed.
+        #
+        # First version of this just backed straight up along the reverse
+        # of the current heading. Confirmed directly (live sim test) that
+        # this only ever moves along the heading axis - it does nothing
+        # for a trap that's perpendicular to however the robot happens to
+        # be facing (e.g. escaped past the plannable region's y bound
+        # while facing along x: every "successful" reverse-along-heading
+        # nudge kept y pinned at the same out-of-bounds value, cycling
+        # forever without ever getting back in). So instead, probe a
+        # spread of world-frame directions and validate each with
+        # A_planner's own check_collision - the exact same rule A* itself
+        # uses, so this makes no assumption about heading, arena size, or
+        # "center", and is exactly as valid in sim or on a real robot.
+        cx = self.blackboard.current_x
+        cy = self.blackboard.current_y
+        cyaw = self.blackboard.current_yaw
+
+        xy_res = A_planner.XY_RESOLUTION
+        spatial_index = A_planner.build_spatial_index(self.ros_node.static_obstacles)
+        tx, ty, step_used = None, None, None
+        for step in self.RECOVERY_STEP_DISTANCES:
+            for i in range(8):
+                heading = i * (2 * math.pi / 8)
+                candidate_x = cx + step * math.cos(heading)
+                candidate_y = cy + step * math.sin(heading)
+                candidate_node = A_planner.Node(
+                    int(round(candidate_x / xy_res)), int(round(candidate_y / xy_res)), 0, 1, None, 0
+                )
+                if A_planner.check_collision(candidate_node, self.ros_node.static_obstacles, xy_res, spatial_index):
+                    tx, ty, step_used = candidate_x, candidate_y, step
+                    break
+            if tx is not None:
+                break
+
+        if tx is None:
+            # Pathological case (surrounded on all sides at every tried
+            # distance) - fall back to the original plain
+            # reverse-along-heading at the largest tried distance as a
+            # last resort, better than sending nothing.
+            step_used = self.RECOVERY_STEP_DISTANCES[-1]
+            tx = cx - step_used * math.cos(cyaw)
+            ty = cy - step_used * math.sin(cyaw)
+
+        # Pick whichever gear (forward/reverse) is the closer kinematic
+        # match to the chosen target, so MPPI isn't fighting
+        # PreferForwardCritic/PreferReverseCritic unnecessarily - it still
+        # steers as needed to actually get there either way.
+        bearing_to_target = math.atan2(ty - cy, tx - cx)
+        heading_delta = math.atan2(
+            math.sin(bearing_to_target - cyaw), math.cos(bearing_to_target - cyaw)
+        )
+        direction = 1 if abs(heading_delta) <= math.pi / 2 else -1
+
+        if self.ros_node:
+            self.ros_node.get_logger().warn(
+                f"[{self.name}] A* failed {self.CONSECUTIVE_PLAN_FAILURE_THRESHOLD}x in a row from "
+                f"({cx:.2f}, {cy:.2f}) - assuming stuck, moving {step_used}m to "
+                f"({tx:.2f}, {ty:.2f}) (direction={direction}) before retrying planning."
+            )
+        return [(direction, [(cx, cy, cyaw), (tx, ty, cyaw)])]
 
     def _world_to_map_pose(self, wx, wy, wyaw):
         # ROOT CAUSE of this whole investigation's overshoot (confirmed
@@ -177,10 +267,49 @@ class Nav2BaseAction(py_trees.behaviour.Behaviour):
         if needs_fresh_plan:
             waypoints = self.get_tactical_path()
             if not waypoints:
-                return py_trees.common.Status.FAILURE
-            self._cached_segments = self._split_into_segments(waypoints)
-            self._segment_index = 0
-            self._last_plan_time = now
+                # Count failures from roughly the same spot only - can't
+                # rely on py_trees' terminate(INVALID) to reset this
+                # between genuinely different contexts, since reactive
+                # (memory=False) Sequence/Selector composites call
+                # child.stop(INVALID) before every re-tick following ANY
+                # non-RUNNING status, including a plain FAILURE from this
+                # same node a moment ago (confirmed directly - a
+                # terminate()-based counter reset to 0 every single tick,
+                # never accumulating). Comparing position instead sidesteps
+                # that entirely and is arguably more correct anyway: only
+                # count it as "still stuck" if the robot hasn't moved.
+                cx, cy = self.blackboard.current_x, self.blackboard.current_y
+                if self._last_plan_failure_pos is not None and math.hypot(
+                    cx - self._last_plan_failure_pos[0], cy - self._last_plan_failure_pos[1]
+                ) < 0.05:
+                    self._consecutive_plan_failures += 1
+                else:
+                    self._consecutive_plan_failures = 1
+                self._last_plan_failure_pos = (cx, cy)
+
+                if self._consecutive_plan_failures < self.CONSECUTIVE_PLAN_FAILURE_THRESHOLD:
+                    return py_trees.common.Status.FAILURE
+                # Stuck: check_collision has rejected every candidate move
+                # from here for several ticks in a row (see
+                # etz-open-issues - arena-boundary escape and the
+                # PLANNING_CLEARANCE dead zone share this exact
+                # mechanism). A* can't route out of that by definition, so
+                # don't call it again - back up a short fixed distance
+                # instead and let normal planning retry from wherever that
+                # leaves us.
+                self._consecutive_plan_failures = 0
+                self._last_plan_failure_pos = None
+                self._cached_segments = self._build_recovery_segment()
+                self._segment_index = 0
+                self._last_plan_time = now
+                self._is_recovery_segment = True
+            else:
+                self._consecutive_plan_failures = 0
+                self._last_plan_failure_pos = None
+                self._cached_segments = self._split_into_segments(waypoints)
+                self._segment_index = 0
+                self._last_plan_time = now
+                self._is_recovery_segment = False
         elif self._segment_index >= len(self._cached_segments):
             # Finished every segment from the last plan but cooldown
             # hasn't elapsed yet - force a fresh plan next tick instead
@@ -233,7 +362,13 @@ class Nav2BaseAction(py_trees.behaviour.Behaviour):
         # 5cm+stopped there too turned ordinary transitions into 50+
         # second stalls (confirmed directly).
         is_final_segment = self._segment_index == len(self._cached_segments) - 1
-        goal_msg.goal_checker_id = 'goal_checker' if is_final_segment else 'loose_goal_checker'
+        # A recovery nudge is a single "final" segment by construction, but
+        # it isn't a real goal to stop precisely at - it just needs to get
+        # far enough to let A* try again, so it always uses the loose
+        # checker regardless of is_final_segment.
+        goal_msg.goal_checker_id = (
+            'loose_goal_checker' if (self._is_recovery_segment or not is_final_segment) else 'goal_checker'
+        )
 
         self.ros_node.get_logger().info(
             f"[{self.name}] Sending segment {self._segment_index + 1}/{len(self._cached_segments)} "
@@ -295,6 +430,12 @@ class Nav2BaseAction(py_trees.behaviour.Behaviour):
             self._cached_segments = None
             self._segment_index = 0
             self._last_plan_time = None
+            self._is_recovery_segment = False
+            # _consecutive_plan_failures/_last_plan_failure_pos deliberately
+            # NOT reset here - terminate(INVALID) fires on every re-tick
+            # following ANY non-RUNNING status (see update()'s comment),
+            # not just on a genuine switch to a different branch, so it
+            # can't be used to distinguish those cases.
 
 #######################
 # attack branch
