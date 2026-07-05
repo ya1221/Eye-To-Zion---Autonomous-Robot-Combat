@@ -5,6 +5,8 @@ import time
 
 from tactical_brain import world_model
 from tactical_brain import A_planner
+from tactical_brain import ballistics_helper
+from tactical_brain import aim_controller
 
 import rclpy
 from rclpy.node import Node
@@ -16,7 +18,8 @@ from nav2_msgs.action import FollowPath
 from nav_msgs.msg import Path, OccupancyGrid, Odometry
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import PoseWithCovarianceStamped
-from std_msgs.msg import String
+from geometry_msgs.msg import Twist
+from std_msgs.msg import String, Bool
 from tf2_ros import Buffer, TransformListener
 from tf2_ros import LookupException, ConnectivityException, ExtrapolationException
 import py_trees
@@ -24,6 +27,11 @@ import py_trees
 
 # from A_alg import MAX_COMBAT_DISTANCE
 MAX_COMBAT_DISTANCE = 5.0 # ערך זמני עד שנשלב את שאר הקבצים
+
+# A raw /ai/detections reading older than this is treated as "no current
+# heading fix" rather than trusted stale data - two missed tree ticks
+# (tree runs every 0.5s) worth of margin for a dropped frame or two.
+DETECTION_STALE_SEC = 1.0
 
 #######################
 # father action class
@@ -462,7 +470,39 @@ class HasLineOfSightToEnemy(py_trees.behaviour.Behaviour):
         if has_line_of_sight_to_enemy is not None and has_line_of_sight_to_enemy:
             return py_trees.common.Status.SUCCESS
         return py_trees.common.Status.FAILURE
-    
+
+class AlignToEnemyAction(py_trees.behaviour.Behaviour):
+    """Creeps/steers toward the tracked enemy's bearing (see aim_controller.py).
+
+    Publishes directly onto /cmd_vel - the same topic Nav2's controller
+    normally writes to. This works without any new arbitration because
+    attack_branch preempts patrol_branch in the root Selector's priority
+    order: the instant this branch is selected, patrol_branch's
+    MapsToGoalAction (a Nav2BaseAction) simply isn't ticked, and
+    Nav2BaseAction.terminate() already cancels any in-flight FollowPath
+    on invalidation, so Nav2 stops writing to cmd_vel on its own.
+
+    Always returns SUCCESS (never RUNNING) so AttackAction still
+    evaluates the trigger every tick regardless of how converged
+    alignment is yet - alignment and firing run concurrently, neither
+    gates the other.
+    """
+    def __init__(self, name="align_to_enemy_action", ros_node=None):
+        super(AlignToEnemyAction, self).__init__(name)
+        self.ros_node = ros_node
+        self.blackboard = py_trees.blackboard.Client(name=self.name)
+        self.blackboard.register_key(key="current_heading_error", access=py_trees.common.Access.READ)
+
+    def update(self):
+        heading_error = self.blackboard.current_heading_error
+        cmd = Twist()
+        if heading_error is not None:
+            cmd.linear.x, cmd.angular.z = aim_controller.compute_alignment_twist(heading_error)
+        # else: no fresh detection - publish the zero Twist() default
+        # rather than creep blindly on a stale/missing heading error.
+        self.ros_node.cmd_vel_pub.publish(cmd)
+        return py_trees.common.Status.SUCCESS
+
 class AttackAction(py_trees.behaviour.Behaviour):
     def __init__(self, name = "attack_action", ros_node=None):
         super(AttackAction, self).__init__(name)
@@ -471,11 +511,26 @@ class AttackAction(py_trees.behaviour.Behaviour):
         self.blackboard.register_key(key="robot_command", access=py_trees.common.Access.WRITE)
         self.blackboard.register_key(key="current_x", access=py_trees.common.Access.READ)
         self.blackboard.register_key(key="current_y", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="dist_to_closest_enemy", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="current_heading_error", access=py_trees.common.Access.READ)
 
     def update(self):
         self.blackboard.robot_command = "ATTACK"
         self.ros_node.get_logger().info(f"[{self.name}] Engaging enemy at ({self.blackboard.current_x:.2f}, {self.blackboard.current_y:.2f})")
-        # shooting logic
+
+        # Ballistics/trigger decision - see ballistics_helper.py. The
+        # shared TriggerController/publishers live on ros_node (not on
+        # this behaviour) because sense_and_think's centralized safety net
+        # needs to reset/publish-False the same instance on ticks where
+        # this action never runs at all (see that method for why - a
+        # single-tick, always-SUCCESS leaf like this one can't rely on
+        # terminate()/initialise() to detect "I was skipped this tick").
+        should_fire = self.ros_node.trigger_controller.evaluate(
+            self.blackboard.dist_to_closest_enemy,
+            self.blackboard.current_heading_error,
+        )
+        self.ros_node.shooting_mod_pub.publish(String(data="SINGLE"))
+        self.ros_node.shooting_cmd_pub.publish(Bool(data=should_fire))
         return py_trees.common.Status.SUCCESS
     
 #######################
@@ -712,8 +767,9 @@ def create_tree(ros_node=None):
 
     attack_branch = py_trees.composites.Sequence(name="attack_branch", memory = False)
     attack_branch.add_children(
-        [IsEnemyClose(name = "is enemy close"), 
+        [IsEnemyClose(name = "is enemy close"),
          HasLineOfSightToEnemy(name = "has line of sight to enemy"),
+         AlignToEnemyAction(name = "align to enemy action", ros_node=ros_node),
          AttackAction(name = "attack action", ros_node=ros_node)])
 
     help_teammate_branch = py_trees.composites.Sequence(name="help_teammate_branch", memory = False)
@@ -1051,6 +1107,24 @@ class TacticalBrainNode(Node):
             callback_group=self.pose_callback_group
         )
 
+        # Raw YOLO relative bearing (same /ai/detections + 'angle' (deg)
+        # field sensor_fusion_node.py itself parses to fuse against lidar)
+        # read directly here for the attack branch's heading error - this
+        # is our own camera's live relative angle to a target, not the
+        # fused/team-broadcast global (x,y) position, which is exactly
+        # what's needed for "is the gun pointed at what I'm actually
+        # seeing right now" rather than a team-shared, possibly
+        # teammate-detected position.
+        self._latest_heading_error_deg = None
+        self._latest_detection_time = None
+        self.ai_detections_sub = self.create_subscription(
+            String,
+            '/ai/detections',
+            self.ai_detections_callback,
+            10,
+            callback_group=self.pose_callback_group
+        )
+
         # Sharing what I personally see with the rest of the team, and
         # receiving what they see - both directions on the same team-scoped
         # topic, mirrored across Zenoh exactly like teams/team_X/positions.
@@ -1097,6 +1171,21 @@ class TacticalBrainNode(Node):
             10
         )
 
+        # Attack branch shooting outputs (see ballistics_helper.py +
+        # AttackAction). One shared TriggerController instance so both
+        # AttackAction's per-tick evaluate() and sense_and_think's
+        # centralized safety-reset (below) agree on the same debounce/
+        # hysteresis state.
+        self.trigger_controller = ballistics_helper.TriggerController()
+        self.shooting_mod_pub = self.create_publisher(String, 'shooting_mod', 10)
+        self.shooting_cmd_pub = self.create_publisher(Bool, 'shooting_cmd', 10)
+
+        # AlignToEnemyAction's output (see aim_controller.py). Same topic
+        # Nav2's controller normally publishes to - safe because
+        # attack_branch preempts patrol_branch (see AlignToEnemyAction's
+        # docstring), so only one of the two is ever actively driving.
+        self.cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel', 10)
+
         # 2. אתחול משתני מצב מקומיים (enemies_by_detector כבר אותחל למעלה,
         # ליד team_enemy_pub/team_enemy_sub; enemies_list נגזר ממנו כל טיק)
         self.static_obstacles = set()
@@ -1120,8 +1209,8 @@ class TacticalBrainNode(Node):
         self.blackboard = py_trees.blackboard.Client(name="global")
         keys = [
             "current_x", "current_y", "current_yaw", "hide_x", "hide_y", "goal_x", "goal_y", "teammate_x", "teammate_y",
-            "dist_to_closest_enemy", "has_line_of_sight_to_closest_enemy", 
-            "health", "num_enemies", "num_teammates", 
+            "dist_to_closest_enemy", "has_line_of_sight_to_closest_enemy", "current_heading_error",
+            "health", "num_enemies", "num_teammates",
             "teammate_requested_help", "dist_to_help_teammate", "robot_command"
         ]
         for key in keys:
@@ -1141,6 +1230,7 @@ class TacticalBrainNode(Node):
     def reset_blackboard_to_safe_state(self):
         self.blackboard.dist_to_closest_enemy = 100.0
         self.blackboard.has_line_of_sight_to_closest_enemy = False
+        self.blackboard.current_heading_error = None
         self.blackboard.health = 1.0
         self.blackboard.num_enemies = 0
         self.blackboard.num_teammates = 1
@@ -1217,6 +1307,22 @@ class TacticalBrainNode(Node):
             for r in robots if r.get('id') != self.robot_id
         }
 
+    def ai_detections_callback(self, msg):
+        # Same raw JSON sensor_fusion_node.py parses ('angle' in degrees,
+        # first detection in the list - no multi-target selection exists
+        # anywhere yet, see that file's fusion_callback). Only the angle is
+        # used here; distance/range for firing purposes comes from the
+        # already-fused dist_to_closest_enemy on the blackboard, not lidar
+        # directly, so the two stay consistent with what IsEnemyClose sees.
+        try:
+            detections = json.loads(msg.data)
+        except json.JSONDecodeError:
+            return
+        if not detections:
+            return
+        self._latest_heading_error_deg = detections[0].get('angle')
+        self._latest_detection_time = time.time()
+
     def local_enemy_position_callback(self, msg):
         # sensor_fusion_node only publishes when it actually has a fused
         # YOLO+lidar detection (no "no enemy visible" message exists) -
@@ -1285,6 +1391,36 @@ class TacticalBrainNode(Node):
         else:
             self.blackboard.dist_to_closest_enemy = 100.0
             self.blackboard.has_line_of_sight_to_closest_enemy = False
+
+        # Raw camera bearing to whatever /ai/detections last saw, discarded
+        # once stale (see DETECTION_STALE_SEC) so a frozen old reading
+        # doesn't get treated as a live lock.
+        detection_is_fresh = (
+            self._latest_detection_time is not None
+            and (time.time() - self._latest_detection_time) <= DETECTION_STALE_SEC
+        )
+        self.blackboard.current_heading_error = self._latest_heading_error_deg if detection_is_fresh else None
+
+        # Attack-branch safety net: this mirrors attack_branch's own
+        # IsEnemyClose/HasLineOfSightToEnemy preconditions exactly. When
+        # they don't hold, neither AttackAction nor AlignToEnemyAction
+        # ever runs this tick (Sequence short-circuits) - so nothing
+        # inside either of them ever gets a chance to publish
+        # shooting_cmd=False, zero out /cmd_vel, or reset the trigger's
+        # frame-delay/hysteresis state. This runs unconditionally every
+        # tick (regardless of which BT branch ends up selected), same as
+        # dist_to_closest_enemy above, which is the only reliable way to
+        # catch "enemy lost" here - see ballistics_helper.py's docstring
+        # and the AttackAction comment for why terminate()/initialise()
+        # can't do this for a single-tick, always-SUCCESS leaf.
+        attack_preconditions_met = (
+            self.blackboard.dist_to_closest_enemy <= MAX_COMBAT_DISTANCE
+            and self.blackboard.has_line_of_sight_to_closest_enemy
+        )
+        if not attack_preconditions_met:
+            self.trigger_controller.reset()
+            self.shooting_cmd_pub.publish(Bool(data=False))
+            self.cmd_vel_pub.publish(Twist())
 
         # 2. עדכון נתוני חברי צוות
         self.blackboard.num_teammates = len(self.teammates_dict)
