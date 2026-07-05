@@ -2,6 +2,7 @@ import cv2
 import cv2.aruco as aruco
 import numpy as np
 import math
+import time
 import rclpy
 from rclpy.node import Node
 import json
@@ -16,12 +17,27 @@ class PureModuloTrackerNode(Node):
         self.declare_parameter('camera_id', 2)
         self.declare_parameter('grid_n', 2000)
         self.declare_parameter('targets_start', 4)
+        self.declare_parameter('proc_width', 1280)
+        self.declare_parameter('proc_height', 960)
+        self.declare_parameter('display_width', 1280)
+        self.declare_parameter('display_height', 960)
 
         # 2. Retrieve Parameters
         self.CNT_TEAM = self.get_parameter('cnt_team').value
         self.CAMERA_ID = self.get_parameter('camera_id').value
         self.GRID_N = self.get_parameter('grid_n').value
         self.TARGETS_START = self.get_parameter('targets_start').value
+        # Target resolution for the ArUco/KLT pipeline. Kept independent from
+        # the camera's native capture resolution (see _open_camera_at_max_resolution)
+        # so we never re-trigger the sensor's hardware center-crop.
+        self.PROC_WIDTH = self.get_parameter('proc_width').value
+        self.PROC_HEIGHT = self.get_parameter('proc_height').value
+        # On-screen window size. Independent of PROC_WIDTH/HEIGHT so the
+        # display always fits the monitor even if the processing resolution
+        # is changed (e.g. to the sensor's full native size).
+        self.DISPLAY_WIDTH = self.get_parameter('display_width').value
+        self.DISPLAY_HEIGHT = self.get_parameter('display_height').value
+        self.WINDOW_NAME = "Tactical Map"
         
         if self.CNT_TEAM < 1:
             self.get_logger().fatal(f"cnt_team must be >= 1, got {self.CNT_TEAM}. Shutting down.")
@@ -56,17 +72,80 @@ class PureModuloTrackerNode(Node):
         self.camera_failure_count = 0
         self.MAX_CAMERA_RETRIES = 10
         
-        # 6. Camera init
-        self.cap = cv2.VideoCapture(self.CAMERA_ID)
-        if not self.cap.isOpened():
+        # 6. Camera init - open at the sensor's native max resolution so the
+        # firmware never engages its hardware center-crop, then downsample
+        # in software for processing.
+        self._resize_buffer = np.empty((self.PROC_HEIGHT, self.PROC_WIDTH, 3), dtype=np.uint8)
+        self.cap = self._open_camera_at_max_resolution()
+        if self.cap is None:
             self.get_logger().error(f"Failed to open camera with ID {self.CAMERA_ID}")
             exit()
-            
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-        
+
+        # WINDOW_NORMAL makes the window user-resizable and lets us pin an
+        # initial size that fits the screen, independent of the frame's
+        # actual pixel dimensions (cv2.imshow scales to fit automatically).
+        cv2.namedWindow(self.WINDOW_NAME, cv2.WINDOW_NORMAL)
+        cv2.resizeWindow(self.WINDOW_NAME, self.DISPLAY_WIDTH, self.DISPLAY_HEIGHT)
+
         self.timer = self.create_timer(1.0 / 30.0, self.process_frame)
         self.get_logger().info(f"Modulo Tracker ONLINE ({self.CNT_TEAM} Teams Mode). Architecture: Modular JSON.")
+
+    def _open_camera_at_max_resolution(self):
+        """Open the camera and force it to its native maximum resolution.
+
+        UVC/V4L2 drivers clamp an over-large CAP_PROP_FRAME_WIDTH/HEIGHT
+        request down to the highest mode the sensor actually supports, so
+        this works for any camera without hardcoding its true max dimensions.
+        Reading back the values after the request tells us what the hardware
+        settled on. This avoids the low-resolution modes where some hardware
+        applies a center-crop instead of a full-sensor downscale, which cuts
+        the field of view.
+        """
+        cap = cv2.VideoCapture(self.CAMERA_ID)
+        if not cap.isOpened():
+            return None
+
+        # Force MJPEG compression before negotiating resolution. Uncompressed
+        # YUYV at the sensor's full 8MP resolution far exceeds USB 2.0
+        # bandwidth, which is what was silently capping the FPS; MJPEG lets
+        # the full-resolution stream fit comfortably within USB 2.0 limits.
+        cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
+
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 9999)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 9999)
+
+        actual_w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        actual_h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        self.get_logger().info(
+            f"Camera {self.CAMERA_ID} opened at native max resolution {actual_w}x{actual_h}; "
+            f"downsampling to {self.PROC_WIDTH}x{self.PROC_HEIGHT} for processing."
+        )
+
+        self._warn_if_aspect_ratio_mismatch(actual_w, actual_h)
+        return cap
+
+    def _warn_if_aspect_ratio_mismatch(self, cam_width, cam_height):
+        """Warn if proc_width/proc_height don't share the camera's native aspect ratio.
+
+        A resize across mismatched aspect ratios stretches the image
+        non-uniformly, which distorts ArUco marker geometry and throws off
+        the perspective-warp calibration. This never blocks startup -
+        it just makes a silent quality regression loud.
+        """
+        if cam_width <= 0 or cam_height <= 0:
+            return
+
+        cam_ratio = cam_width / cam_height
+        proc_ratio = self.PROC_WIDTH / self.PROC_HEIGHT
+
+        if abs(cam_ratio - proc_ratio) > 1e-2:
+            self.get_logger().warn(
+                f"Aspect ratio mismatch: camera native {cam_width}x{cam_height} "
+                f"({cam_ratio:.3f}) vs proc_width/proc_height {self.PROC_WIDTH}x{self.PROC_HEIGHT} "
+                f"({proc_ratio:.3f}). Frames will be stretched non-uniformly, degrading ArUco "
+                f"detection and perspective-warp accuracy. Set proc_width/proc_height to match "
+                f"the camera's native aspect ratio."
+            )
 
     def get_grid_coordinates(self, cx, cy, angle):
         pt_cam = np.array([[[cx, cy]]], dtype=np.float32)
@@ -78,13 +157,29 @@ class PureModuloTrackerNode(Node):
         }
 
     def process_frame(self):
-        ret, frame = self.cap.read()
+        if self.cap is None or not self.cap.isOpened():
+            self._handle_camera_failure()
+            return
+
+        ret, raw_frame = self.cap.read()
         if not ret:
             self._handle_camera_failure()
             return
 
         self.camera_failure_count = 0
         self.frame_count += 1
+
+        # Downsample from the full-FOV capture to the processing resolution
+        # right away, reusing a preallocated buffer so no new frame-sized
+        # array is allocated on the hot path.
+        cv2.resize(
+            raw_frame,
+            (self.PROC_WIDTH, self.PROC_HEIGHT),
+            dst=self._resize_buffer,
+            interpolation=cv2.INTER_AREA,
+        )
+        frame = self._resize_buffer
+
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         current_detected_ids, corners_dict = self._detect_markers(frame)
 
@@ -100,7 +195,7 @@ class PureModuloTrackerNode(Node):
         self.old_gray = gray.copy()
         self._publish_telemetry(frame_teams_data, frame_targets_data)
 
-        cv2.imshow("Tactical Map", frame)
+        cv2.imshow(self.WINDOW_NAME, frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             rclpy.shutdown()
 
@@ -111,8 +206,13 @@ class PureModuloTrackerNode(Node):
 
         if ids is not None:
             aruco.drawDetectedMarkers(frame, corners, ids)
-            for i, marker_id_arr in enumerate(ids):
-                rid = int(marker_id_arr[0])
+            # detectMarkers returns ids as Nx1 on most backends but flat (N,)
+            # on some OpenCV/platform combos - flatten unconditionally so
+            # indexing is safe either way, then match by position against
+            # `corners` (whose per-marker structure is unaffected by this).
+            flat_ids = np.asarray(ids).flatten()
+            for i, rid_val in enumerate(flat_ids):
+                rid = int(rid_val)
                 current_detected_ids.add(rid)
                 
                 c = corners[i][0]
@@ -138,7 +238,7 @@ class PureModuloTrackerNode(Node):
                 self.get_logger().info("Arena Perspective Locked!")
             else:
                 cv2.putText(frame, "WAITING FOR 4 ANCHORS...", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 3)
-                cv2.imshow("Tactical Map", frame)
+                cv2.imshow(self.WINDOW_NAME, frame)
                 cv2.waitKey(1)
         return self.is_matrix_locked
 
@@ -217,11 +317,17 @@ class PureModuloTrackerNode(Node):
         
         if self.camera_failure_count >= self.MAX_CAMERA_RETRIES:
             self.get_logger().error(f"Camera lost after {self.MAX_CAMERA_RETRIES} consecutive failures. Attempting reconnection...")
-            self.cap.release()
-            self.cap = cv2.VideoCapture(self.CAMERA_ID)
-            if self.cap.isOpened():
-                self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-                self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+            if self.cap is not None:
+                self.cap.release()
+
+            # Give the USB bus a moment to settle before re-enumerating the
+            # device. Reopening immediately after a drop floods the bus with
+            # back-to-back requests, which is what was triggering the
+            # errno=19 (ENODEV) disconnects.
+            time.sleep(0.5)
+
+            self.cap = self._open_camera_at_max_resolution()
+            if self.cap is not None:
                 self.camera_failure_count = 0
                 self.get_logger().info("Camera reconnected successfully!")
             else:
@@ -266,7 +372,8 @@ def main(args=None):
     except KeyboardInterrupt:
         pass
     finally:
-        node.cap.release()
+        if node.cap is not None:
+            node.cap.release()
         cv2.destroyAllWindows()
         node.destroy_node()
         if rclpy.ok():
