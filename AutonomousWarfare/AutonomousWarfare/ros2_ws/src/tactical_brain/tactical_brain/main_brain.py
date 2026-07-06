@@ -5,6 +5,8 @@ import time
 
 from tactical_brain import world_model
 from tactical_brain import A_planner
+from tactical_brain import ballistics_helper
+from tactical_brain import aim_controller
 
 import rclpy
 from rclpy.node import Node
@@ -16,7 +18,9 @@ from nav2_msgs.action import FollowPath
 from nav_msgs.msg import Path, OccupancyGrid, Odometry
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import PoseWithCovarianceStamped
-from std_msgs.msg import String
+from geometry_msgs.msg import Twist
+from std_msgs.msg import String, Bool
+from robot_localization.srv import SetPose
 from tf2_ros import Buffer, TransformListener
 from tf2_ros import LookupException, ConnectivityException, ExtrapolationException
 import py_trees
@@ -24,6 +28,11 @@ import py_trees
 
 # from A_alg import MAX_COMBAT_DISTANCE
 MAX_COMBAT_DISTANCE = 5.0 # ערך זמני עד שנשלב את שאר הקבצים
+
+# A raw /ai/detections reading older than this is treated as "no current
+# heading fix" rather than trusted stale data - two missed tree ticks
+# (tree runs every 0.5s) worth of margin for a dropped frame or two.
+DETECTION_STALE_SEC = 1.0
 
 #######################
 # father action class
@@ -462,7 +471,39 @@ class HasLineOfSightToEnemy(py_trees.behaviour.Behaviour):
         if has_line_of_sight_to_enemy is not None and has_line_of_sight_to_enemy:
             return py_trees.common.Status.SUCCESS
         return py_trees.common.Status.FAILURE
-    
+
+class AlignToEnemyAction(py_trees.behaviour.Behaviour):
+    """Creeps/steers toward the tracked enemy's bearing (see aim_controller.py).
+
+    Publishes directly onto /cmd_vel - the same topic Nav2's controller
+    normally writes to. This works without any new arbitration because
+    attack_branch preempts patrol_branch in the root Selector's priority
+    order: the instant this branch is selected, patrol_branch's
+    MapsToGoalAction (a Nav2BaseAction) simply isn't ticked, and
+    Nav2BaseAction.terminate() already cancels any in-flight FollowPath
+    on invalidation, so Nav2 stops writing to cmd_vel on its own.
+
+    Always returns SUCCESS (never RUNNING) so AttackAction still
+    evaluates the trigger every tick regardless of how converged
+    alignment is yet - alignment and firing run concurrently, neither
+    gates the other.
+    """
+    def __init__(self, name="align_to_enemy_action", ros_node=None):
+        super(AlignToEnemyAction, self).__init__(name)
+        self.ros_node = ros_node
+        self.blackboard = py_trees.blackboard.Client(name=self.name)
+        self.blackboard.register_key(key="current_heading_error", access=py_trees.common.Access.READ)
+
+    def update(self):
+        heading_error = self.blackboard.current_heading_error
+        cmd = Twist()
+        if heading_error is not None:
+            cmd.linear.x, cmd.angular.z = aim_controller.compute_alignment_twist(heading_error)
+        # else: no fresh detection - publish the zero Twist() default
+        # rather than creep blindly on a stale/missing heading error.
+        self.ros_node.cmd_vel_pub.publish(cmd)
+        return py_trees.common.Status.SUCCESS
+
 class AttackAction(py_trees.behaviour.Behaviour):
     def __init__(self, name = "attack_action", ros_node=None):
         super(AttackAction, self).__init__(name)
@@ -471,11 +512,26 @@ class AttackAction(py_trees.behaviour.Behaviour):
         self.blackboard.register_key(key="robot_command", access=py_trees.common.Access.WRITE)
         self.blackboard.register_key(key="current_x", access=py_trees.common.Access.READ)
         self.blackboard.register_key(key="current_y", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="dist_to_closest_enemy", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="current_heading_error", access=py_trees.common.Access.READ)
 
     def update(self):
         self.blackboard.robot_command = "ATTACK"
         self.ros_node.get_logger().info(f"[{self.name}] Engaging enemy at ({self.blackboard.current_x:.2f}, {self.blackboard.current_y:.2f})")
-        # shooting logic
+
+        # Ballistics/trigger decision - see ballistics_helper.py. The
+        # shared TriggerController/publishers live on ros_node (not on
+        # this behaviour) because sense_and_think's centralized safety net
+        # needs to reset/publish-False the same instance on ticks where
+        # this action never runs at all (see that method for why - a
+        # single-tick, always-SUCCESS leaf like this one can't rely on
+        # terminate()/initialise() to detect "I was skipped this tick").
+        should_fire = self.ros_node.trigger_controller.evaluate(
+            self.blackboard.dist_to_closest_enemy,
+            self.blackboard.current_heading_error,
+        )
+        self.ros_node.shooting_mod_pub.publish(String(data="SINGLE"))
+        self.ros_node.shooting_cmd_pub.publish(Bool(data=should_fire))
         return py_trees.common.Status.SUCCESS
     
 #######################
@@ -712,8 +768,9 @@ def create_tree(ros_node=None):
 
     attack_branch = py_trees.composites.Sequence(name="attack_branch", memory = False)
     attack_branch.add_children(
-        [IsEnemyClose(name = "is enemy close"), 
+        [IsEnemyClose(name = "is enemy close"),
          HasLineOfSightToEnemy(name = "has line of sight to enemy"),
+         AlignToEnemyAction(name = "align to enemy action", ros_node=ros_node),
          AttackAction(name = "attack action", ros_node=ros_node)])
 
     help_teammate_branch = py_trees.composites.Sequence(name="help_teammate_branch", memory = False)
@@ -731,6 +788,251 @@ def create_tree(ros_node=None):
 
     return py_trees.trees.BehaviourTree(root)
 
+
+# ==========================================
+# קוד ה-ROS2 Node (המעטפת שמריצה ובודקת את העץ)
+# # ==========================================
+# class TacticalBrainNode(Node):
+#     def __init__(self):
+#         super().__init__('tactical_brain_node')
+#         self.get_logger().info("Tactical Brain is waking up and planting the tree...")
+        
+#         self.redis_client = redis.Redis(host='redis_server', port=6379, db=0) # שנה IP במידת הצורך
+#         self.pubsub = self.redis_client.pubsub()
+#         self.pubsub.subscribe('/detected_enemies', '/team/positions', '/aruco/poses') 
+    
+#         self.pose_sub = self.create_subscription(
+#             PoseWithCovarianceStamped,
+#             '/amcl_pose',  
+#             self.pose_callback,
+#             10
+#         )
+
+#         # יצירת ה-Subscriber כדי לקרוא את מה שה-redis_manager משדר
+#         self.aruco_pose_sub = self.create_subscription(
+#             PoseStamped,
+#             '/sensor_fusion_node/aruco_global_pose',
+#             self.aruco_callback,
+#             10
+#         )
+#          # משתנים לשמירת האמת האבסולוטית מהארוקו
+#         self.aruco_x = 0.0
+#         self.aruco_y = 0.0
+#         self.aruco_yaw = 0.0
+
+#         # משתנים לשמירת הסטייה המחושבת
+#         self.drift_x = 0.0
+#         self.drift_y = 0.0
+#         self.drift_yaw = 0.0
+
+#         # פבלישר לערוץ חטיפת המיקום של מערכת הניווט
+#         self.initial_pose_pub = self.create_publisher(
+#             PoseWithCovarianceStamped,
+#             '/initialpose',
+#             10
+#         )
+
+#         # 2. אתחול משתני מצב מקומיים (מהקוד שלך)
+#         self.static_obstacles = set() # (כאן תיכנס מפת הקירות מהלידאר בעתיד)
+#         self.enemies_list = []
+#         self.teammates_dict = {}
+#         self.danger_dict = {}
+#         self.teammates_aura_set = set()
+
+#         # 1. רישום כל המשתנים שהעץ שלך צריך ב-Blackboard
+#         self.blackboard = py_trees.blackboard.Client(name="global")
+#         keys = [
+#             "current_x", "current_y", "current_yaw", "hide_x", "hide_y", "goal_x", "goal_y", "teammate_x", "teammate_y",
+#             "dist_to_closest_enemy", "has_line_of_sight_to_closest_enemy", 
+#             "health", "num_enemies", "num_teammates", 
+#             "teammate_requested_help", "dist_to_help_teammate", "robot_command"
+#         ]
+#         for key in keys:
+#             self.blackboard.register_key(key=key, access=py_trees.common.Access.WRITE)
+            
+#         # מצב התחלתי שקט
+#         self.reset_blackboard_to_safe_state()
+
+#         # 2. הקמת העץ
+#         self.tree = create_tree(ros_node=self)
+#         self.tree.setup(timeout=15)
+
+#         # 3. טיימרים
+#         # טיימר שמפעיל את העץ כל חצי שנייה (2Hz)
+#         self.tree_timer = self.create_timer(0.5, self.sense_and_think)
+
+#         # טיימר שמשנה את התרחיש כל 5 שניות
+#         #self.scenario_timer = self.create_timer(5.0, self.mock_scenario_changer)
+#         #self.scenario_step = 0
+
+#     def reset_blackboard_to_safe_state(self):
+#         self.blackboard.dist_to_closest_enemy = 100.0
+#         self.blackboard.has_line_of_sight_to_closest_enemy = False
+#         self.blackboard.health = 1.0
+#         self.blackboard.num_enemies = 0
+#         self.blackboard.num_teammates = 1
+#         self.blackboard.teammate_requested_help = False
+#         self.blackboard.dist_to_help_teammate = 100.0
+#         self.blackboard.robot_command = "WAIT"
+
+#         self.blackboard.current_x = 2.0
+#         self.blackboard.current_y = 2.0
+#         self.blackboard.current_yaw = 0.0
+#         self.blackboard.hide_x = 2.25
+#         self.blackboard.hide_y = 4.75
+#         self.blackboard.goal_x = 3.5
+#         self.blackboard.goal_y = 4.0
+#         self.blackboard.teammate_x = 1.5
+#         self.blackboard.teammate_y = 1.0
+        
+#     def sense_and_think(self):
+#         """
+#         זוהי לולאת הליבה של הרובוט: Sense -> Think -> Act
+#         """
+#         # שלב א': Sense (קריאה מהרדיס באמצעות הפונקציה שלך)
+#         self.danger_dict, self.teammates_aura_set, self.enemies_list, self.teammates_dict = redis_manager.get_latest_world_state(
+#             self.pubsub, self.enemies_list, self.teammates_dict, self.static_obstacles
+#         )
+        
+#         # שלב ב': Translation (תרגום המילונים למשתנים פשוטים שעץ ההתנהגות מבין)
+#         self.update_blackboard_from_redis_state()
+        
+#         # שלב ג': Think (הפעלת העץ לקבלת החלטה)
+#         self.tree.tick()
+#         self.get_logger().info(f"Tree Output Command ---> {self.blackboard.robot_command}")
+    
+
+#     def update_blackboard_from_redis_state(self):
+#         # 1. עדכון נתוני אויבים
+#         self.blackboard.num_enemies = len(self.enemies_list)
+        
+#         if self.enemies_list:
+#             current_pos = (self.blackboard.current_x, self.blackboard.current_y)
+            
+#             # 1. פיצול האויבים לשתי קבוצות: גלויים ומוסתרים
+#             visible_enemies = []
+#             hidden_enemies = []
+            
+#             for enemy in self.enemies_list:
+#                 enemy_pos = (enemy['x'], enemy['y'])
+#                 if redis_manager.line_of_sight_clear(current_pos, enemy_pos, self.static_obstacles):
+#                     visible_enemies.append(enemy)
+#                 else:
+#                     hidden_enemies.append(enemy)
+            
+#             # 2. בחירת האיום העיקרי לפי עדיפות טקטית
+#             if visible_enemies:
+#                 # יש אויבים גלויים! ניקח את הקרוב מביניהם
+#                 closest_enemy = min(visible_enemies, key=lambda e: distance(current_pos, (e['x'], e['y'])))
+#                 self.blackboard.has_line_of_sight_to_closest_enemy = True
+#             else:
+#                 # כולם מוסתרים. ניקח את המוסתר הקרוב ביותר (למשל כדי להתכונן להסתערות שלו)
+#                 closest_enemy = min(hidden_enemies, key=lambda e: distance(current_pos, (e['x'], e['y'])))
+#                 self.blackboard.has_line_of_sight_to_closest_enemy = False
+            
+#             # 3. עדכון המרחק בלוח
+#             self.blackboard.dist_to_closest_enemy = distance(current_pos, (closest_enemy['x'], closest_enemy['y']))
+#         else:
+#             # אין אויבים באזור
+#             self.blackboard.dist_to_closest_enemy = 100.0
+#             self.blackboard.has_line_of_sight_to_closest_enemy = False
+
+#         # 2. עדכון נתוני חברי צוות
+#         self.blackboard.num_teammates = len(self.teammates_dict)
+#         if self.teammates_dict:
+#             # ניקח כרגע את החבר הראשון במילון לשם הדוגמה
+#             first_teammate_id = list(self.teammates_dict.keys())[0]
+#             teammate_data = self.teammates_dict[first_teammate_id]
+            
+#             self.blackboard.teammate_x = teammate_data.get('x')
+#             self.blackboard.teammate_y = teammate_data.get('y')
+            
+#             # אם הוא שידר דגל מצוקה ברדיס
+#             self.blackboard.teammate_requested_help = teammate_data.get('needs_help', False)
+
+    
+#     def aruco_callback(self, msg):
+#         # קליטת קואורדינטות האמת
+#         self.aruco_x = msg.pose.position.x
+#         self.aruco_y = msg.pose.position.y
+#         self.aruco_yaw = self.get_yaw_from_quaternion(msg.pose.orientation)
+        
+#         # חישוב הסטייה מול ה-Blackboard (AMCL)
+#         self.drift_x = self.aruco_x - self.blackboard.current_x
+#         self.drift_y = self.aruco_y - self.blackboard.current_y
+#         yaw_diff = self.aruco_yaw - self.blackboard.current_yaw
+#         self.drift_yaw = math.atan2(math.sin(yaw_diff), math.cos(yaw_diff))
+        
+#         # חישוב המרחק הכולל (היפוטנוזה של משולש X,Y)
+#         total_drift_meters = math.hypot(self.drift_x, self.drift_y)
+        
+#         # אם הסטייה עולה על 5 ס"מ (0.05 מטר), אנחנו מבצעים איפוס קשיח!
+#         if total_drift_meters > 0.05:
+#             self.get_logger().warn(f"HIGH ODOM DRIFT: {total_drift_meters*100:.1f}cm! Resetting AMCL to ArUco ground truth.")
+            
+#             # יצירת הודעת האיפוס
+#             reset_msg = PoseWithCovarianceStamped()
+#             reset_msg.header.stamp = self.get_clock().now().to_msg()
+#             reset_msg.header.frame_id = 'map'
+            
+#             # הזנת קואורדינטות הארוקו לתוך ה-AMCL
+#             reset_msg.pose.pose.position.x = self.aruco_x
+#             reset_msg.pose.pose.position.y = self.aruco_y
+#             reset_msg.pose.pose.orientation = msg.pose.orientation
+            
+#             # (אופציונלי אך מומלץ): איפוס מטריצת השגיאות (Covariance) לזיהוי מדויק
+#             reset_msg.pose.covariance[0] = 0.05 # רדיוס ביטחון סביר
+#             reset_msg.pose.covariance[7] = 0.05
+#             reset_msg.pose.covariance[35] = 0.05
+            
+#             # שיגור ההוראה למערכת הניווט!
+#             self.initial_pose_pub.publish(reset_msg)
+            
+#             # איפוס המשתנים המקומיים כדי שלא נשגר איפוס כפול בפריים הבא
+#             self.drift_x = 0.0
+#             self.drift_y = 0.0
+
+#     def pose_callback(self, msg):
+#         # שימוש בפונקציית העזר כדי שהקוד יהיה נקי
+#         self.blackboard.current_x = msg.pose.pose.position.x
+#         self.blackboard.current_y = msg.pose.pose.position.y
+#         self.blackboard.current_yaw = self.get_yaw_from_quaternion(msg.pose.pose.orientation)
+
+#     def get_yaw_from_quaternion(self, q):
+#         siny_cosp = 2 * (q.w * q.z + q.x * q.y)
+#         cosy_cosp = 1 - 2 * (q.y * q.y + q.z * q.z)
+#         return math.atan2(siny_cosp, cosy_cosp)
+
+#     # def mock_scenario_changer(self):
+#     #     self.scenario_step += 1
+#     #     print("\n" + "="*50)
+        
+#     #     if self.scenario_step == 1:
+#     #         self.get_logger().info("SCENARIO 1: All clear. Expecting to Patrol.")
+#     #         self.reset_blackboard_to_safe_state()
+            
+#     #     elif self.scenario_step == 2:
+#     #         self.get_logger().info("SCENARIO 2: Enemy 2m away in line of sight! Expecting Combat.")
+#     #         self.reset_blackboard_to_safe_state()
+#     #         self.blackboard.dist_to_closest_enemy = 2.0
+#     #         self.blackboard.has_line_of_sight_to_closest_enemy = True
+            
+#     #     elif self.scenario_step == 3:
+#     #         self.get_logger().info("SCENARIO 3: Teammate in danger 3m away! Expecting to Help.")
+#     #         self.reset_blackboard_to_safe_state()
+#     #         self.blackboard.teammate_requested_help = True
+#     #         self.blackboard.dist_to_help_teammate = 3.0
+            
+#     #     elif self.scenario_step == 4:
+#     #         self.get_logger().info("SCENARIO 4: Ambushed! 3 enemies, low health. Expecting to Run/Hide.")
+#     #         self.reset_blackboard_to_safe_state()
+#     #         self.blackboard.health = 0.3
+#     #         self.blackboard.num_enemies = 3
+#     #         self.blackboard.num_teammates = 1
+            
+#     #     else:
+#     #         self.get_logger().info("Restarting scenarios...")
+#     #         self.scenario_step = 0
 
 # ==========================================
 # קוד ה-ROS2 Node (המעטפת שמריצה ובודקת את העץ)
@@ -757,9 +1059,12 @@ class TacticalBrainNode(Node):
             / self.get_parameter('grid_n').get_parameter_value().integer_value
         )
 
-        # Real pose source is whatever publishes 'itay_amcl_topic' (EKF
-        # fused with the overhead ArUco camera) - NOT /amcl_pose, since
-        # this stack runs slam_toolbox rather than amcl.
+        # Real pose source is /odometry/global, robot_localization's
+        # ekf_global node (map->odom, ArUco-corrected - see
+        # localization/launch.py on the rpi5 branch) - NOT /amcl_pose,
+        # since this stack runs slam_toolbox rather than amcl. hardware's
+        # pid_controller.cpp subscribes to this exact same topic, so this
+        # and the low-level controller are guaranteed to agree on pose.
         #
         # Dedicated callback group + MultiThreadedExecutor (see main()):
         # the default single-threaded executor processes every callback
@@ -775,8 +1080,8 @@ class TacticalBrainNode(Node):
         # was potentially planned from a stale position as a result.
         self.pose_callback_group = MutuallyExclusiveCallbackGroup()
         self.pose_sub = self.create_subscription(
-            PoseWithCovarianceStamped,
-            'itay_amcl_topic',
+            Odometry,
+            '/odometry/global',
             self.pose_callback,
             10,
             callback_group=self.pose_callback_group
@@ -806,6 +1111,24 @@ class TacticalBrainNode(Node):
             callback_group=self.pose_callback_group
         )
 
+        # Raw YOLO relative bearing (same /ai/detections + 'angle' (deg)
+        # field sensor_fusion_node.py itself parses to fuse against lidar)
+        # read directly here for the attack branch's heading error - this
+        # is our own camera's live relative angle to a target, not the
+        # fused/team-broadcast global (x,y) position, which is exactly
+        # what's needed for "is the gun pointed at what I'm actually
+        # seeing right now" rather than a team-shared, possibly
+        # teammate-detected position.
+        self._latest_heading_error_deg = None
+        self._latest_detection_time = None
+        self.ai_detections_sub = self.create_subscription(
+            String,
+            '/ai/detections',
+            self.ai_detections_callback,
+            10,
+            callback_group=self.pose_callback_group
+        )
+
         # Sharing what I personally see with the rest of the team, and
         # receiving what they see - both directions on the same team-scoped
         # topic, mirrored across Zenoh exactly like teams/team_X/positions.
@@ -826,14 +1149,11 @@ class TacticalBrainNode(Node):
             callback_group=self.pose_callback_group
         )
 
-        # הבקר הסי++ (PID) מאזין כאן ישירות לפוזיציית האמת מצמלת הארוקו -
-        # אנחנו מחשבים אותה ישירות מ-my_team_positions_callback ומפרסמים
-        # לכאן (אין יותר zenoh_node ביניים).
-        self.aruco_odom_pub = self.create_publisher(
-            Odometry,
-            '/odometry/filtered',
-            10
-        )
+        # Previously also republished this same ArUco pose on
+        # /odometry/filtered for the low-level PID controller
+        # (_publish_self_pose, now removed) - hardware's pid_controller.cpp
+        # already subscribes directly to /odometry/global (ekf_global's
+        # output, see pose_sub above), so that republish had no consumer.
 
         # משתנים לשמירת האמת האבסולוטית מהארוקו
         self.aruco_x = 0.0
@@ -845,12 +1165,31 @@ class TacticalBrainNode(Node):
         self.drift_y = 0.0
         self.drift_yaw = 0.0
 
-        # פבלישר לערוץ חטיפת המיקום של מערכת הניווט (איפוס סטייה)
-        self.initial_pose_pub = self.create_publisher(
-            PoseWithCovarianceStamped,
-            '/initialpose',
-            10
-        )
+        # Large-drift snap-correction: force-reseed ekf_global's internal
+        # state via its real /set_pose service (robot_localization) when
+        # ArUco vs. current_x/y disagree by more than 5cm - kept as an
+        # explicit safety net on top of ekf_global's continuous fusion,
+        # which alone may not catch up fast enough after a sudden large
+        # drift (e.g. wheel slip). Was publishing to /initialpose, which
+        # has no subscriber in this stack (no AMCL; slam_toolbox and
+        # robot_localization don't reset from that topic) - redirected to
+        # the service ekf_global actually exposes for this.
+        self.set_pose_client = self.create_client(SetPose, '/ekf_global/set_pose')
+
+        # Attack branch shooting outputs (see ballistics_helper.py +
+        # AttackAction). One shared TriggerController instance so both
+        # AttackAction's per-tick evaluate() and sense_and_think's
+        # centralized safety-reset (below) agree on the same debounce/
+        # hysteresis state.
+        self.trigger_controller = ballistics_helper.TriggerController()
+        self.shooting_mod_pub = self.create_publisher(String, 'shooting_mod', 10)
+        self.shooting_cmd_pub = self.create_publisher(Bool, 'shooting_cmd', 10)
+
+        # AlignToEnemyAction's output (see aim_controller.py). Same topic
+        # Nav2's controller normally publishes to - safe because
+        # attack_branch preempts patrol_branch (see AlignToEnemyAction's
+        # docstring), so only one of the two is ever actively driving.
+        self.cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel', 10)
 
         # 2. אתחול משתני מצב מקומיים (enemies_by_detector כבר אותחל למעלה,
         # ליד team_enemy_pub/team_enemy_sub; enemies_list נגזר ממנו כל טיק)
@@ -862,7 +1201,7 @@ class TacticalBrainNode(Node):
 
         # slam_toolbox's /map is in its own run-relative TF frame (re-zeros
         # at wherever the robot started this run), but current_x/current_y
-        # come from itay_amcl_topic's separate, supposedly-stable pose
+        # come from /odometry/global's separate, supposedly-stable pose
         # source. Reconcile the two via the live map->base_footprint TF
         # vs. the already-tracked current_x/y/yaw, the same way a real
         # deployment would need to align slam's local map against the
@@ -875,8 +1214,8 @@ class TacticalBrainNode(Node):
         self.blackboard = py_trees.blackboard.Client(name="global")
         keys = [
             "current_x", "current_y", "current_yaw", "hide_x", "hide_y", "goal_x", "goal_y", "teammate_x", "teammate_y",
-            "dist_to_closest_enemy", "has_line_of_sight_to_closest_enemy", 
-            "health", "num_enemies", "num_teammates", 
+            "dist_to_closest_enemy", "has_line_of_sight_to_closest_enemy", "current_heading_error",
+            "health", "num_enemies", "num_teammates",
             "teammate_requested_help", "dist_to_help_teammate", "robot_command"
         ]
         for key in keys:
@@ -896,6 +1235,7 @@ class TacticalBrainNode(Node):
     def reset_blackboard_to_safe_state(self):
         self.blackboard.dist_to_closest_enemy = 100.0
         self.blackboard.has_line_of_sight_to_closest_enemy = False
+        self.blackboard.current_heading_error = None
         self.blackboard.health = 1.0
         self.blackboard.num_enemies = 0
         self.blackboard.num_teammates = 1
@@ -964,13 +1304,28 @@ class TacticalBrainNode(Node):
             aruco_x = my_entry['x'] * self.grid_to_meters
             aruco_y = my_entry['y'] * self.grid_to_meters
             aruco_yaw = math.radians(my_entry['angle'])
-            self._publish_self_pose(aruco_x, aruco_y, aruco_yaw)
             self._check_drift(aruco_x, aruco_y, aruco_yaw)
 
         self.teammates_dict = {
             r['id']: {'x': r['x'] * self.grid_to_meters, 'y': r['y'] * self.grid_to_meters, 'needs_help': False}
             for r in robots if r.get('id') != self.robot_id
         }
+
+    def ai_detections_callback(self, msg):
+        # Same raw JSON sensor_fusion_node.py parses ('angle' in degrees,
+        # first detection in the list - no multi-target selection exists
+        # anywhere yet, see that file's fusion_callback). Only the angle is
+        # used here; distance/range for firing purposes comes from the
+        # already-fused dist_to_closest_enemy on the blackboard, not lidar
+        # directly, so the two stay consistent with what IsEnemyClose sees.
+        try:
+            detections = json.loads(msg.data)
+        except json.JSONDecodeError:
+            return
+        if not detections:
+            return
+        self._latest_heading_error_deg = detections[0].get('angle')
+        self._latest_detection_time = time.time()
 
     def local_enemy_position_callback(self, msg):
         # sensor_fusion_node only publishes when it actually has a fused
@@ -1041,6 +1396,36 @@ class TacticalBrainNode(Node):
             self.blackboard.dist_to_closest_enemy = 100.0
             self.blackboard.has_line_of_sight_to_closest_enemy = False
 
+        # Raw camera bearing to whatever /ai/detections last saw, discarded
+        # once stale (see DETECTION_STALE_SEC) so a frozen old reading
+        # doesn't get treated as a live lock.
+        detection_is_fresh = (
+            self._latest_detection_time is not None
+            and (time.time() - self._latest_detection_time) <= DETECTION_STALE_SEC
+        )
+        self.blackboard.current_heading_error = self._latest_heading_error_deg if detection_is_fresh else None
+
+        # Attack-branch safety net: this mirrors attack_branch's own
+        # IsEnemyClose/HasLineOfSightToEnemy preconditions exactly. When
+        # they don't hold, neither AttackAction nor AlignToEnemyAction
+        # ever runs this tick (Sequence short-circuits) - so nothing
+        # inside either of them ever gets a chance to publish
+        # shooting_cmd=False, zero out /cmd_vel, or reset the trigger's
+        # frame-delay/hysteresis state. This runs unconditionally every
+        # tick (regardless of which BT branch ends up selected), same as
+        # dist_to_closest_enemy above, which is the only reliable way to
+        # catch "enemy lost" here - see ballistics_helper.py's docstring
+        # and the AttackAction comment for why terminate()/initialise()
+        # can't do this for a single-tick, always-SUCCESS leaf.
+        attack_preconditions_met = (
+            self.blackboard.dist_to_closest_enemy <= MAX_COMBAT_DISTANCE
+            and self.blackboard.has_line_of_sight_to_closest_enemy
+        )
+        if not attack_preconditions_met:
+            self.trigger_controller.reset()
+            self.shooting_cmd_pub.publish(Bool(data=False))
+            self.cmd_vel_pub.publish(Twist())
+
         # 2. עדכון נתוני חברי צוות
         self.blackboard.num_teammates = len(self.teammates_dict)
         if self.teammates_dict:
@@ -1052,18 +1437,6 @@ class TacticalBrainNode(Node):
             self.blackboard.teammate_requested_help = teammate_data.get('needs_help', False)
 
     
-    def _publish_self_pose(self, x_m, y_m, yaw_rad):
-        odom_msg = Odometry()
-        odom_msg.header.stamp = self.get_clock().now().to_msg()
-        odom_msg.header.frame_id = 'map'
-        odom_msg.child_frame_id = 'base_link'
-        odom_msg.pose.pose.position.x = x_m
-        odom_msg.pose.pose.position.y = y_m
-        odom_msg.pose.pose.position.z = 0.0
-        odom_msg.pose.pose.orientation.z = math.sin(yaw_rad / 2.0)
-        odom_msg.pose.pose.orientation.w = math.cos(yaw_rad / 2.0)
-        self.aruco_odom_pub.publish(odom_msg)
-
     def _check_drift(self, aruco_x, aruco_y, aruco_yaw):
         self.aruco_x = aruco_x
         self.aruco_y = aruco_y
@@ -1077,7 +1450,7 @@ class TacticalBrainNode(Node):
         total_drift_meters = math.hypot(self.drift_x, self.drift_y)
 
         if total_drift_meters > 0.05:
-            self.get_logger().warn(f"HIGH ODOM DRIFT: {total_drift_meters*100:.1f}cm! Resetting AMCL to ArUco ground truth.")
+            self.get_logger().warn(f"HIGH ODOM DRIFT: {total_drift_meters*100:.1f}cm! Resetting ekf_global to ArUco ground truth.")
 
             reset_msg = PoseWithCovarianceStamped()
             reset_msg.header.stamp = self.get_clock().now().to_msg()
@@ -1092,7 +1465,14 @@ class TacticalBrainNode(Node):
             reset_msg.pose.covariance[7] = 0.05
             reset_msg.pose.covariance[35] = 0.05
 
-            self.initial_pose_pub.publish(reset_msg)
+            # /initialpose has no subscriber in this stack (see set_pose_client
+            # setup above) - ekf_global's real reseed interface is this service.
+            if self.set_pose_client.service_is_ready():
+                request = SetPose.Request()
+                request.pose = reset_msg
+                self.set_pose_client.call_async(request)
+            else:
+                self.get_logger().warn("ekf_global/set_pose not available - drift reset skipped this tick.")
 
             self.drift_x = 0.0
             self.drift_y = 0.0
@@ -1111,7 +1491,7 @@ class TacticalBrainNode(Node):
         # slam_toolbox's /map lives in its own run-relative TF frame (it
         # re-zeros at wherever the robot started this run). current_x/
         # current_y come from a separate, supposedly-stable pose source
-        # (itay_amcl_topic). Without reconciling the two, obstacles read
+        # (/odometry/global). Without reconciling the two, obstacles read
         # straight off the grid would land in the wrong place relative to
         # where tactical_brain thinks it is - exactly the mismatch that
         # let A* plan straight through real walls.
