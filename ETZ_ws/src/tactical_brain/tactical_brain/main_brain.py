@@ -20,6 +20,7 @@ from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import PoseWithCovarianceStamped
 from geometry_msgs.msg import Twist
 from std_msgs.msg import String, Bool
+from robot_localization.srv import SetPose
 from tf2_ros import Buffer, TransformListener
 from tf2_ros import LookupException, ConnectivityException, ExtrapolationException
 import py_trees
@@ -1058,9 +1059,12 @@ class TacticalBrainNode(Node):
             / self.get_parameter('grid_n').get_parameter_value().integer_value
         )
 
-        # Real pose source is whatever publishes 'itay_amcl_topic' (EKF
-        # fused with the overhead ArUco camera) - NOT /amcl_pose, since
-        # this stack runs slam_toolbox rather than amcl.
+        # Real pose source is /odometry/global, robot_localization's
+        # ekf_global node (map->odom, ArUco-corrected - see
+        # localization/launch.py on the rpi5 branch) - NOT /amcl_pose,
+        # since this stack runs slam_toolbox rather than amcl. hardware's
+        # pid_controller.cpp subscribes to this exact same topic, so this
+        # and the low-level controller are guaranteed to agree on pose.
         #
         # Dedicated callback group + MultiThreadedExecutor (see main()):
         # the default single-threaded executor processes every callback
@@ -1076,8 +1080,8 @@ class TacticalBrainNode(Node):
         # was potentially planned from a stale position as a result.
         self.pose_callback_group = MutuallyExclusiveCallbackGroup()
         self.pose_sub = self.create_subscription(
-            PoseWithCovarianceStamped,
-            'itay_amcl_topic',
+            Odometry,
+            '/odometry/global',
             self.pose_callback,
             10,
             callback_group=self.pose_callback_group
@@ -1145,14 +1149,11 @@ class TacticalBrainNode(Node):
             callback_group=self.pose_callback_group
         )
 
-        # הבקר הסי++ (PID) מאזין כאן ישירות לפוזיציית האמת מצמלת הארוקו -
-        # אנחנו מחשבים אותה ישירות מ-my_team_positions_callback ומפרסמים
-        # לכאן (אין יותר zenoh_node ביניים).
-        self.aruco_odom_pub = self.create_publisher(
-            Odometry,
-            '/odometry/filtered',
-            10
-        )
+        # Previously also republished this same ArUco pose on
+        # /odometry/filtered for the low-level PID controller
+        # (_publish_self_pose, now removed) - hardware's pid_controller.cpp
+        # already subscribes directly to /odometry/global (ekf_global's
+        # output, see pose_sub above), so that republish had no consumer.
 
         # משתנים לשמירת האמת האבסולוטית מהארוקו
         self.aruco_x = 0.0
@@ -1164,12 +1165,16 @@ class TacticalBrainNode(Node):
         self.drift_y = 0.0
         self.drift_yaw = 0.0
 
-        # פבלישר לערוץ חטיפת המיקום של מערכת הניווט (איפוס סטייה)
-        self.initial_pose_pub = self.create_publisher(
-            PoseWithCovarianceStamped,
-            '/initialpose',
-            10
-        )
+        # Large-drift snap-correction: force-reseed ekf_global's internal
+        # state via its real /set_pose service (robot_localization) when
+        # ArUco vs. current_x/y disagree by more than 5cm - kept as an
+        # explicit safety net on top of ekf_global's continuous fusion,
+        # which alone may not catch up fast enough after a sudden large
+        # drift (e.g. wheel slip). Was publishing to /initialpose, which
+        # has no subscriber in this stack (no AMCL; slam_toolbox and
+        # robot_localization don't reset from that topic) - redirected to
+        # the service ekf_global actually exposes for this.
+        self.set_pose_client = self.create_client(SetPose, '/ekf_global/set_pose')
 
         # Attack branch shooting outputs (see ballistics_helper.py +
         # AttackAction). One shared TriggerController instance so both
@@ -1196,7 +1201,7 @@ class TacticalBrainNode(Node):
 
         # slam_toolbox's /map is in its own run-relative TF frame (re-zeros
         # at wherever the robot started this run), but current_x/current_y
-        # come from itay_amcl_topic's separate, supposedly-stable pose
+        # come from /odometry/global's separate, supposedly-stable pose
         # source. Reconcile the two via the live map->base_footprint TF
         # vs. the already-tracked current_x/y/yaw, the same way a real
         # deployment would need to align slam's local map against the
@@ -1299,7 +1304,6 @@ class TacticalBrainNode(Node):
             aruco_x = my_entry['x'] * self.grid_to_meters
             aruco_y = my_entry['y'] * self.grid_to_meters
             aruco_yaw = math.radians(my_entry['angle'])
-            self._publish_self_pose(aruco_x, aruco_y, aruco_yaw)
             self._check_drift(aruco_x, aruco_y, aruco_yaw)
 
         self.teammates_dict = {
@@ -1433,18 +1437,6 @@ class TacticalBrainNode(Node):
             self.blackboard.teammate_requested_help = teammate_data.get('needs_help', False)
 
     
-    def _publish_self_pose(self, x_m, y_m, yaw_rad):
-        odom_msg = Odometry()
-        odom_msg.header.stamp = self.get_clock().now().to_msg()
-        odom_msg.header.frame_id = 'map'
-        odom_msg.child_frame_id = 'base_link'
-        odom_msg.pose.pose.position.x = x_m
-        odom_msg.pose.pose.position.y = y_m
-        odom_msg.pose.pose.position.z = 0.0
-        odom_msg.pose.pose.orientation.z = math.sin(yaw_rad / 2.0)
-        odom_msg.pose.pose.orientation.w = math.cos(yaw_rad / 2.0)
-        self.aruco_odom_pub.publish(odom_msg)
-
     def _check_drift(self, aruco_x, aruco_y, aruco_yaw):
         self.aruco_x = aruco_x
         self.aruco_y = aruco_y
@@ -1458,7 +1450,7 @@ class TacticalBrainNode(Node):
         total_drift_meters = math.hypot(self.drift_x, self.drift_y)
 
         if total_drift_meters > 0.05:
-            self.get_logger().warn(f"HIGH ODOM DRIFT: {total_drift_meters*100:.1f}cm! Resetting AMCL to ArUco ground truth.")
+            self.get_logger().warn(f"HIGH ODOM DRIFT: {total_drift_meters*100:.1f}cm! Resetting ekf_global to ArUco ground truth.")
 
             reset_msg = PoseWithCovarianceStamped()
             reset_msg.header.stamp = self.get_clock().now().to_msg()
@@ -1473,7 +1465,14 @@ class TacticalBrainNode(Node):
             reset_msg.pose.covariance[7] = 0.05
             reset_msg.pose.covariance[35] = 0.05
 
-            self.initial_pose_pub.publish(reset_msg)
+            # /initialpose has no subscriber in this stack (see set_pose_client
+            # setup above) - ekf_global's real reseed interface is this service.
+            if self.set_pose_client.service_is_ready():
+                request = SetPose.Request()
+                request.pose = reset_msg
+                self.set_pose_client.call_async(request)
+            else:
+                self.get_logger().warn("ekf_global/set_pose not available - drift reset skipped this tick.")
 
             self.drift_x = 0.0
             self.drift_y = 0.0
@@ -1492,7 +1491,7 @@ class TacticalBrainNode(Node):
         # slam_toolbox's /map lives in its own run-relative TF frame (it
         # re-zeros at wherever the robot started this run). current_x/
         # current_y come from a separate, supposedly-stable pose source
-        # (itay_amcl_topic). Without reconciling the two, obstacles read
+        # (/odometry/global). Without reconciling the two, obstacles read
         # straight off the grid would land in the wrong place relative to
         # where tactical_brain thinks it is - exactly the mismatch that
         # let A* plan straight through real walls.

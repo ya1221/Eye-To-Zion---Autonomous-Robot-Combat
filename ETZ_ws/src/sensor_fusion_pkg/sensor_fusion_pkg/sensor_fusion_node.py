@@ -5,6 +5,7 @@ import math
 import json
 
 from geometry_msgs.msg import PoseStamped
+from nav_msgs.msg import Odometry
 from sensor_msgs.msg import LaserScan
 from std_msgs.msg import String # ה-YOLO שלך שולח String עם JSON
 import message_filters
@@ -21,9 +22,15 @@ class SensorFusionNode(Node):
         self.has_robot_pose = False
 
         # 1. Subscriber למיקום הגלובלי של הרובוט
+        # Was '~/aruco_global_pose' (PoseStamped) - nothing in this stack
+        # ever published there, so fusion_callback never actually ran
+        # (has_robot_pose stayed False forever). /odometry/global is
+        # ekf_global's real output (map->odom, ArUco-corrected) - same
+        # source main_brain.py's pose_sub and hardware's pid_controller.cpp
+        # both use, so this node agrees with the rest of the stack.
         self.pose_sub = self.create_subscription(
-            PoseStamped,
-            '~/aruco_global_pose',
+            Odometry,
+            '/odometry/global',
             self.robot_pose_callback,
             10
         )
@@ -50,14 +57,16 @@ class SensorFusionNode(Node):
 
     def robot_pose_callback(self, msg):
         """מעדכן את המיקום והאוריינטציה (Yaw) הנוכחיים של הרובוט במגרש"""
-        self.robot_x = msg.pose.position.x
-        self.robot_y = msg.pose.position.y
-        
-        q = msg.pose.orientation
+        # Odometry nests one level deeper than the old PoseStamped did:
+        # msg.pose.pose (PoseWithCovariance.pose), not msg.pose.
+        self.robot_x = msg.pose.pose.position.x
+        self.robot_y = msg.pose.pose.position.y
+
+        q = msg.pose.pose.orientation
         siny_cosp = 2 * (q.w * q.z + q.x * q.y)
         cosy_cosp = 1 - 2 * (q.y * q.y + q.z * q.z)
         self.robot_yaw = math.atan2(siny_cosp, cosy_cosp)
-        
+
         self.has_robot_pose = True
 
     def fusion_callback(self, yolo_msg, lidar_msg):
