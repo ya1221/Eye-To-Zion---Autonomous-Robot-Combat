@@ -19,6 +19,7 @@
       <state_interface name="position"/>
       <state_interface name="effort"/>
       <param name="servo_index">0</param>
+      <param name="trim_rad">-0.47</param>
     </joint>
 
     <joint name="front_right_steering_joint">
@@ -26,6 +27,7 @@
       <state_interface name="position"/>
       <state_interface name="effort"/>
       <param name="servo_index">1</param>
+      <param name="trim_rad">-0.47</param>
     </joint>
 
     <!-- Left motor: ENA=PWM ch0 (GPIO12/pin32), IN1=GPIO27 (pin13), IN2=GPIO22 (pin15) -->

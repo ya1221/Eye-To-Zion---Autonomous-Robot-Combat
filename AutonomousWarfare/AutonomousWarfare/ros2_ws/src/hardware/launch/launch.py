@@ -81,5 +81,5 @@ def generate_launch_description():
        joint_state_broadcaster,
        ackermann_steering_controller,
        twist_to_ackermann_node,
-       pid_controller_node
+    #    pid_controller_node
     ])

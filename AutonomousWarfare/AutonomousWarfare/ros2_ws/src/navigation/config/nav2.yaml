@@ -148,7 +148,7 @@ controller_server:
         collision_lookahead_time: 2.0
         consider_footprint: true
       AckermannConstraints:
-        min_turning_r: 0.24
+        min_turning_r: 0.20
       critics: ["ConstraintCritic", "CostCritic", "GoalCritic", "GoalAngleCritic", "PathAlignCritic", "PathFollowCritic", "PathAngleCritic", "PreferForwardCritic"]
       ConstraintCritic:
         enabled: true

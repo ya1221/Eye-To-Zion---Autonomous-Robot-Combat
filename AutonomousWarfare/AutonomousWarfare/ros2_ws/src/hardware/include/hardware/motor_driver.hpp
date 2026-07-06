@@ -62,6 +62,7 @@ private:
     struct ServoTarget {
         int servo_index;
         size_t cmd_index;
+        double trim_rad = 0.0;
     };
 
     struct StateUpdater {

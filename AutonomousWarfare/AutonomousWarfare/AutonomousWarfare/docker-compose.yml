@@ -1,0 +1,162 @@
+services:
+  ros2_core:
+    # 'build: .' tells Docker to use the local Dockerfile in this folder
+    # This is where your YOLOv8, OpenCV, and ROS 2 dependencies are installed
+    build: .
+    container_name: ros2_humble
+    
+    # Gives the container 'Master' permissions to Pi hardware
+    # Crucial for GPIO and hardware-accelerated video decoding
+    privileged: true
+    
+    # Shares the Pi's IP address directly with the container
+    # Required so ROS 2 nodes can find each other via DDS (discovery)
+    network_mode: host
+    ipc: host
+
+    # The 'Hardware Portal': Connects the physical camera lens to the container
+    # [Physical Pi Path] : [Virtual Container Path]
+    devices:
+      - "/dev/video0:/dev/video0"
+      - "/dev/ttyUSB0:/dev/ttyUSB0"
+      - "/dev/ttyACM0:/dev/ttyACM0"
+    
+    environment:
+      # Sets the ROS 2 communication group (must match your laptop/other robots)
+      - ROS_DOMAIN_ID=0  
+      # Forces Python to print logs immediately to your terminal without delay
+      - PYTHONUNBUFFERED=1
+      # Connects to the local Pi screen for GUI apps like RViz or image windows
+      - DISPLAY=${DISPLAY}
+      
+    volumes:
+      # Persistent workspace: Code lives on the Pi but builds inside Docker
+      - ./ros2_ws:/ros2_ws
+      
+      # Bind Mount for AI code: Edit Python scripts on the Pi; updates instantly in Docker
+      - "./ai_vision:/app"
+      
+      # The GUI Socket: A communication pipe that sends window data to your monitor
+      - "/tmp/.X11-unix:/tmp/.X11-unix:rw" 
+
+      - /sys:/sys
+      
+      # Shared volume for unix sockets between containers
+      - telegraf-sock:/tmp/sockets
+      
+    # Prevents the container from closing after it finishes its background tasks
+    # Keeps it running so you can enter it using 'docker exec' to run nodes
+    command: tail -f /dev/null
+    
+    # Allows you to interact with the container via terminal (keyboard input)
+    stdin_open: true
+    tty: true
+    
+    # Automatically restarts the robot brain if it crashes or the Pi reboots
+    restart: always
+
+  telegraf:
+    image: telegraf:latest
+    container_name: telegraf
+    network_mode: host
+    user: root
+    volumes:
+      - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      - /sys:/host/sys:ro
+      - /proc:/host/proc:ro
+      - telegraf-sock:/tmp/sockets
+    environment:
+      - HOST_SYS=/host/sys
+      - HOST_PROC=/host/proc
+    restart: unless-stopped
+
+
+  # tailscale:
+  #   image: tailscale/tailscale:latest
+  #   container_name: tailscale-sidecar
+  #   hostname: host2-raspberrypi  # The name that will show up in your Tailnet
+  #   environment:
+  #     - TS_AUTHKEY=tskey-auth-kAaxZHkDP211CNTRL-RZ8ef77s5qfhF8s6XAw2qfz5ynaC5e2oZ  # Replace with your auth key
+  #     - TS_STATE_DIR=/var/lib/tailscale
+  #     - TS_USERSPACE=false  # Set to false to use high-performance kernel networking
+  #   volumes:
+  #     - ./tailscale-state:/var/lib/tailscale  # Persists login state across restarts
+  #     - /dev/net/tun:/dev/net/tun  # Required for kernel mode networking
+  #   cap_add:
+  #     - NET_ADMIN  # Allows container to configure network interfaces
+  #     - NET_RAW    # Allows deep packet handling and ping functionality
+  #   restart: unless-stopped
+
+  zenoh_bridge:
+    image: eclipse/zenoh-bridge-ros2dds:latest
+    container_name: etz_zenoh_bridge
+    # The MagicDNS hostnames below only resolve if the standalone
+    # tailscale-vpn compose file (see the note where the old tailscale
+    # service used to live, below) is already up and connected on this
+    # machine - that's not managed by this project's compose file anymore.
+    network_mode: "host"
+    ipc: "host"
+    restart: always
+    environment:
+      - ROS_DISTRO=humble
+      # Same single source of truth main_brain.py reads (see
+      # tactical_brain/launch/main.launch.py) - rendered into the allow-list
+      # below at container startup rather than checked in as a literal, so
+      # the two can never silently drift apart if this ever changes.
+      - MY_TEAM_IDX=${MY_TEAM_IDX}
+    volumes:
+      # Template, not the final config - @@MY_TEAM_IDX@@ gets substituted
+      # by $MY_TEAM_IDX at container startup (see entrypoint/command below).
+      - ./zenoh_bridge_config.json5.template:/zenoh_bridge_config.json5.template:ro
+    # Overriding entrypoint to render the allow-list template before
+    # exec'ing the real bridge binary (confirmed via `docker run --entrypoint
+    # sh ... cat /entrypoint.sh`: the image's own entrypoint is just
+    # `exec /$BINARY $@`, so this preserves that, just with one step first).
+    entrypoint: ["/bin/ash", "-c"]
+    # -c loads the rendered publishers/subscribers allow-list (restricts
+    # mirroring to our own team's /teams/team_N/* only - see the template
+    # file for why); -e/--connect is repeatable: every teammate's laptop (up
+    # to 3 devices each, -01/-02/-03) is its own potential anchor, by stable
+    # Tailscale (MagicDNS) hostname instead of a raw IP. As long as any one
+    # of these is reachable and running its own zenoh router/bridge on 7447,
+    # the mesh connects - no single point of failure on one specific
+    # machine. Neither MagicDNS nor Zenoh's connect endpoints support
+    # regex/wildcard matching, so this has to be a literal enumerated list
+    # rather than a pattern like (itay|shay|yahav)-laptop-\d{2}.
+    # remote-pc is the overhead-camera/anchor machine's actual registered
+    # Tailscale hostname (confirmed in the admin console) - the original
+    # raw-IP anchor (100.107.5.41) before the MagicDNS switch.
+    command:
+      - >
+        sed "s/@@MY_TEAM_IDX@@/$$MY_TEAM_IDX/g" /zenoh_bridge_config.json5.template > /tmp/zenoh_bridge_config.json5 &&
+        exec /zenoh-bridge-ros2dds
+        -c /tmp/zenoh_bridge_config.json5
+        -e tcp/remote-pc:7447
+        -e tcp/itay-laptop:7447
+        -e tcp/itay-laptop-1:7447
+        -e tcp/itay-laptop-2:7447
+        -e tcp/itay-laptop-3:7447
+        -e tcp/shay-laptop:7447
+        -e tcp/shay-laptop-1:7447
+        -e tcp/shay-laptop-2:7447
+        -e tcp/shay-laptop-3:7447
+        -e tcp/yahav-laptop:7447
+        -e tcp/yahav-laptop-1:7447
+        -e tcp/yahav-laptop-2:7447
+        -e tcp/yahav-laptop-3:7447
+
+  # ==========================================
+  # 3. Tailscale VPN - intentionally NOT defined here anymore. It now lives
+  #    in its own standalone compose file (~/tailscale-vpn/docker-compose.yml)
+  #    so the persistent tailnet connection's lifecycle is fully decoupled
+  #    from this project's stack - `docker-compose down` here never risks
+  #    tearing down the VPN, and it can't spawn a second competing identity
+  #    under the same hostname by racing against a second tailscale service
+  #    defined in two places. Bring it up once on this machine with
+  #    `docker-compose -f ~/tailscale-vpn/docker-compose.yml up -d` and
+  #    leave it running; MagicDNS needs to be enabled there
+  #    (TS_EXTRA_ARGS, not set here) for the zenoh_bridge hostnames above
+  #    to resolve.
+  # ==========================================
+volumes:
+  telegraf-sock:

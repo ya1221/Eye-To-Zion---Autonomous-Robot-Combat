@@ -1,23 +1,35 @@
-from gpiozero import Robot
+from gpiozero import Robot, AngularServo
 from gpiozero.pins.lgpio import LGPIOFactory
 import time
 
-# 1. Initialize the LGPIO factory for Raspberry Pi 5 compatibility [cite: 112]
-# The 'chip=0' parameter usually refers to the user-facing GPIO header [cite: 112, 113]
 factory = LGPIOFactory(chip=0)
 
-# 2. Define your robot's pins [cite: 107, 112]
-# Format: Robot(left=(forward_pin, backward_pin), right=(forward_pin, backward_pin))
-# Replace these numbers with the GPIO pins connected to your motor driver.
 robot = Robot(left=(17, 27), right=(22, 23), pin_factory=factory)
 
-print("Moving forward...")
-robot.forward(1)
-time.sleep(1)
+# Servo — replace 18 with whichever GPIO the servo's signal wire is on
+servo = AngularServo(18, min_angle=-90, max_angle=90, pin_factory=factory)
 
-# print("Turning right...")
-# robot.right()
-# time.sleep(1)
+try:
+    print("Moving forward...")
+    # robot.forward(1)
+    # time.sleep(1)
+    # robot.stop()
 
-print("Stopping...")
-robot.stop()
+    # print("Moving servo to 45°...")
+    # servo.angle = 45
+    # robot.forward(1)
+    # time.sleep(3)
+
+    print("Moving servo to -45°...")
+    servo.angle = 75.0
+    robot.forward(1.0)
+    time.sleep(3)
+
+    # print("Centering servo...")
+    # servo.angle = 0
+    # robot.forward(1)
+    # time.sleep(2)
+
+finally:
+    robot.close()
+    servo.close()
