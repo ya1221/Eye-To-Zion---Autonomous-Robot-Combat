@@ -72,19 +72,5 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  training:
-    build: ./ai_audio/training
-    container_name: training
-    user: "1000:1000"
-    cpus: '4.0'
-    volumes:
-      - "./ai_audio/training:/app"
-      - "./ai_audio/dataset:/app/dataset"
-      - "./ai_audio/training/runs:/app/runs"
-    profiles:
-      - tools # one-off tool, run explicitly with `docker compose run`
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+  # Stage 3 (training) runs on Kaggle now, not on the Pi -- see
+  # ai_audio/training/kaggle_train.ipynb. No training container here.
