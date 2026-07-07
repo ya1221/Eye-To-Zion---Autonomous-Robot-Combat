@@ -13,6 +13,8 @@ RUN apt-get update && apt-get install -y \
     # Navigation 2 (The "Brain")
     ros-humble-navigation2 \
     ros-humble-nav2-bringup \
+    ros-humble-py-trees \
+    ros-humble-py-trees-ros \
     # Extra tools
     git \
     nano \
@@ -39,7 +41,6 @@ RUN git clone https://github.com/YDLIDAR/YDLidar-SDK.git /tmp/YDLidar-SDK && \
 # For IMU sensor (This can be install by rosdep))
 RUN apt-get update && apt-get install -y \
     libi2c-dev \
-    ros-humble-imu-filter-madgwick \
     && rm -rf /var/lib/apt/lists/*
     
 # For foxglove bridge

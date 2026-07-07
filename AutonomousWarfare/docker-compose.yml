@@ -107,7 +107,7 @@ services:
     volumes:
       # Template, not the final config - @@MY_TEAM_IDX@@ gets substituted
       # by $MY_TEAM_IDX at container startup (see entrypoint/command below).
-      - ./zenoh_bridge_config.json5.template:/zenoh_bridge_config.json5.template:ro
+      - ./zenoh_config.json5.template:/zenoh_bridge_config.json5.template:ro
     # Overriding entrypoint to render the allow-list template before
     # exec'ing the real bridge binary (confirmed via `docker run --entrypoint
     # sh ... cat /entrypoint.sh`: the image's own entrypoint is just
@@ -131,7 +131,7 @@ services:
         sed "s/@@MY_TEAM_IDX@@/$$MY_TEAM_IDX/g" /zenoh_bridge_config.json5.template > /tmp/zenoh_bridge_config.json5 &&
         exec /zenoh-bridge-ros2dds
         -c /tmp/zenoh_bridge_config.json5
-        -e tcp/remote-pc:7447
+        -e tcp/100.72.140.5:7447
         -e tcp/itay-laptop:7447
         -e tcp/itay-laptop-1:7447
         -e tcp/itay-laptop-2:7447
