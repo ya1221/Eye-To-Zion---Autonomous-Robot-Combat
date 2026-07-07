@@ -697,14 +697,26 @@ class MapsToGoalAction(Nav2BaseAction):
         self.blackboard.register_key(key="current_x", access=py_trees.common.Access.READ)
         self.blackboard.register_key(key="current_y", access=py_trees.common.Access.READ)
         self.blackboard.register_key(key="current_yaw", access=py_trees.common.Access.READ)
-        self.blackboard.register_key(key="goal_x", access=py_trees.common.Access.READ)
-        self.blackboard.register_key(key="goal_y", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="final_goal_x", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="final_goal_y", access=py_trees.common.Access.READ)
         self.blackboard.register_key(key="robot_command", access=py_trees.common.Access.WRITE)
+
+    def update(self):
+        # Before the overhead camera has sighted the capture-zone marker
+        # even once, final_goal_x/y are still None. Nav2BaseAction.update()
+        # treats get_tactical_path() returning nothing as an A*-failed-to-
+        # find-a-path signal and starts counting toward a recovery
+        # backup-nudge after CONSECUTIVE_PLAN_FAILURE_THRESHOLD ticks - the
+        # robot isn't stuck here, it's just waiting on the camera, so skip
+        # straight to RUNNING instead of letting that bookkeeping misfire.
+        if self.blackboard.final_goal_x is None or self.blackboard.final_goal_y is None:
+            return py_trees.common.Status.RUNNING
+        return super().update()
 
     def get_tactical_path(self):
         cx, cy = self.blackboard.current_x, self.blackboard.current_y
         cyaw = self.blackboard.current_yaw
-        gx, gy = self.blackboard.goal_x, self.blackboard.goal_y
+        gx, gy = self.blackboard.final_goal_x, self.blackboard.final_goal_y
         
         if gx is not None and gy is not None and self.ros_node is not None:
             self.blackboard.robot_command = "NAVIGATING (A* PATH)"
@@ -1100,6 +1112,21 @@ class TacticalBrainNode(Node):
             10,
             callback_group=self.pose_callback_group
         )
+
+        # Capture-zone marker (physically static, one per team) tracked by
+        # the same overhead-camera node as teams/team_X/positions, mirrored
+        # across Zenoh the same way. Locked onto the first sighting in
+        # final_goal_callback rather than kept live, since re-reading a
+        # static marker's per-frame ArUco jitter would retarget MapsToGoal's
+        # A* goal for no reason.
+        self.final_goal_locked = False
+        self.final_goal_sub = self.create_subscription(
+            String,
+            f'teams/team_{self.my_team_idx}/target_position',
+            self.final_goal_callback,
+            10,
+            callback_group=self.pose_callback_group
+        )
         # אויבים מגיעים מהזיהוי המקומי (YOLO+לידאר) של sensor_fusion_node,
         # לא מטופיק הקבוצה היריבה - teams/team_X/positions הוא הברודקאסט
         # העצמי של הקבוצה ההיא, לא משהו שאנחנו אמורים להאזין לו בכלל.
@@ -1213,7 +1240,7 @@ class TacticalBrainNode(Node):
         # 1. רישום כל המשתנים שהעץ צריך ב-Blackboard
         self.blackboard = py_trees.blackboard.Client(name="global")
         keys = [
-            "current_x", "current_y", "current_yaw", "hide_x", "hide_y", "goal_x", "goal_y", "teammate_x", "teammate_y",
+            "current_x", "current_y", "current_yaw", "hide_x", "hide_y", "final_goal_x", "final_goal_y", "teammate_x", "teammate_y",
             "dist_to_closest_enemy", "has_line_of_sight_to_closest_enemy", "current_heading_error",
             "health", "num_enemies", "num_teammates",
             "teammate_requested_help", "dist_to_help_teammate", "robot_command"
@@ -1248,22 +1275,12 @@ class TacticalBrainNode(Node):
         self.blackboard.current_yaw = 0.0
         self.blackboard.hide_x = 2.25
         self.blackboard.hide_y = 4.75
-        # Diagnostic direction-change test: every prior straight-east
-        # test (goal ~0.8m east of spawn) converged on the same overshoot
-        # magnitude (~13-14.4deg peak heading deviation) AND the same
-        # final wedge position/heading (~5.3-5.4, ~2-3.1, ~70-75deg)
-        # regardless of goal_checker tuning, path density, MPPI batch_size,
-        # or noise regeneration - suspicious for a goal-driven controller.
-        # Pointing the goal north instead (perpendicular, same ~0.8m
-        # distance, clear of every wall in maze/model.sdf by >0.7m) tests
-        # whether the robot still converges on that same east-side
-        # location/heading regardless of where the goal actually is -
-        # which would prove the attractor is goal-independent.
-        # Back to the pure-straight test (zero planned curvature, yaw=0
-        # throughout) so any angular.z seen on /cmd_vel_nav is unambiguous
-        # MPPI bias, not legitimate path-curvature-following.
-        self.blackboard.goal_x = 3.9
-        self.blackboard.goal_y = 1.3
+        # Not known until the overhead camera's capture-zone marker is
+        # sighted at least once (see final_goal_callback) - None until
+        # then. MapsToGoalAction.update() explicitly treats this as
+        # "waiting", not a failed plan.
+        self.blackboard.final_goal_x = None
+        self.blackboard.final_goal_y = None
         self.blackboard.teammate_x = 1.5
         self.blackboard.teammate_y = 1.0
         
@@ -1310,6 +1327,22 @@ class TacticalBrainNode(Node):
             r['id']: {'x': r['x'] * self.grid_to_meters, 'y': r['y'] * self.grid_to_meters, 'needs_help': False}
             for r in robots if r.get('id') != self.robot_id
         }
+
+    def final_goal_callback(self, msg):
+        if self.final_goal_locked:
+            return
+        try:
+            target = json.loads(msg.data)
+        except json.JSONDecodeError:
+            return
+
+        self.blackboard.final_goal_x = target['x'] * self.grid_to_meters
+        self.blackboard.final_goal_y = target['y'] * self.grid_to_meters
+        self.final_goal_locked = True
+        self.get_logger().info(
+            f"Final goal (capture zone) locked at "
+            f"({self.blackboard.final_goal_x:.2f}, {self.blackboard.final_goal_y:.2f})"
+        )
 
     def ai_detections_callback(self, msg):
         # Same raw JSON sensor_fusion_node.py parses ('angle' in degrees,
