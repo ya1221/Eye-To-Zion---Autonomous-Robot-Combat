@@ -1,0 +1,28 @@
+// Template for the zenoh-bridge-ros2dds allow-list - rendered at container
+// startup (see docker-compose.yml's zenoh_bridge command) by substituting
+// @@MY_TEAM_IDX@@ with the MY_TEAM_IDX env var, the same single source of
+// truth main_brain.py reads (ETZ_ws/.../tactical_brain/main_brain.py's
+// declare_parameter('my_team_idx', ...)). Not a literal number checked in
+// here, so the two can never silently drift out of sync if MY_TEAM_IDX in
+// .env changes. (If this ever needs to support N teams generically instead
+// of "our one team_idx", that's a bigger change - inferring from a
+// team_cnt - not done here.)
+//
+// Restricts what gets mirrored across Zenoh to our own team's /teams/
+// channels only - main_brain.py never subscribes to or publishes on any
+// other team's topics, so there's no reason to bridge them either. Without
+// any allow-list at all, the bridge mirrors EVERY local ROS2 topic it
+// discovers by default - nav2 internals, /tf, /scan, /map, etc. - which is
+// wasteful over a WAN link, and critically would also mirror
+// /odometry/filtered, letting it collide with a teammate's robot publishing
+// the exact same topic name for its own local PID controller.
+{
+  plugins: {
+    ros2dds: {
+      allow: {
+        publishers: ["^/teams/team_@@MY_TEAM_IDX@@/.*$"],
+        subscribers: ["^/teams/team_@@MY_TEAM_IDX@@/.*$"],
+      },
+    },
+  },
+}

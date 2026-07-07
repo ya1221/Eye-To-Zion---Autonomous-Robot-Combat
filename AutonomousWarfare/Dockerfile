@@ -39,11 +39,13 @@ RUN git clone https://github.com/YDLIDAR/YDLidar-SDK.git /tmp/YDLidar-SDK && \
 # For IMU sensor (This can be install by rosdep))
 RUN apt-get update && apt-get install -y \
     libi2c-dev \
+    ros-humble-imu-filter-madgwick \
     && rm -rf /var/lib/apt/lists/*
     
 # For foxglove bridge
 RUN apt-get update && apt-get install -y \
     ros-humble-foxglove-bridge \
+    ros-humble-foxglove-msgs \
     && rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update && apt-get install -y \

@@ -1,0 +1,23 @@
+cv_processor:
+  ros__parameters:
+    # GStreamer pipeline for camera input (UDP H.264 from rpicam-vid)
+    gstreamer_pipeline: >-
+      udpsrc port=5000 ! h264parse ! avdec_h264 ! videoconvert
+      ! video/x-raw,format=BGR ! appsink drop=true max-buffers=1
+
+    # Capture loop rate (Hz)
+    capture_fps: 30.0
+
+    # JPEG compression quality for /camera/compressed (1-100)
+    # Field-tunable at runtime: ros2 param set /cv_processor jpeg_quality <n>
+    jpeg_quality: 75
+
+    # Number of shared-memory buffers (double-buffered = 2)
+    shm_buffer_count: 2
+
+    # Topic names
+    metadata_topic: /camera/metadata
+    compressed_topic: /camera/compressed
+
+    # QoS depth for the compressed image publisher
+    compressed_qos_depth: 1
