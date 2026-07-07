@@ -1191,6 +1191,9 @@ class TacticalBrainNode(Node):
         # docstring), so only one of the two is ever actively driving.
         self.cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel', 10)
 
+        # ArUco Odometry continuous publisher (for EKF fusion)
+        self.aruco_odom_pub = self.create_publisher(Odometry, '/aruco/odom', 10)
+
         # 2. אתחול משתני מצב מקומיים (enemies_by_detector כבר אותחל למעלה,
         # ליד team_enemy_pub/team_enemy_sub; enemies_list נגזר ממנו כל טיק)
         self.static_obstacles = set()
@@ -1304,7 +1307,7 @@ class TacticalBrainNode(Node):
             aruco_x = my_entry['x'] * self.grid_to_meters
             aruco_y = my_entry['y'] * self.grid_to_meters
             aruco_yaw = math.radians(my_entry['angle'])
-            self._check_drift(aruco_x, aruco_y, aruco_yaw)
+            self._publish_aruco_odom(aruco_x, aruco_y, aruco_yaw)
 
         self.teammates_dict = {
             r['id']: {'x': r['x'] * self.grid_to_meters, 'y': r['y'] * self.grid_to_meters, 'needs_help': False}
@@ -1437,45 +1440,25 @@ class TacticalBrainNode(Node):
             self.blackboard.teammate_requested_help = teammate_data.get('needs_help', False)
 
     
-    def _check_drift(self, aruco_x, aruco_y, aruco_yaw):
-        self.aruco_x = aruco_x
-        self.aruco_y = aruco_y
-        self.aruco_yaw = aruco_yaw
+    def _publish_aruco_odom(self, aruco_x, aruco_y, aruco_yaw):
+        odom_msg = Odometry()
+        odom_msg.header.stamp = self.get_clock().now().to_msg()
+        odom_msg.header.frame_id = 'map'
+        odom_msg.child_frame_id = 'base_footprint'
+        
+        odom_msg.pose.pose.position.x = float(aruco_x)
+        odom_msg.pose.pose.position.y = float(aruco_y)
+        odom_msg.pose.pose.position.z = 0.0
+        
+        odom_msg.pose.pose.orientation.z = math.sin(aruco_yaw / 2.0)
+        odom_msg.pose.pose.orientation.w = math.cos(aruco_yaw / 2.0)
 
-        self.drift_x = self.aruco_x - self.blackboard.current_x
-        self.drift_y = self.aruco_y - self.blackboard.current_y
-        yaw_diff = self.aruco_yaw - self.blackboard.current_yaw
-        self.drift_yaw = math.atan2(math.sin(yaw_diff), math.cos(yaw_diff))
-
-        total_drift_meters = math.hypot(self.drift_x, self.drift_y)
-
-        if total_drift_meters > 0.05:
-            self.get_logger().warn(f"HIGH ODOM DRIFT: {total_drift_meters*100:.1f}cm! Resetting ekf_global to ArUco ground truth.")
-
-            reset_msg = PoseWithCovarianceStamped()
-            reset_msg.header.stamp = self.get_clock().now().to_msg()
-            reset_msg.header.frame_id = 'map'
-
-            reset_msg.pose.pose.position.x = self.aruco_x
-            reset_msg.pose.pose.position.y = self.aruco_y
-            reset_msg.pose.pose.orientation.z = math.sin(self.aruco_yaw / 2.0)
-            reset_msg.pose.pose.orientation.w = math.cos(self.aruco_yaw / 2.0)
-
-            reset_msg.pose.covariance[0] = 0.05
-            reset_msg.pose.covariance[7] = 0.05
-            reset_msg.pose.covariance[35] = 0.05
-
-            # /initialpose has no subscriber in this stack (see set_pose_client
-            # setup above) - ekf_global's real reseed interface is this service.
-            if self.set_pose_client.service_is_ready():
-                request = SetPose.Request()
-                request.pose = reset_msg
-                self.set_pose_client.call_async(request)
-            else:
-                self.get_logger().warn("ekf_global/set_pose not available - drift reset skipped this tick.")
-
-            self.drift_x = 0.0
-            self.drift_y = 0.0
+        # High confidence for ArUco absolute position (0.01)
+        odom_msg.pose.covariance[0] = 0.01   # x
+        odom_msg.pose.covariance[7] = 0.01   # y
+        odom_msg.pose.covariance[35] = 0.01  # yaw
+        
+        self.aruco_odom_pub.publish(odom_msg)
 
     def pose_callback(self, msg):
         self.blackboard.current_x = msg.pose.pose.position.x

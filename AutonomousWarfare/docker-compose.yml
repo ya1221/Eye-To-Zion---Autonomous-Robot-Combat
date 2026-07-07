@@ -21,6 +21,9 @@ services:
       - "/dev/ttyUSB0:/dev/ttyUSB0"
       - "/dev/ttyACM0:/dev/ttyACM0"
     
+    env_file:
+      - .env
+
     environment:
       # Sets the ROS 2 communication group (must match your laptop/other robots)
       - ROS_DOMAIN_ID=0  
