@@ -1,0 +1,462 @@
+{"logtail":{"client_time":"2026-07-08T12:36:57.809779024Z","proc_id":1912367922,"proc_seq":9},"text":"wgengine.NewUserspaceEngine(tun \"tailscale0\") ...\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.811961551Z","proc_id":1912367922,"proc_seq":10},"v":1,"text":"router: policy routing available; found 3 rules\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.812215828Z","proc_id":1912367922,"proc_seq":11},"v":1,"text":"router: kernel supports IPv6 policy routing (found 2 rules)\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.812391864Z","proc_id":1912367922,"proc_seq":12},"text":"dns: [rc=unknown ret=direct]\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.812405068Z","proc_id":1912367922,"proc_seq":13},"text":"dns: using \"direct\" mode\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.817392693Z","proc_id":1912367922,"proc_seq":14},"text":"dns: using *dns.directManager\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.8174891Z","proc_id":1912367922,"proc_seq":15},"text":"link state: interfaces.State{defaultRoute=eth0 ifs={br-784a56116bc9:[172.18.0.1/16] docker0:[172.17.0.1/16] eth0:[10.42.0.165/24 llu6] wlan0:[172.20.26.150/20 llu6]} v4=true v6=false}\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.818039505Z","proc_id":1912367922,"proc_seq":16},"text":"router: portUpdate(port=42249, network=udp6)\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.818172078Z","proc_id":1912367922,"proc_seq":17},"text":"router: using firewall mode pref \n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.818257467Z","proc_id":1912367922,"proc_seq":18},"v":1,"text":"magicsock: peermtu: peer MTU status is false\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.818363115Z","proc_id":1912367922,"proc_seq":19},"text":"magicsock: disco key = d:13b834953600ce4c\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.818408114Z","proc_id":1912367922,"proc_seq":20},"text":"Creating WireGuard device...\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.818511373Z","proc_id":1912367922,"proc_seq":21},"text":"Bringing WireGuard device up...\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.81854228Z","proc_id":1912367922,"proc_seq":22},"v":2,"text":"wg: UDP bind has been updated\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.818556169Z","proc_id":1912367922,"proc_seq":23},"v":2,"text":"wg: Interface state was Down, requested Up, now Up\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.818562095Z","proc_id":1912367922,"proc_seq":24},"text":"Bringing router up...\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.818589947Z","proc_id":1912367922,"proc_seq":25},"v":2,"text":"wg: Routine: receive incoming receiveDERP - started\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.819413517Z","proc_id":1912367922,"proc_seq":26},"text":"external route: up\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.819444647Z","proc_id":1912367922,"proc_seq":27},"v":2,"text":"wg: Routine: receive incoming mkReceiveFunc - started\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.819916904Z","proc_id":1912367922,"proc_seq":28},"v":2,"text":"wg: Routine: receive incoming mkReceiveFunc - started\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.823832053Z","proc_id":1912367922,"proc_seq":29},"text":"router: default choosing iptables\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.825062343Z","proc_id":1912367922,"proc_seq":30},"v":1,"text":"router: kernel supports IPv6 policy routing (found 2 rules)\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.826535225Z","proc_id":1912367922,"proc_seq":31},"text":"router: ip6tables filtering is not supported on this host: running [/usr/sbin/ip6tables -t filter -S --wait]: exit status 3: modprobe: can't change directory to '/lib/modules': No such file or directory\nip6tables v1.8.11 (legacy): can't initialize ip6tables table `filter': Table does not exist (do you need to insmod?)\nPerhaps ip6tables or your kernel needs to be upgraded.\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.827366981Z","proc_id":1912367922,"proc_seq":32},"text":"router: netfilter running in iptables mode v6 = true, v6filter = false, v6nat = false\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.827434425Z","proc_id":1912367922,"proc_seq":33},"text":"router: portUpdate(port=59750, network=udp4)\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.828617012Z","proc_id":1912367922,"proc_seq":34},"text":"Clearing router settings...\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.828646716Z","proc_id":1912367922,"proc_seq":35},"text":"Starting network monitor...\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.82872979Z","proc_id":1912367922,"proc_seq":36},"text":"Engine created.\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.829246769Z","proc_id":1912367922,"proc_seq":37},"v":1,"text":"LinkChange: minor\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.829783896Z","proc_id":1912367922,"proc_seq":38},"text":"monitor: gateway and self IP changed: gw=10.42.0.1 self=10.42.0.165\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.829839581Z","proc_id":1912367922,"proc_seq":39},"text":"pm: using backend prefs for \"profile-0d3d\": Prefs{ra=false dns=false want=true routes=[] statefulFiltering=false nf=on host=\"itay-rpi\" update=check Persist{o=, n=[pTcYX] u=\"eyetozion95@gmail.com\" ak=-}}\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.830025302Z","proc_id":1912367922,"proc_seq":40},"text":"logpolicy: using system state directory \"/var/lib/tailscale\"\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.830073506Z","proc_id":1912367922,"proc_seq":41},"text":"linkChange: in state NoState; PAC or proxyConfig changed; updating routes\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.830088746Z","proc_id":1912367922,"proc_seq":42},"v":1,"text":"netmap packet filter: (not ready yet)\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.83078741Z","proc_id":1912367922,"proc_seq":43},"v":2,"text":"dnsfallback: SetCachePath loaded cached DERP map\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.830830854Z","proc_id":1912367922,"proc_seq":44},"text":"got LocalBackend in 21ms\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.83083928Z","proc_id":1912367922,"proc_seq":45},"text":"Start\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.830848243Z","proc_id":1912367922,"proc_seq":46},"text":"ipnext: \"conn25\": skipping extension\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.830876761Z","proc_id":1912367922,"proc_seq":47},"text":"ipnext: active extensions: conn25, portlist, posture, clientupdate, relayserver, taildrop\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.831518943Z","proc_id":1912367922,"proc_seq":48},"v":1,"Hostinfo":{"IPNVersion":"1.98.4-t01c6b9661","BackendLogID":"d263ce8c3d80f62d38cb2f8dbcc3e7ca4286bd85c617e4ae70b26b5317955eec","OS":"linux","OSVersion":"6.18.34+rpt-rpi-2712","Container":true,"Distro":"alpine","DistroVersion":"3.22.4","Desktop":true,"Package":"container","DeviceModel":"Raspberry Pi 5 Model B Rev 1.1","Hostname":"itay","Machine":"aarch64","GoArch":"arm64","GoArchVar":"v8.0","GoVersion":"go1.26.3","Userspace":false,"UserspaceRouter":false,"AppConnector":false,"StateEncrypted":false}}
+{"logtail":{"client_time":"2026-07-08T12:36:57.832955881Z","proc_id":1912367922,"proc_seq":49},"text":"Start: loaded netmap from disk cache; 5 peers\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.833212065Z","proc_id":1912367922,"proc_seq":50},"v":2,"text":"netstack: registered IP 100.98.22.65/32\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.833223769Z","proc_id":1912367922,"proc_seq":51},"v":2,"text":"netstack: registered IP fd7a:115c:a1e0::9e39:1642/128\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.833240954Z","proc_id":1912367922,"proc_seq":52},"v":1,"text":"magicsock: got updated network map; 5 peers\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.833307139Z","proc_id":1912367922,"proc_seq":53},"text":"active login: eyetozion95@gmail.com\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.833580397Z","proc_id":1912367922,"proc_seq":54},"v":1,"text":"netmap packet filter: 1 filters\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.833643249Z","proc_id":1912367922,"proc_seq":55},"text":"magicsock: home DERP changing from derp-0 [0ms] to derp-22 [0ms] (forced=true)\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.833781192Z","proc_id":1912367922,"proc_seq":56},"text":"netmap: suggested exit node: no preferred DERP, try again later\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.833811452Z","proc_id":1912367922,"proc_seq":57},"text":"Switching ipn state NoState -> Starting (WantRunning=true, nm=true)\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.83425269Z","proc_id":1912367922,"proc_seq":58},"text":"magicsock: SetPrivateKey called (init)\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.834263153Z","proc_id":1912367922,"proc_seq":59},"text":"magicsock: private key changed, reconnecting to home derp-22\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.834404634Z","proc_id":1912367922,"proc_seq":60},"text":"magicsock: adding connection to derp-22 for home-keep-alive\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.834489282Z","proc_id":1912367922,"proc_seq":61},"text":"magicsock: 1 active derp conns: derp-22=cr0s,wr0s\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.834512596Z","proc_id":1912367922,"proc_seq":62},"v":1,"text":"magicsock: peermtu: peer MTU status is false\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.834560207Z","proc_id":1912367922,"proc_seq":63},"text":"wgengine: Reconfig: configuring userspace WireGuard config (with 5 peers)\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.834589226Z","proc_id":1912367922,"proc_seq":64},"text":"wgengine: Reconfig: configuring router\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.835367981Z","proc_id":1912367922,"proc_seq":65},"text":"derphttp.Client.Connect: connecting to derp-22 (waw)\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.83835719Z","proc_id":1912367922,"proc_seq":66},"v":1,"text":"monitor: RTM_NEWROUTE: src=, dst=fd7a:115c:a1e0::/48, gw=, outif=7, table=52\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.838590022Z","proc_id":1912367922,"proc_seq":67},"v":1,"text":"monitor: RTM_NEWROUTE: src=100.98.22.65/0, dst=100.98.22.65/32, gw=, outif=7, table=255\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.838760022Z","proc_id":1912367922,"proc_seq":68},"v":1,"text":"monitor: RTM_NEWROUTE: src=, dst=fd7a:115c:a1e0::9e39:1642/128, gw=, outif=7, table=254\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.839026613Z","proc_id":1912367922,"proc_seq":69},"v":1,"text":"monitor: RTM_NEWROUTE: src=, dst=fd7a:115c:a1e0::9e39:1642/128, gw=, outif=7, table=255\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.839068224Z","proc_id":1912367922,"proc_seq":70},"v":1,"text":"authReconfig: ra=false dns=false 0x00: running [/usr/sbin/iptables -t filter -N ts-input --wait]: exit status 3: modprobe: can't change directory to '/lib/modules': No such file or directory\niptables v1.8.11 (legacy): can't initialize iptables table `filter': Table does not exist (do you need to insmod?)\nPerhaps iptables or your kernel needs to be upgraded.\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.839080576Z","proc_id":1912367922,"proc_seq":71},"v":1,"text":"initPeerAPIListener: entered\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.839302797Z","proc_id":1912367922,"proc_seq":72},"text":"peerapi: serving on http://100.98.22.65:33421\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.844105868Z","proc_id":1912367922,"proc_seq":73},"text":"peerapi: serving on http://[fd7a:115c:a1e0::9e39:1642]:37478\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.84447257Z","proc_id":1912367922,"proc_seq":74},"v":1,"text":"magicsock: peermtu: peer MTU status is false\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.844486718Z","proc_id":1912367922,"proc_seq":75},"v":1,"text":"wgengine: Reconfig done\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.84450157Z","proc_id":1912367922,"proc_seq":76},"v":1,"text":"authReconfig: ra=false dns=false 0x00: <nil>\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.844505458Z","proc_id":1912367922,"proc_seq":77},"v":1,"text":"initPeerAPIListener: entered\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.844510477Z","proc_id":1912367922,"proc_seq":78},"v":1,"text":"initPeerAPIListener: 2 netmap addresses match existing listeners\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.844585588Z","proc_id":1912367922,"proc_seq":79},"v":1,"text":"control: HostInfo: {\"IPNVersion\":\"1.98.4-t01c6b9661\",\"BackendLogID\":\"d263ce8c3d80f62d38cb2f8dbcc3e7ca4286bd85c617e4ae70b26b5317955eec\",\"OS\":\"linux\",\"OSVersion\":\"6.18.34+rpt-rpi-2712\",\"Container\":true,\"Distro\":\"alpine\",\"DistroVersion\":\"3.22.4\",\"Desktop\":true,\"Package\":\"container\",\"DeviceModel\":\"Raspberry Pi 5 Model B Rev 1.1\",\"Hostname\":\"itay-rpi\",\"Machine\":\"aarch64\",\"GoArch\":\"arm64\",\"GoArchVar\":\"v8.0\",\"GoVersion\":\"go1.26.3\",\"Services\":[{\"Proto\":\"peerapi4\",\"Port\":33421},{\"Proto\":\"peerapi6\",\"Port\":37478},{\"Proto\":\"peerapi-dns-proxy\",\"Port\":1}],\"Userspace\":false,\"UserspaceRouter\":false,\"AppConnector\":false,\"StateEncrypted\":false}\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.844693532Z","proc_id":1912367922,"proc_seq":80},"text":"Backend: logs: be:d263ce8c3d80f62d38cb2f8dbcc3e7ca4286bd85c617e4ae70b26b5317955eec fe:\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.844756994Z","proc_id":1912367922,"proc_seq":81},"text":"control: client.Login(0)\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.844767013Z","proc_id":1912367922,"proc_seq":82},"v":1,"text":"control: authRoutine: loggedIn=false; goal=nil paused=false\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.844788883Z","proc_id":1912367922,"proc_seq":83},"v":1,"text":"control: mapRoutine: loggedIn=false\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.844834994Z","proc_id":1912367922,"proc_seq":84},"v":1,"text":"control: mapRoutine: context done.\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.844844975Z","proc_id":1912367922,"proc_seq":85},"v":1,"text":"control: mapRoutine: loggedIn=false\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.844849364Z","proc_id":1912367922,"proc_seq":86},"v":1,"text":"control: authRoutine: context done.\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.844853309Z","proc_id":1912367922,"proc_seq":87},"v":1,"text":"control: authRoutine: loggedIn=false; wantLoggedIn=true\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.844858253Z","proc_id":1912367922,"proc_seq":88},"v":1,"text":"control: direct.TryLogin(flags=0)\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.845089493Z","proc_id":1912367922,"proc_seq":89},"text":"control: doLogin(regen=false, hasUrl=false)\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.845172566Z","proc_id":1912367922,"proc_seq":90},"text":"health(warnable=warming-up): error: Tailscale is starting. Please wait.\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.845180715Z","proc_id":1912367922,"proc_seq":91},"text":"Switching ipn state Starting -> Running (WantRunning=true, nm=true)\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.845390584Z","proc_id":1912367922,"proc_seq":92},"text":"health(warnable=no-derp-connection): ok\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.84550488Z","proc_id":1912367922,"proc_seq":93},"text":"health(warnable=no-derp-connection): ok\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.845519491Z","proc_id":1912367922,"proc_seq":94},"text":"health(warnable=warming-up): ok\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.845575046Z","proc_id":1912367922,"proc_seq":95},"text":"health(warnable=no-derp-connection): ok\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.897326755Z","proc_id":1912367922,"proc_seq":96},"text":"localapi: [POST] /localapi/v0/check-prefs\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.897736197Z","proc_id":1912367922,"proc_seq":97},"text":"localapi: [POST] /localapi/v0/start\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.897804141Z","proc_id":1912367922,"proc_seq":98},"text":"Start\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.898175029Z","proc_id":1912367922,"proc_seq":99},"v":1,"Hostinfo":{"IPNVersion":"1.98.4-t01c6b9661","BackendLogID":"d263ce8c3d80f62d38cb2f8dbcc3e7ca4286bd85c617e4ae70b26b5317955eec","OS":"linux","OSVersion":"6.18.34+rpt-rpi-2712","Container":true,"Distro":"alpine","DistroVersion":"3.22.4","Desktop":true,"Package":"container","DeviceModel":"Raspberry Pi 5 Model B Rev 1.1","Hostname":"itay","Machine":"aarch64","GoArch":"arm64","GoArchVar":"v8.0","GoVersion":"go1.26.3","Userspace":false,"UserspaceRouter":false,"AppConnector":false,"StateEncrypted":false}}
+{"logtail":{"client_time":"2026-07-08T12:36:57.898427435Z","proc_id":1912367922,"proc_seq":100},"text":"Start: updated prefs: Prefs{ra=false dns=false want=true routes=[] statefulFiltering=false nf=on host=\"shay-rpi\" update=check Persist{o=, n=[pTcYX] u=\"eyetozion95@gmail.com\" ak=-}}, reason: [opts.UpdatePrefs]\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.902122566Z","proc_id":1912367922,"proc_seq":101},"text":"load netmap from cache: netmap cache is not available\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.902185584Z","proc_id":1912367922,"proc_seq":102},"v":1,"text":"control: HostInfo: {\"IPNVersion\":\"1.98.4-t01c6b9661\",\"BackendLogID\":\"d263ce8c3d80f62d38cb2f8dbcc3e7ca4286bd85c617e4ae70b26b5317955eec\",\"OS\":\"linux\",\"OSVersion\":\"6.18.34+rpt-rpi-2712\",\"Container\":true,\"Distro\":\"alpine\",\"DistroVersion\":\"3.22.4\",\"Desktop\":true,\"Package\":\"container\",\"DeviceModel\":\"Raspberry Pi 5 Model B Rev 1.1\",\"Hostname\":\"shay-rpi\",\"Machine\":\"aarch64\",\"GoArch\":\"arm64\",\"GoArchVar\":\"v8.0\",\"GoVersion\":\"go1.26.3\",\"Services\":[{\"Proto\":\"peerapi4\",\"Port\":33421},{\"Proto\":\"peerapi6\",\"Port\":37478},{\"Proto\":\"peerapi-dns-proxy\",\"Port\":1}],\"Userspace\":false,\"UserspaceRouter\":false,\"AppConnector\":false,\"StateEncrypted\":false}\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.902244621Z","proc_id":1912367922,"proc_seq":103},"text":"Backend: logs: be:d263ce8c3d80f62d38cb2f8dbcc3e7ca4286bd85c617e4ae70b26b5317955eec fe:\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.902337287Z","proc_id":1912367922,"proc_seq":104},"text":"control: client.Login(0)\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.902347417Z","proc_id":1912367922,"proc_seq":105},"v":1,"text":"control: authRoutine: loggedIn=false; goal=nil paused=false\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.902357343Z","proc_id":1912367922,"proc_seq":106},"v":1,"text":"control: mapRoutine: loggedIn=false\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.902371584Z","proc_id":1912367922,"proc_seq":107},"v":1,"text":"control: mapRoutine: context done.\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.902379713Z","proc_id":1912367922,"proc_seq":108},"v":1,"text":"control: mapRoutine: loggedIn=false\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.902384676Z","proc_id":1912367922,"proc_seq":109},"v":1,"text":"control: authRoutine: context done.\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.902388472Z","proc_id":1912367922,"proc_seq":110},"v":1,"text":"control: authRoutine: loggedIn=false; wantLoggedIn=true\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.902395009Z","proc_id":1912367922,"proc_seq":111},"v":1,"text":"control: direct.TryLogin(flags=0)\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.902433454Z","proc_id":1912367922,"proc_seq":112},"text":"health(warnable=no-derp-connection): ok\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.902499176Z","proc_id":1912367922,"proc_seq":113},"text":"[RATELIMIT] format(\"health(warnable=%s): ok\")\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.902568083Z","proc_id":1912367922,"proc_seq":114},"text":"Switching ipn state NoState -> Starting (WantRunning=true, nm=true)\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.9028666Z","proc_id":1912367922,"proc_seq":115},"v":1,"text":"magicsock: peermtu: peer MTU status is false\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.90287297Z","proc_id":1912367922,"proc_seq":116},"v":1,"text":"wgengine: Reconfig done\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.902882766Z","proc_id":1912367922,"proc_seq":117},"v":1,"text":"authReconfig: ra=false dns=false 0x00: <nil>\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.90288597Z","proc_id":1912367922,"proc_seq":118},"v":1,"text":"initPeerAPIListener: entered\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.902892396Z","proc_id":1912367922,"proc_seq":119},"v":1,"text":"initPeerAPIListener: 2 netmap addresses match existing listeners\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.903047025Z","proc_id":1912367922,"proc_seq":120},"text":"Switching ipn state Starting -> Running (WantRunning=true, nm=true)\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.903143488Z","proc_id":1912367922,"proc_seq":121},"text":"control: client.Shutdown ...\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.903176802Z","proc_id":1912367922,"proc_seq":122},"text":"control: updateRoutine: exiting\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.903183969Z","proc_id":1912367922,"proc_seq":123},"v":1,"text":"control: mapRoutine: context done.\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.903193339Z","proc_id":1912367922,"proc_seq":124},"text":"control: doLogin(regen=false, hasUrl=false)\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.903204487Z","proc_id":1912367922,"proc_seq":125},"v":1,"text":"control: TryLogin: fetch control key: Get \"https://controlplane.tailscale.com/key?v=138\": context canceled\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.903217376Z","proc_id":1912367922,"proc_seq":126},"text":"control: authRoutine: exiting\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.903281802Z","proc_id":1912367922,"proc_seq":127},"text":"health(warnable=login-state): error: You are logged out. The last login error was: fetch control key: Get \"https://controlplane.tailscale.com/key?v=138\": context canceled\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.903325968Z","proc_id":1912367922,"proc_seq":128},"text":"control: mapRoutine: exiting\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:57.90335669Z","proc_id":1912367922,"proc_seq":129},"text":"control: Client.Shutdown done.\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:58.035166154Z","proc_id":1912367922,"proc_seq":130},"v":2,"text":"netcheck: attempting to do captive portal detection on interface eth0\n"}
+{"logtail":{"client_time":"2026-07-08T12:36:58.035194265Z","proc_id":1912367922,"proc_seq":131},"v":2,"text":"netcheck: 5 available captive portal detection endpoints; trying 5\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:00.835506852Z","proc_id":1912367922,"proc_seq":132},"text":"netcheck: netcheck: UDP is blocked, trying HTTPS\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:00.83558537Z","proc_id":1912367922,"proc_seq":133},"text":"netcheck: UDP is blocked, trying ICMP\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:01.035879792Z","proc_id":1912367922,"proc_seq":134},"v":1,"text":"netcheck: checkCaptivePortalEndpoint failed with endpoint Endpoint{URL=\"http://45.159.97.233/generate_204\", StatusCode=204, ExpectedContent=\"\", SupportsTailscaleChallenge=true, Provider=DERPMapOther}: Get \"http://45.159.97.233/generate_204?t=1783514218\": context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:01.035914514Z","proc_id":1912367922,"proc_seq":135},"v":1,"text":"netcheck: checkCaptivePortalEndpoint failed with endpoint Endpoint{URL=\"http://208.111.34.178/generate_204\", StatusCode=204, ExpectedContent=\"\", SupportsTailscaleChallenge=true, Provider=DERPMapOther}: Get \"http://208.111.34.178/generate_204?t=1783514218\": context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:01.035919829Z","proc_id":1912367922,"proc_seq":136},"v":1,"text":"netcheck: checkCaptivePortalEndpoint failed with endpoint Endpoint{URL=\"http://45.159.97.61/generate_204\", StatusCode=204, ExpectedContent=\"\", SupportsTailscaleChallenge=true, Provider=DERPMapOther}: Get \"http://45.159.97.61/generate_204?t=1783514218\": context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:01.035923718Z","proc_id":1912367922,"proc_seq":137},"v":1,"text":"netcheck: checkCaptivePortalEndpoint failed with endpoint Endpoint{URL=\"http://45.159.97.144/generate_204\", StatusCode=204, ExpectedContent=\"\", SupportsTailscaleChallenge=true, Provider=DERPMapOther}: Get \"http://45.159.97.144/generate_204?t=1783514218\": context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:01.035938292Z","proc_id":1912367922,"proc_seq":138},"v":1,"text":"netcheck: checkCaptivePortalEndpoint failed with endpoint Endpoint{URL=\"http://192.73.252.134/generate_204\", StatusCode=204, ExpectedContent=\"\", SupportsTailscaleChallenge=true, Provider=DERPMapOther}: Get \"http://192.73.252.134/generate_204?t=1783514218\": context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:01.035948329Z","proc_id":1912367922,"proc_seq":139},"v":1,"text":"[RATELIMIT] format(\"netcheck: checkCaptivePortalEndpoint failed with endpoint %v: %v\")\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:01.03601394Z","proc_id":1912367922,"proc_seq":140},"v":2,"text":"netcheck: attempting to do captive portal detection on interface wlan0\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:01.036021107Z","proc_id":1912367922,"proc_seq":141},"v":2,"text":"netcheck: 5 available captive portal detection endpoints; trying 5\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:01.836562159Z","proc_id":1912367922,"proc_seq":142},"v":1,"text":"netcheck: measuring ICMP latency of mad (19): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:01.836595548Z","proc_id":1912367922,"proc_seq":143},"v":1,"text":"netcheck: measuring ICMP latency of sfo (2): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:01.836601159Z","proc_id":1912367922,"proc_seq":144},"v":1,"text":"netcheck: measuring ICMP latency of par (18): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:01.836606141Z","proc_id":1912367922,"proc_seq":145},"v":1,"text":"netcheck: measuring ICMP latency of waw (22): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:01.836612363Z","proc_id":1912367922,"proc_seq":146},"v":1,"text":"[RATELIMIT] format(\"netcheck: measuring ICMP latency of %v (%d): %v\")\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:01.836615419Z","proc_id":1912367922,"proc_seq":147},"v":1,"text":"netcheck: measuring ICMP latency of blr (6): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:02.336480343Z","proc_id":1912367922,"proc_seq":148},"v":1,"text":"netcheck: netcheck: measuring HTTPS latency of blr (6): dialRegion(6): dial tcp6 [2400:6180:100:d0::982:d001]:443: connect: network is unreachable\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:02.336639176Z","proc_id":1912367922,"proc_seq":149},"text":"derphttp.Client.Recv: connecting to derp-22 (waw)\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:02.835185272Z","proc_id":1912367922,"proc_seq":150},"v":1,"text":"netcheck: netcheck: measuring HTTPS latency of sfo (2): dialRegion(2): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:02.835313309Z","proc_id":1912367922,"proc_seq":151},"v":1,"text":"netcheck: netcheck: measuring HTTPS latency of sea (10): dialRegion(10): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:02.835329605Z","proc_id":1912367922,"proc_seq":152},"v":1,"text":"netcheck: netcheck: measuring HTTPS latency of par (18): dialRegion(18): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:02.835336938Z","proc_id":1912367922,"proc_seq":153},"v":1,"text":"netcheck: netcheck: measuring HTTPS latency of syd (5): dialRegion(5): dial tcp6 [2400:8907::2000:ccff:fe1f:80da]:443: connect: network is unreachable\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:02.835344179Z","proc_id":1912367922,"proc_seq":154},"v":1,"text":"[RATELIMIT] format(\"netcheck: netcheck: measuring HTTPS latency of %v (%d): %v\")\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:04.03698697Z","proc_id":1912367922,"proc_seq":155},"v":2,"text":"netcheck: attempting to do captive portal detection on interface br-784a56116bc9\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:04.037025988Z","proc_id":1912367922,"proc_seq":156},"v":2,"text":"netcheck: 5 available captive portal detection endpoints; trying 5\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:04.037123044Z","proc_id":1912367922,"proc_seq":157},"text":"netcheck: DetectCaptivePortal(found=false)\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:04.037173136Z","proc_id":1912367922,"proc_seq":158},"v":1,"text":"netcheck: report: udp=false v4=false icmpv4=false v6=false v6os=true mapvarydest= portmap= captiveportal=false derp=0\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:04.037272913Z","proc_id":1912367922,"proc_seq":159},"text":"control: NetInfo: NetInfo{varies= ipv6=false ipv6os=true udp=false icmpv4=false derp=#22 portmap= link=\"\" firewallmode=\"ipt-default\"}\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:04.037644412Z","proc_id":1912367922,"proc_seq":160},"text":"magicsock: endpoints changed: 10.42.0.165:59750 (local), 172.17.0.1:59750 (local), 172.18.0.1:59750 (local), 172.20.26.150:59750 (local)\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:04.037676783Z","proc_id":1912367922,"proc_seq":161},"v":2,"text":"control: client.newEndpoints([{10.42.0.165:59750 local} {172.17.0.1:59750 local} {172.18.0.1:59750 local} {172.20.26.150:59750 local}])\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:06.839160225Z","proc_id":1912367922,"proc_seq":162},"text":"magicsock: [0x45e5f5da8a00] derp.Recv(derp-22): derphttp.Client.Recv connect to region 22 (waw): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:06.839202651Z","proc_id":1912367922,"proc_seq":163},"v":1,"text":"derp-22: backoff: 11 msec\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:06.851503138Z","proc_id":1912367922,"proc_seq":164},"text":"derphttp.Client.Recv: connecting to derp-22 (waw)\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:07.038907666Z","proc_id":1912367922,"proc_seq":165},"text":"netcheck: netcheck: UDP is blocked, trying HTTPS\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:07.039152962Z","proc_id":1912367922,"proc_seq":166},"text":"netcheck: UDP is blocked, trying ICMP\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:07.904912652Z","proc_id":1912367922,"proc_seq":167},"text":"control: trying bootstrapDNS(\"derp14b.tailscale.com\", \"176.58.93.248\") for \"controlplane.tailscale.com\" ...\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:09.038502917Z","proc_id":1912367922,"proc_seq":168},"v":1,"text":"netcheck: report: udp=false v4=false icmpv4=false v6=false v6os=true mapvarydest= portmap= derp=0\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:10.90530754Z","proc_id":1912367922,"proc_seq":169},"text":"control: bootstrapDNS(\"derp14b.tailscale.com\", \"176.58.93.248\") for \"controlplane.tailscale.com\" error: Get \"https://derp14b.tailscale.com/bootstrap-dns?q=controlplane.tailscale.com\": context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:10.905354614Z","proc_id":1912367922,"proc_seq":170},"text":"control: trying bootstrapDNS(\"derp2e.tailscale.com\", \"2607:f740:0:3f::44c\") for \"controlplane.tailscale.com\" ...\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:10.905551447Z","proc_id":1912367922,"proc_seq":171},"text":"control: bootstrapDNS(\"derp2e.tailscale.com\", \"2607:f740:0:3f::44c\") for \"controlplane.tailscale.com\" error: Get \"https://derp2e.tailscale.com/bootstrap-dns?q=controlplane.tailscale.com\": dial tcp [2607:f740:0:3f::44c]:443: connect: network is unreachable\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:10.905568002Z","proc_id":1912367922,"proc_seq":172},"text":"control: trying bootstrapDNS(\"derp4e.tailscale.com\", \"134.122.74.153\") for \"controlplane.tailscale.com\" ...\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:11.352940739Z","proc_id":1912367922,"proc_seq":173},"text":"magicsock: [0x45e5f5da8a00] derp.Recv(derp-22): derphttp.Client.Recv connect to region 22 (waw): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:11.352973572Z","proc_id":1912367922,"proc_seq":174},"v":1,"text":"derp-22: backoff: 44 msec\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:11.353004831Z","proc_id":1912367922,"proc_seq":175},"text":"[RATELIMIT] format(\"health(warnable=%s): ok\") (5 dropped)\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:11.353019516Z","proc_id":1912367922,"proc_seq":176},"text":"health(warnable=no-derp-connection): ok\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:11.398354395Z","proc_id":1912367922,"proc_seq":177},"text":"derphttp.Client.Recv: connecting to derp-22 (waw)\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:12.039174216Z","proc_id":1912367922,"proc_seq":178},"text":"netcheck: netcheck: UDP is blocked, trying HTTPS\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:12.039398938Z","proc_id":1912367922,"proc_seq":179},"text":"netcheck: UDP is blocked, trying ICMP\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:12.910257153Z","proc_id":1912367922,"proc_seq":180},"metrics":"N24netmon_link_changeS0202N20portmap_pcp_sentS0406N20portmap_pmp_sentS0606N22portmap_upnp_sentS0806N1enetcheck_reportS0a06N28netcheck_report_fullS0c02N2enetcheck_stun_send_ipv4S0ef803N2cnetcheck_https_measureS10a801N1etstun_out_to_wgS1206N28tstun_out_to_wg_dropS1406N36tstun_out_to_wg_drop_filterS1604N40gauge_magicsock_netmap_num_peersS180aN3cgauge_magicsock_num_derp_connsS1a02N2cmagicsock_restun_callsS1c0aN34magicsock_update_endpointsS1e08N3cderp_home_no_change_no_controlS2004N2cwgengine_minor_changesS2202N50gauge_localbackend_current_watch_ipn_busS2402N1eprofiles_switchS2602N28gauge_profiles_countS2802N46gauge_dns_manager_linux_mode_directS2a02","text":"localapi: [POST] /localapi/v0/debug\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:13.040234062Z","proc_id":1912367922,"proc_seq":181},"v":1,"text":"[RATELIMIT] format(\"netcheck: measuring ICMP latency of %v (%d): %v\") (51 dropped)\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:13.040267914Z","proc_id":1912367922,"proc_seq":182},"v":1,"text":"netcheck: measuring ICMP latency of dfw (9): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:13.040276228Z","proc_id":1912367922,"proc_seq":183},"v":1,"text":"netcheck: measuring ICMP latency of lax (17): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:13.040282636Z","proc_id":1912367922,"proc_seq":184},"v":1,"text":"[RATELIMIT] format(\"netcheck: measuring ICMP latency of %v (%d): %v\")\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:13.54042125Z","proc_id":1912367922,"proc_seq":185},"v":1,"text":"[RATELIMIT] format(\"netcheck: netcheck: measuring HTTPS latency of %v (%d): %v\") (51 dropped)\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:13.540475694Z","proc_id":1912367922,"proc_seq":186},"v":1,"text":"netcheck: netcheck: measuring HTTPS latency of blr (6): dialRegion(6): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:13.906545378Z","proc_id":1912367922,"proc_seq":187},"text":"control: bootstrapDNS(\"derp4e.tailscale.com\", \"134.122.74.153\") for \"controlplane.tailscale.com\" error: Get \"https://derp4e.tailscale.com/bootstrap-dns?q=controlplane.tailscale.com\": context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:13.906579749Z","proc_id":1912367922,"proc_seq":188},"text":"control: trying bootstrapDNS(\"derp24b.tailscale.com\", \"2001:19f0:c000:c586:5400:4ff:fe26:2ba6\") for \"controlplane.tailscale.com\" ...\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:13.906759082Z","proc_id":1912367922,"proc_seq":189},"text":"control: bootstrapDNS(\"derp24b.tailscale.com\", \"2001:19f0:c000:c586:5400:4ff:fe26:2ba6\") for \"controlplane.tailscale.com\" error: Get \"https://derp24b.tailscale.com/bootstrap-dns?q=controlplane.tailscale.com\": dial tcp [2001:19f0:c000:c586:5400:4ff:fe26:2ba6]:443: connect: network is unreachable\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:13.906774933Z","proc_id":1912367922,"proc_seq":190},"text":"control: trying bootstrapDNS(\"derp6.tailscale.com\", \"68.183.90.120\") for \"controlplane.tailscale.com\" ...\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:14.039852925Z","proc_id":1912367922,"proc_seq":191},"v":1,"text":"netcheck: netcheck: measuring HTTPS latency of ord (12): dialRegion(12): dial tcp6 [2607:f740:e::b17]:443: connect: network is unreachable\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:14.039885258Z","proc_id":1912367922,"proc_seq":192},"v":1,"text":"[RATELIMIT] format(\"netcheck: netcheck: measuring HTTPS latency of %v (%d): %v\")\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:14.040125924Z","proc_id":1912367922,"proc_seq":193},"v":1,"text":"netcheck: report: udp=false v4=false icmpv4=false v6=false v6os=true mapvarydest= portmap= derp=0\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:15.900262291Z","proc_id":1912367922,"proc_seq":194},"text":"magicsock: [0x45e5f5da8a00] derp.Recv(derp-22): derphttp.Client.Recv connect to region 22 (waw): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:15.900303902Z","proc_id":1912367922,"proc_seq":195},"v":1,"text":"derp-22: backoff: 69 msec\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:15.900331124Z","proc_id":1912367922,"proc_seq":196},"text":"health(warnable=no-derp-connection): ok\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:15.970686301Z","proc_id":1912367922,"proc_seq":197},"text":"derphttp.Client.Recv: connecting to derp-22 (waw)\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:16.907346546Z","proc_id":1912367922,"proc_seq":198},"text":"control: bootstrapDNS(\"derp6.tailscale.com\", \"68.183.90.120\") for \"controlplane.tailscale.com\" error: Get \"https://derp6.tailscale.com/bootstrap-dns?q=controlplane.tailscale.com\": context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:16.907384935Z","proc_id":1912367922,"proc_seq":199},"text":"control: trying bootstrapDNS(\"derp1g.tailscale.com\", \"2607:f740:f::3eb\") for \"controlplane.tailscale.com\" ...\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:16.907398157Z","proc_id":1912367922,"proc_seq":200},"text":"[RATELIMIT] format(\"control: trying bootstrapDNS(%q, %q) for %q ...\")\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:16.907591101Z","proc_id":1912367922,"proc_seq":201},"text":"control: bootstrapDNS(\"derp1g.tailscale.com\", \"2607:f740:f::3eb\") for \"controlplane.tailscale.com\" error: Get \"https://derp1g.tailscale.com/bootstrap-dns?q=controlplane.tailscale.com\": dial tcp [2607:f740:f::3eb]:443: connect: network is unreachable\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:16.907613472Z","proc_id":1912367922,"proc_seq":202},"text":"[RATELIMIT] format(\"control: bootstrapDNS(%q, %q) for %q error: %v\")\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:17.041562536Z","proc_id":1912367922,"proc_seq":203},"text":"netcheck: netcheck: UDP is blocked, trying HTTPS\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:17.041757999Z","proc_id":1912367922,"proc_seq":204},"text":"netcheck: UDP is blocked, trying ICMP\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:19.040910392Z","proc_id":1912367922,"proc_seq":205},"v":1,"text":"netcheck: report: udp=false v4=false icmpv4=false v6=false v6os=true mapvarydest= portmap= derp=0\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:20.471958032Z","proc_id":1912367922,"proc_seq":206},"text":"magicsock: [0x45e5f5da8a00] derp.Recv(derp-22): derphttp.Client.Recv connect to region 22 (waw): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:20.472000476Z","proc_id":1912367922,"proc_seq":207},"v":1,"text":"derp-22: backoff: 200 msec\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:20.47201668Z","proc_id":1912367922,"proc_seq":208},"text":"health(warnable=no-derp-connection): ok\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:20.673615194Z","proc_id":1912367922,"proc_seq":209},"text":"derphttp.Client.Recv: connecting to derp-22 (waw)\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:22.042428016Z","proc_id":1912367922,"proc_seq":210},"text":"netcheck: netcheck: UDP is blocked, trying HTTPS\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:22.042720571Z","proc_id":1912367922,"proc_seq":211},"text":"netcheck: UDP is blocked, trying ICMP\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:22.909356877Z","proc_id":1912367922,"proc_seq":212},"text":"[RATELIMIT] format(\"control: trying bootstrapDNS(%q, %q) for %q ...\") (3 dropped)\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:22.909391322Z","proc_id":1912367922,"proc_seq":213},"text":"control: trying bootstrapDNS(\"derp18d.tailscale.com\", \"2a00:dd80:3e::f2e\") for \"controlplane.tailscale.com\" ...\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:22.909574507Z","proc_id":1912367922,"proc_seq":214},"text":"control: trying bootstrapDNS(\"derp1d.tailscale.com\", \"165.22.33.71\") for \"controlplane.tailscale.com\" ...\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:22.909585618Z","proc_id":1912367922,"proc_seq":215},"text":"[RATELIMIT] format(\"control: trying bootstrapDNS(%q, %q) for %q ...\")\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:23.043111869Z","proc_id":1912367922,"proc_seq":216},"v":1,"text":"[RATELIMIT] format(\"netcheck: measuring ICMP latency of %v (%d): %v\") (54 dropped)\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:23.04313935Z","proc_id":1912367922,"proc_seq":217},"v":1,"text":"netcheck: measuring ICMP latency of lax (17): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:23.043157017Z","proc_id":1912367922,"proc_seq":218},"v":1,"text":"netcheck: measuring ICMP latency of sea (10): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:23.04317135Z","proc_id":1912367922,"proc_seq":219},"v":1,"text":"[RATELIMIT] format(\"netcheck: measuring ICMP latency of %v (%d): %v\")\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:23.542706796Z","proc_id":1912367922,"proc_seq":220},"v":1,"text":"[RATELIMIT] format(\"netcheck: netcheck: measuring HTTPS latency of %v (%d): %v\") (54 dropped)\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:23.542726907Z","proc_id":1912367922,"proc_seq":221},"v":1,"text":"netcheck: netcheck: measuring HTTPS latency of blr (6): dialRegion(6): dial tcp6 [2400:6180:100:d0::982:d001]:443: connect: network is unreachable\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:24.041440725Z","proc_id":1912367922,"proc_seq":222},"v":1,"text":"netcheck: netcheck: measuring HTTPS latency of par (18): dialRegion(18): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:24.041473817Z","proc_id":1912367922,"proc_seq":223},"v":1,"text":"[RATELIMIT] format(\"netcheck: netcheck: measuring HTTPS latency of %v (%d): %v\")\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:24.041793687Z","proc_id":1912367922,"proc_seq":224},"v":1,"text":"netcheck: report: udp=false v4=false icmpv4=false v6=false v6os=true mapvarydest= portmap= derp=0\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:25.175441069Z","proc_id":1912367922,"proc_seq":225},"text":"magicsock: [0x45e5f5da8a00] derp.Recv(derp-22): derphttp.Client.Recv connect to region 22 (waw): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:25.175481143Z","proc_id":1912367922,"proc_seq":226},"v":1,"text":"derp-22: backoff: 217 msec\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:25.175495069Z","proc_id":1912367922,"proc_seq":227},"text":"health(warnable=no-derp-connection): ok\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:25.393002054Z","proc_id":1912367922,"proc_seq":228},"text":"derphttp.Client.Recv: connecting to derp-22 (waw)\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:25.909811334Z","proc_id":1912367922,"proc_seq":229},"text":"[RATELIMIT] format(\"control: bootstrapDNS(%q, %q) for %q error: %v\") (4 dropped)\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:25.909840223Z","proc_id":1912367922,"proc_seq":230},"text":"control: bootstrapDNS(\"derp1d.tailscale.com\", \"165.22.33.71\") for \"controlplane.tailscale.com\" error: Get \"https://derp1d.tailscale.com/bootstrap-dns?q=controlplane.tailscale.com\": context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:25.910031778Z","proc_id":1912367922,"proc_seq":231},"text":"control: bootstrapDNS(\"derp5.tailscale.com\", \"2001:19f0:5801:10b7:5400:2ff:feaa:284c\") for \"controlplane.tailscale.com\" error: Get \"https://derp5.tailscale.com/bootstrap-dns?q=controlplane.tailscale.com\": dial tcp [2001:19f0:5801:10b7:5400:2ff:feaa:284c]:443: connect: network is unreachable\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:25.910043538Z","proc_id":1912367922,"proc_seq":232},"text":"[RATELIMIT] format(\"control: bootstrapDNS(%q, %q) for %q error: %v\")\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:25.910109204Z","proc_id":1912367922,"proc_seq":233},"v":1,"text":"control: TryLogin: fetch control key: Get \"https://controlplane.tailscale.com/key?v=138\": failed to resolve \"controlplane.tailscale.com\": no DNS fallback candidates remain for \"controlplane.tailscale.com\"\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:25.910126056Z","proc_id":1912367922,"proc_seq":234},"v":1,"text":"control: sendStatus: authRoutine-report: loggedIn=false inMapPoll=false\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:25.910138001Z","proc_id":1912367922,"proc_seq":235},"v":1,"text":"control: authRoutine: backoff: 12 msec\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:25.910177112Z","proc_id":1912367922,"proc_seq":236},"text":"health(warnable=no-derp-connection): ok\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:25.910191278Z","proc_id":1912367922,"proc_seq":237},"text":"[RATELIMIT] format(\"health(warnable=%s): ok\")\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:25.91026626Z","proc_id":1912367922,"proc_seq":238},"text":"Received error: fetch control key: Get \"https://controlplane.tailscale.com/key?v=138\": failed to resolve \"controlplane.tailscale.com\": no DNS fallback candidates remain for \"controlplane.tailscale.com\"\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:25.910308612Z","proc_id":1912367922,"proc_seq":239},"text":"health(warnable=login-state): error: You are logged out. The last login error was: fetch control key: Get \"https://controlplane.tailscale.com/key?v=138\": failed to resolve \"controlplane.tailscale.com\": no DNS fallback candidates remain for \"controlplane.tailscale.com\"\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:25.92353812Z","proc_id":1912367922,"proc_seq":240},"v":1,"text":"control: authRoutine: loggedIn=false; wantLoggedIn=true\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:25.923557898Z","proc_id":1912367922,"proc_seq":241},"v":1,"text":"control: direct.TryLogin(flags=0)\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:25.923574528Z","proc_id":1912367922,"proc_seq":242},"text":"control: doLogin(regen=false, hasUrl=false)\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:27.042974314Z","proc_id":1912367922,"proc_seq":243},"text":"netcheck: netcheck: UDP is blocked, trying HTTPS\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:27.043291814Z","proc_id":1912367922,"proc_seq":244},"text":"netcheck: UDP is blocked, trying ICMP\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:27.797280651Z","proc_id":1912367922,"proc_seq":245},"text":"logtail: dial \"log.tailscale.com:443\" failed: dial tcp 199.165.136.101:443: i/o timeout (in 30.001s), trying bootstrap...\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:27.910796614Z","proc_id":1912367922,"proc_seq":246},"metrics":"I0406I0606I0806I0a06I0ef803I10a801N40controlclient_auto_status_queuedS2c02I1202I1402I1602I1c06I1e06I2006","text":"localapi: [POST] /localapi/v0/debug\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:29.042773506Z","proc_id":1912367922,"proc_seq":247},"v":1,"text":"netcheck: report: udp=false v4=false icmpv4=false v6=false v6os=true mapvarydest= portmap= derp=0\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:29.894544495Z","proc_id":1912367922,"proc_seq":248},"text":"magicsock: [0x45e5f5da8a00] derp.Recv(derp-22): derphttp.Client.Recv connect to region 22 (waw): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:29.894582773Z","proc_id":1912367922,"proc_seq":249},"v":1,"text":"derp-22: backoff: 405 msec\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:30.300365493Z","proc_id":1912367922,"proc_seq":250},"text":"derphttp.Client.Recv: connecting to derp-22 (waw)\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:32.043883418Z","proc_id":1912367922,"proc_seq":251},"text":"netcheck: netcheck: UDP is blocked, trying HTTPS\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:32.043937029Z","proc_id":1912367922,"proc_seq":252},"text":"netcheck: UDP is blocked, trying ICMP\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:33.044915479Z","proc_id":1912367922,"proc_seq":253},"v":1,"text":"[RATELIMIT] format(\"netcheck: measuring ICMP latency of %v (%d): %v\") (54 dropped)\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:33.044970886Z","proc_id":1912367922,"proc_seq":254},"v":1,"text":"netcheck: measuring ICMP latency of tok (7): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:33.044980924Z","proc_id":1912367922,"proc_seq":255},"v":1,"text":"netcheck: measuring ICMP latency of lax (17): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:33.044986794Z","proc_id":1912367922,"proc_seq":256},"v":1,"text":"[RATELIMIT] format(\"netcheck: measuring ICMP latency of %v (%d): %v\")\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:33.544770237Z","proc_id":1912367922,"proc_seq":257},"v":1,"text":"[RATELIMIT] format(\"netcheck: netcheck: measuring HTTPS latency of %v (%d): %v\") (54 dropped)\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:33.544806034Z","proc_id":1912367922,"proc_seq":258},"v":1,"text":"netcheck: netcheck: measuring HTTPS latency of blr (6): dialRegion(6): dial tcp6 [2400:6180:100:d0::982:d001]:443: connect: network is unreachable\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:34.044352793Z","proc_id":1912367922,"proc_seq":259},"v":1,"text":"netcheck: netcheck: measuring HTTPS latency of sfo (2): dialRegion(2): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:34.044393608Z","proc_id":1912367922,"proc_seq":260},"v":1,"text":"[RATELIMIT] format(\"netcheck: netcheck: measuring HTTPS latency of %v (%d): %v\")\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:34.04458283Z","proc_id":1912367922,"proc_seq":261},"v":1,"text":"netcheck: report: udp=false v4=false icmpv4=false v6=false v6os=true mapvarydest= portmap= derp=0\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:34.802435049Z","proc_id":1912367922,"proc_seq":262},"text":"magicsock: [0x45e5f5da8a00] derp.Recv(derp-22): derphttp.Client.Recv connect to region 22 (waw): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:34.802471531Z","proc_id":1912367922,"proc_seq":263},"v":1,"text":"derp-22: backoff: 264 msec\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:34.802502901Z","proc_id":1912367922,"proc_seq":264},"text":"[RATELIMIT] format(\"health(warnable=%s): ok\") (1 dropped)\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:34.802520846Z","proc_id":1912367922,"proc_seq":265},"text":"health(warnable=no-derp-connection): ok\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:35.068224069Z","proc_id":1912367922,"proc_seq":266},"text":"derphttp.Client.Recv: connecting to derp-22 (waw)\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:37.045627967Z","proc_id":1912367922,"proc_seq":267},"text":"netcheck: netcheck: UDP is blocked, trying HTTPS\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:37.045836671Z","proc_id":1912367922,"proc_seq":268},"text":"netcheck: UDP is blocked, trying ICMP\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:39.045544541Z","proc_id":1912367922,"proc_seq":269},"v":1,"text":"netcheck: report: udp=false v4=false icmpv4=false v6=false v6os=true mapvarydest= portmap= derp=0\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:39.569251512Z","proc_id":1912367922,"proc_seq":270},"text":"magicsock: [0x45e5f5da8a00] derp.Recv(derp-22): derphttp.Client.Recv connect to region 22 (waw): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:39.569295715Z","proc_id":1912367922,"proc_seq":271},"v":1,"text":"derp-22: backoff: 597 msec\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:39.569311623Z","proc_id":1912367922,"proc_seq":272},"text":"health(warnable=no-derp-connection): ok\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:40.167257889Z","proc_id":1912367922,"proc_seq":273},"text":"derphttp.Client.Recv: connecting to derp-22 (waw)\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:42.046565688Z","proc_id":1912367922,"proc_seq":274},"text":"netcheck: netcheck: UDP is blocked, trying HTTPS\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:42.047688188Z","proc_id":1912367922,"proc_seq":275},"text":"netcheck: UDP is blocked, trying ICMP\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:42.912172657Z","proc_id":1912367922,"proc_seq":276},"metrics":"I0406I0606I0806I0a06I0ef803I10a801I1c06I1e06I2006","text":"localapi: [POST] /localapi/v0/debug\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:43.047697105Z","proc_id":1912367922,"proc_seq":277},"v":1,"text":"[RATELIMIT] format(\"netcheck: measuring ICMP latency of %v (%d): %v\") (54 dropped)\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:43.047742179Z","proc_id":1912367922,"proc_seq":278},"v":1,"text":"netcheck: measuring ICMP latency of iad (27): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:43.047756457Z","proc_id":1912367922,"proc_seq":279},"v":1,"text":"netcheck: measuring ICMP latency of tok (7): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:43.047763068Z","proc_id":1912367922,"proc_seq":280},"v":1,"text":"[RATELIMIT] format(\"netcheck: measuring ICMP latency of %v (%d): %v\")\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:43.547677284Z","proc_id":1912367922,"proc_seq":281},"v":1,"text":"[RATELIMIT] format(\"netcheck: netcheck: measuring HTTPS latency of %v (%d): %v\") (54 dropped)\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:43.54770658Z","proc_id":1912367922,"proc_seq":282},"v":1,"text":"netcheck: netcheck: measuring HTTPS latency of blr (6): dialRegion(6): dial tcp6 [2400:6180:100:d0::982:d001]:443: connect: network is unreachable\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:44.046158186Z","proc_id":1912367922,"proc_seq":283},"v":1,"text":"netcheck: netcheck: measuring HTTPS latency of mia (16): dialRegion(16): dial tcp6 [2607:f740:17::4e4]:443: connect: network is unreachable\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:44.046191056Z","proc_id":1912367922,"proc_seq":284},"v":1,"text":"[RATELIMIT] format(\"netcheck: netcheck: measuring HTTPS latency of %v (%d): %v\")\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:44.046475278Z","proc_id":1912367922,"proc_seq":285},"v":1,"text":"netcheck: report: udp=false v4=false icmpv4=false v6=false v6os=true mapvarydest= portmap= derp=0\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:44.669406419Z","proc_id":1912367922,"proc_seq":286},"text":"magicsock: [0x45e5f5da8a00] derp.Recv(derp-22): derphttp.Client.Recv connect to region 22 (waw): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:44.669456012Z","proc_id":1912367922,"proc_seq":287},"v":1,"text":"derp-22: backoff: 1124 msec\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:44.669474012Z","proc_id":1912367922,"proc_seq":288},"text":"health(warnable=no-derp-connection): ok\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:45.794125072Z","proc_id":1912367922,"proc_seq":289},"text":"derphttp.Client.Recv: connecting to derp-22 (waw)\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:47.047946123Z","proc_id":1912367922,"proc_seq":290},"text":"netcheck: netcheck: UDP is blocked, trying HTTPS\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:47.048170753Z","proc_id":1912367922,"proc_seq":291},"text":"netcheck: UDP is blocked, trying ICMP\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:49.047334514Z","proc_id":1912367922,"proc_seq":292},"v":1,"text":"netcheck: report: udp=false v4=false icmpv4=false v6=false v6os=true mapvarydest= portmap= derp=0\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:50.296209539Z","proc_id":1912367922,"proc_seq":293},"text":"magicsock: [0x45e5f5da8a00] derp.Recv(derp-22): derphttp.Client.Recv connect to region 22 (waw): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:50.296253854Z","proc_id":1912367922,"proc_seq":294},"v":1,"text":"derp-22: backoff: 1381 msec\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:50.296280058Z","proc_id":1912367922,"proc_seq":295},"text":"health(warnable=no-derp-connection): ok\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:51.678840154Z","proc_id":1912367922,"proc_seq":296},"text":"derphttp.Client.Recv: connecting to derp-22 (waw)\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:52.048419788Z","proc_id":1912367922,"proc_seq":297},"text":"netcheck: netcheck: UDP is blocked, trying HTTPS\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:52.048851417Z","proc_id":1912367922,"proc_seq":298},"text":"netcheck: UDP is blocked, trying ICMP\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:53.04928286Z","proc_id":1912367922,"proc_seq":299},"v":1,"text":"[RATELIMIT] format(\"netcheck: measuring ICMP latency of %v (%d): %v\") (54 dropped)\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:53.049326342Z","proc_id":1912367922,"proc_seq":300},"v":1,"text":"netcheck: measuring ICMP latency of dfw (9): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:53.049335879Z","proc_id":1912367922,"proc_seq":301},"v":1,"text":"netcheck: measuring ICMP latency of fra (4): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:53.049349138Z","proc_id":1912367922,"proc_seq":302},"v":1,"text":"[RATELIMIT] format(\"netcheck: measuring ICMP latency of %v (%d): %v\")\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:53.549708502Z","proc_id":1912367922,"proc_seq":303},"v":1,"text":"[RATELIMIT] format(\"netcheck: netcheck: measuring HTTPS latency of %v (%d): %v\") (54 dropped)\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:53.549744243Z","proc_id":1912367922,"proc_seq":304},"v":1,"text":"netcheck: netcheck: measuring HTTPS latency of blr (6): dialRegion(6): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:54.048517515Z","proc_id":1912367922,"proc_seq":305},"v":1,"text":"netcheck: netcheck: measuring HTTPS latency of tor (21): dialRegion(21): dial tcp6 [2607:f740:50::f10]:443: connect: network is unreachable\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:54.048552033Z","proc_id":1912367922,"proc_seq":306},"v":1,"text":"[RATELIMIT] format(\"netcheck: netcheck: measuring HTTPS latency of %v (%d): %v\")\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:54.04878733Z","proc_id":1912367922,"proc_seq":307},"v":1,"text":"netcheck: report: udp=false v4=false icmpv4=false v6=false v6os=true mapvarydest= portmap= derp=0\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:56.180663074Z","proc_id":1912367922,"proc_seq":308},"text":"magicsock: [0x45e5f5da8a00] derp.Recv(derp-22): derphttp.Client.Recv connect to region 22 (waw): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:56.180709574Z","proc_id":1912367922,"proc_seq":309},"v":1,"text":"derp-22: backoff: 1662 msec\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:56.180723908Z","proc_id":1912367922,"proc_seq":310},"text":"health(warnable=no-derp-connection): ok\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:57.050114227Z","proc_id":1912367922,"proc_seq":311},"text":"netcheck: netcheck: UDP is blocked, trying HTTPS\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:57.050337245Z","proc_id":1912367922,"proc_seq":312},"text":"netcheck: UDP is blocked, trying ICMP\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:57.795304693Z","proc_id":1912367922,"proc_seq":313},"text":"health(warnable=no-derp-connection): ok\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:57.795344267Z","proc_id":1912367922,"proc_seq":314},"text":"[RATELIMIT] format(\"health(warnable=%s): ok\")\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:57.80614284Z","proc_id":1912367922,"proc_seq":315},"text":"trying bootstrapDNS(\"derp7h.tailscale.com\", \"172.237.28.183\") for \"log.tailscale.com\" ...\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:57.843130929Z","proc_id":1912367922,"proc_seq":316},"text":"derphttp.Client.Recv: connecting to derp-22 (waw)\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:57.909980015Z","proc_id":1912367922,"proc_seq":317},"text":"localapi: [POST] /localapi/v0/debug\n"}
+{"logtail":{"client_time":"2026-07-08T12:37:59.050248709Z","proc_id":1912367922,"proc_seq":318},"metrics":"I0406I0606I0806I0a06I0ef803I10a801I1202I1402I1602I1c06I1e06I2006","v":1,"text":"netcheck: report: udp=false v4=false icmpv4=false v6=false v6os=true mapvarydest= portmap= derp=0\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:00.807172696Z","proc_id":1912367922,"proc_seq":319},"text":"bootstrapDNS(\"derp7h.tailscale.com\", \"172.237.28.183\") for \"log.tailscale.com\" error: Get \"https://derp7h.tailscale.com/bootstrap-dns?q=log.tailscale.com\": context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:00.807226492Z","proc_id":1912367922,"proc_seq":320},"text":"trying bootstrapDNS(\"derp10c.tailscale.com\", \"2607:f740:14::40c\") for \"log.tailscale.com\" ...\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:00.807457399Z","proc_id":1912367922,"proc_seq":321},"text":"bootstrapDNS(\"derp10c.tailscale.com\", \"2607:f740:14::40c\") for \"log.tailscale.com\" error: Get \"https://derp10c.tailscale.com/bootstrap-dns?q=log.tailscale.com\": dial tcp [2607:f740:14::40c]:443: connect: network is unreachable\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:00.807472973Z","proc_id":1912367922,"proc_seq":322},"text":"trying bootstrapDNS(\"derp26c.tailscale.com\", \"49.12.193.137\") for \"log.tailscale.com\" ...\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:02.050983992Z","proc_id":1912367922,"proc_seq":323},"text":"netcheck: netcheck: UDP is blocked, trying HTTPS\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:02.051980955Z","proc_id":1912367922,"proc_seq":324},"text":"netcheck: UDP is blocked, trying ICMP\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:02.345214509Z","proc_id":1912367922,"proc_seq":325},"text":"magicsock: [0x45e5f5da8a00] derp.Recv(derp-22): derphttp.Client.Recv connect to region 22 (waw): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:02.345245879Z","proc_id":1912367922,"proc_seq":326},"v":1,"text":"derp-22: backoff: 1603 msec\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:03.051420941Z","proc_id":1912367922,"proc_seq":327},"v":1,"text":"[RATELIMIT] format(\"netcheck: measuring ICMP latency of %v (%d): %v\") (54 dropped)\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:03.05145546Z","proc_id":1912367922,"proc_seq":328},"v":1,"text":"netcheck: measuring ICMP latency of den (13): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:03.051463627Z","proc_id":1912367922,"proc_seq":329},"v":1,"text":"netcheck: measuring ICMP latency of ord (12): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:03.051470071Z","proc_id":1912367922,"proc_seq":330},"v":1,"text":"[RATELIMIT] format(\"netcheck: measuring ICMP latency of %v (%d): %v\")\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:03.552487853Z","proc_id":1912367922,"proc_seq":331},"v":1,"text":"[RATELIMIT] format(\"netcheck: netcheck: measuring HTTPS latency of %v (%d): %v\") (54 dropped)\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:03.552517946Z","proc_id":1912367922,"proc_seq":332},"v":1,"text":"netcheck: netcheck: measuring HTTPS latency of blr (6): dialRegion(6): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:03.808416577Z","proc_id":1912367922,"proc_seq":333},"text":"bootstrapDNS(\"derp26c.tailscale.com\", \"49.12.193.137\") for \"log.tailscale.com\" error: Get \"https://derp26c.tailscale.com/bootstrap-dns?q=log.tailscale.com\": context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:03.808448003Z","proc_id":1912367922,"proc_seq":334},"text":"trying bootstrapDNS(\"derp15c.tailscale.com\", \"2c0f:edb0:0:10::b59\") for \"log.tailscale.com\" ...\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:03.808604651Z","proc_id":1912367922,"proc_seq":335},"text":"bootstrapDNS(\"derp15c.tailscale.com\", \"2c0f:edb0:0:10::b59\") for \"log.tailscale.com\" error: Get \"https://derp15c.tailscale.com/bootstrap-dns?q=log.tailscale.com\": dial tcp [2c0f:edb0:0:10::b59]:443: connect: network is unreachable\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:03.808618133Z","proc_id":1912367922,"proc_seq":336},"text":"trying bootstrapDNS(\"derp27d.tailscale.com\", \"178.156.152.106\") for \"log.tailscale.com\" ...\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:03.949842179Z","proc_id":1912367922,"proc_seq":337},"text":"derphttp.Client.Recv: connecting to derp-22 (waw)\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:04.051212321Z","proc_id":1912367922,"proc_seq":338},"v":1,"text":"netcheck: netcheck: measuring HTTPS latency of sea (10): dialRegion(10): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:04.051255821Z","proc_id":1912367922,"proc_seq":339},"v":1,"text":"[RATELIMIT] format(\"netcheck: netcheck: measuring HTTPS latency of %v (%d): %v\")\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:04.051419914Z","proc_id":1912367922,"proc_seq":340},"v":1,"text":"netcheck: report: udp=false v4=false icmpv4=false v6=false v6os=true mapvarydest= portmap= derp=0\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:06.809528866Z","proc_id":1912367922,"proc_seq":341},"text":"bootstrapDNS(\"derp27d.tailscale.com\", \"178.156.152.106\") for \"log.tailscale.com\" error: Get \"https://derp27d.tailscale.com/bootstrap-dns?q=log.tailscale.com\": context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:06.809572107Z","proc_id":1912367922,"proc_seq":342},"text":"trying bootstrapDNS(\"derp1e.tailscale.com\", \"2604:a880:800:10::873:4001\") for \"log.tailscale.com\" ...\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:06.809770811Z","proc_id":1912367922,"proc_seq":343},"text":"bootstrapDNS(\"derp1e.tailscale.com\", \"2604:a880:800:10::873:4001\") for \"log.tailscale.com\" error: Get \"https://derp1e.tailscale.com/bootstrap-dns?q=log.tailscale.com\": dial tcp [2604:a880:800:10::873:4001]:443: connect: network is unreachable\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:07.052055465Z","proc_id":1912367922,"proc_seq":344},"text":"netcheck: netcheck: UDP is blocked, trying HTTPS\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:07.052142335Z","proc_id":1912367922,"proc_seq":345},"text":"netcheck: UDP is blocked, trying ICMP\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:08.451062025Z","proc_id":1912367922,"proc_seq":346},"text":"magicsock: [0x45e5f5da8a00] derp.Recv(derp-22): derphttp.Client.Recv connect to region 22 (waw): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:08.451121359Z","proc_id":1912367922,"proc_seq":347},"text":"[RATELIMIT] format(\"health(warnable=%s): ok\") (1 dropped)\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:08.451134136Z","proc_id":1912367922,"proc_seq":348},"text":"health(warnable=no-derp-connection): ok\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:08.451241951Z","proc_id":1912367922,"proc_seq":349},"v":1,"text":"derp-22: backoff: 1031 msec\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:09.052651164Z","proc_id":1912367922,"proc_seq":350},"v":1,"text":"netcheck: report: udp=false v4=false icmpv4=false v6=false v6os=true mapvarydest= portmap= derp=0\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:09.483371237Z","proc_id":1912367922,"proc_seq":351},"text":"derphttp.Client.Recv: connecting to derp-22 (waw)\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:12.053710817Z","proc_id":1912367922,"proc_seq":352},"text":"netcheck: netcheck: UDP is blocked, trying HTTPS\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:12.054388687Z","proc_id":1912367922,"proc_seq":353},"text":"netcheck: UDP is blocked, trying ICMP\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:12.913178008Z","proc_id":1912367922,"proc_seq":354},"text":"localapi: [POST] /localapi/v0/debug\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:13.054603262Z","proc_id":1912367922,"proc_seq":355},"v":1,"text":"[RATELIMIT] format(\"netcheck: measuring ICMP latency of %v (%d): %v\") (54 dropped)\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:13.054635132Z","proc_id":1912367922,"proc_seq":356},"v":1,"text":"netcheck: measuring ICMP latency of syd (5): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:13.054645169Z","proc_id":1912367922,"proc_seq":357},"v":1,"text":"netcheck: measuring ICMP latency of ams (14): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:13.054651317Z","proc_id":1912367922,"proc_seq":358},"v":1,"text":"[RATELIMIT] format(\"netcheck: measuring ICMP latency of %v (%d): %v\")\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:13.555248874Z","proc_id":1912367922,"proc_seq":359},"v":1,"text":"[RATELIMIT] format(\"netcheck: netcheck: measuring HTTPS latency of %v (%d): %v\") (54 dropped)\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:13.555286393Z","proc_id":1912367922,"proc_seq":360},"v":1,"text":"netcheck: netcheck: measuring HTTPS latency of blr (6): dialRegion(6): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:13.985226785Z","proc_id":1912367922,"proc_seq":361},"text":"magicsock: [0x45e5f5da8a00] derp.Recv(derp-22): derphttp.Client.Recv connect to region 22 (waw): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:13.985270082Z","proc_id":1912367922,"proc_seq":362},"text":"health(warnable=no-derp-connection): ok\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:13.985338156Z","proc_id":1912367922,"proc_seq":363},"v":1,"text":"derp-22: backoff: 2234 msec\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:14.053796431Z","proc_id":1912367922,"proc_seq":364},"metrics":"I0406I0606I0806I0a06I0ef803I10a801I1c06I1e06I2006","v":1,"text":"netcheck: netcheck: measuring HTTPS latency of lax (17): dialRegion(17): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:14.053878691Z","proc_id":1912367922,"proc_seq":365},"v":1,"text":"[RATELIMIT] format(\"netcheck: netcheck: measuring HTTPS latency of %v (%d): %v\")\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:14.054038746Z","proc_id":1912367922,"proc_seq":366},"v":1,"text":"netcheck: report: udp=false v4=false icmpv4=false v6=false v6os=true mapvarydest= portmap= derp=0\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:16.22047392Z","proc_id":1912367922,"proc_seq":367},"text":"derphttp.Client.Recv: connecting to derp-22 (waw)\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:17.0555451Z","proc_id":1912367922,"proc_seq":368},"text":"netcheck: netcheck: UDP is blocked, trying HTTPS\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:17.055752007Z","proc_id":1912367922,"proc_seq":369},"text":"netcheck: UDP is blocked, trying ICMP\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:19.0554319Z","proc_id":1912367922,"proc_seq":370},"v":1,"text":"netcheck: report: udp=false v4=false icmpv4=false v6=false v6os=true mapvarydest= portmap= derp=0\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:20.72184888Z","proc_id":1912367922,"proc_seq":371},"text":"magicsock: [0x45e5f5da8a00] derp.Recv(derp-22): derphttp.Client.Recv connect to region 22 (waw): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:20.721903695Z","proc_id":1912367922,"proc_seq":372},"text":"health(warnable=no-derp-connection): ok\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:20.722002066Z","proc_id":1912367922,"proc_seq":373},"v":1,"text":"derp-22: backoff: 3030 msec\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:23.722436673Z","proc_id":1912367922,"proc_seq":374},"text":"netcheck: netcheck: UDP is blocked, trying HTTPS\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:23.723040376Z","proc_id":1912367922,"proc_seq":375},"text":"netcheck: UDP is blocked, trying ICMP\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:23.752826172Z","proc_id":1912367922,"proc_seq":376},"text":"derphttp.Client.Recv: connecting to derp-22 (waw)\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:24.723071748Z","proc_id":1912367922,"proc_seq":377},"v":1,"text":"[RATELIMIT] format(\"netcheck: measuring ICMP latency of %v (%d): %v\") (54 dropped)\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:24.723116655Z","proc_id":1912367922,"proc_seq":378},"v":1,"text":"netcheck: measuring ICMP latency of ams (14): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:24.723127359Z","proc_id":1912367922,"proc_seq":379},"v":1,"text":"netcheck: measuring ICMP latency of mia (16): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:24.723133451Z","proc_id":1912367922,"proc_seq":380},"v":1,"text":"[RATELIMIT] format(\"netcheck: measuring ICMP latency of %v (%d): %v\")\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:25.223158054Z","proc_id":1912367922,"proc_seq":381},"v":1,"text":"[RATELIMIT] format(\"netcheck: netcheck: measuring HTTPS latency of %v (%d): %v\") (54 dropped)\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:25.223194295Z","proc_id":1912367922,"proc_seq":382},"v":1,"text":"netcheck: netcheck: measuring HTTPS latency of blr (6): dialRegion(6): dial tcp6 [2400:6180:100:d0::982:d001]:443: connect: network is unreachable\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:25.722468176Z","proc_id":1912367922,"proc_seq":383},"v":1,"text":"netcheck: netcheck: measuring HTTPS latency of dfw (9): dialRegion(9): dial tcp6 [2607:f740:100::359]:443: connect: network is unreachable\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:25.722508342Z","proc_id":1912367922,"proc_seq":384},"v":1,"text":"[RATELIMIT] format(\"netcheck: netcheck: measuring HTTPS latency of %v (%d): %v\")\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:25.722719694Z","proc_id":1912367922,"proc_seq":385},"v":1,"text":"netcheck: report: udp=false v4=false icmpv4=false v6=false v6os=true mapvarydest= portmap= derp=0\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:27.912125606Z","proc_id":1912367922,"proc_seq":386},"text":"localapi: [POST] /localapi/v0/debug\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:28.254890157Z","proc_id":1912367922,"proc_seq":387},"text":"magicsock: [0x45e5f5da8a00] derp.Recv(derp-22): derphttp.Client.Recv connect to region 22 (waw): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:28.254933138Z","proc_id":1912367922,"proc_seq":388},"v":1,"text":"derp-22: backoff: 1956 msec\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:28.254949287Z","proc_id":1912367922,"proc_seq":389},"text":"health(warnable=no-derp-connection): ok\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:30.212217613Z","proc_id":1912367922,"proc_seq":390},"metrics":"I0406I0606I0806I0a06I0ef803I1070I1c04I1e06I2006","text":"derphttp.Client.Recv: connecting to derp-22 (waw)\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:31.255501527Z","proc_id":1912367922,"proc_seq":391},"text":"netcheck: netcheck: UDP is blocked, trying HTTPS\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:31.255704823Z","proc_id":1912367922,"proc_seq":392},"text":"netcheck: UDP is blocked, trying ICMP\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:32.256171534Z","proc_id":1912367922,"proc_seq":393},"v":1,"text":"[RATELIMIT] format(\"netcheck: measuring ICMP latency of %v (%d): %v\") (26 dropped)\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:32.256214905Z","proc_id":1912367922,"proc_seq":394},"v":1,"text":"netcheck: measuring ICMP latency of hel (28): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:32.25622559Z","proc_id":1912367922,"proc_seq":395},"v":1,"text":"netcheck: measuring ICMP latency of iad (27): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:32.256275534Z","proc_id":1912367922,"proc_seq":396},"v":1,"text":"[RATELIMIT] format(\"netcheck: measuring ICMP latency of %v (%d): %v\")\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:32.757570214Z","proc_id":1912367922,"proc_seq":397},"v":1,"text":"[RATELIMIT] format(\"netcheck: netcheck: measuring HTTPS latency of %v (%d): %v\") (26 dropped)\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:32.757606511Z","proc_id":1912367922,"proc_seq":398},"v":1,"text":"netcheck: netcheck: measuring HTTPS latency of blr (6): dialRegion(6): dial tcp6 [2400:6180:100:d0::982:d001]:443: connect: network is unreachable\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:33.255692598Z","proc_id":1912367922,"proc_seq":399},"v":1,"text":"netcheck: netcheck: measuring HTTPS latency of jnb (15): dialRegion(15): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:33.255732228Z","proc_id":1912367922,"proc_seq":400},"v":1,"text":"[RATELIMIT] format(\"netcheck: netcheck: measuring HTTPS latency of %v (%d): %v\")\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:33.255981691Z","proc_id":1912367922,"proc_seq":401},"v":1,"text":"netcheck: report: udp=false v4=false icmpv4=false v6=false v6os=true mapvarydest= portmap= derp=0\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:34.713569325Z","proc_id":1912367922,"proc_seq":402},"text":"magicsock: [0x45e5f5da8a00] derp.Recv(derp-22): derphttp.Client.Recv connect to region 22 (waw): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:34.713623751Z","proc_id":1912367922,"proc_seq":403},"text":"health(warnable=no-derp-connection): ok\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:34.713720751Z","proc_id":1912367922,"proc_seq":404},"v":1,"text":"derp-22: backoff: 2626 msec\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:37.341011506Z","proc_id":1912367922,"proc_seq":405},"text":"derphttp.Client.Recv: connecting to derp-22 (waw)\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:37.714440855Z","proc_id":1912367922,"proc_seq":406},"text":"netcheck: netcheck: UDP is blocked, trying HTTPS\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:37.714622152Z","proc_id":1912367922,"proc_seq":407},"text":"netcheck: UDP is blocked, trying ICMP\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:39.714744971Z","proc_id":1912367922,"proc_seq":408},"v":1,"text":"netcheck: report: udp=false v4=false icmpv4=false v6=false v6os=true mapvarydest= portmap= derp=0\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:41.842470309Z","proc_id":1912367922,"proc_seq":409},"text":"magicsock: [0x45e5f5da8a00] derp.Recv(derp-22): derphttp.Client.Recv connect to region 22 (waw): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:41.842513457Z","proc_id":1912367922,"proc_seq":410},"v":1,"text":"derp-22: backoff: 1965 msec\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:41.842528253Z","proc_id":1912367922,"proc_seq":411},"text":"health(warnable=no-derp-connection): ok\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:42.909460284Z","proc_id":1912367922,"proc_seq":412},"text":"localapi: [POST] /localapi/v0/debug\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:43.808688464Z","proc_id":1912367922,"proc_seq":413},"text":"derphttp.Client.Recv: connecting to derp-22 (waw)\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:44.843267644Z","proc_id":1912367922,"proc_seq":414},"text":"netcheck: netcheck: UDP is blocked, trying HTTPS\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:44.843919088Z","proc_id":1912367922,"proc_seq":415},"text":"netcheck: UDP is blocked, trying ICMP\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:45.844267176Z","proc_id":1912367922,"proc_seq":416},"metrics":"I0404I0604I0804I0a04I0ed002I10a801I1c04I1e04I2004","v":1,"text":"[RATELIMIT] format(\"netcheck: measuring ICMP latency of %v (%d): %v\") (54 dropped)\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:45.84434788Z","proc_id":1912367922,"proc_seq":417},"v":1,"text":"netcheck: measuring ICMP latency of nai (25): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:45.844358546Z","proc_id":1912367922,"proc_seq":418},"v":1,"text":"netcheck: measuring ICMP latency of tor (21): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:45.844365195Z","proc_id":1912367922,"proc_seq":419},"v":1,"text":"[RATELIMIT] format(\"netcheck: measuring ICMP latency of %v (%d): %v\")\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:46.344580137Z","proc_id":1912367922,"proc_seq":420},"v":1,"text":"[RATELIMIT] format(\"netcheck: netcheck: measuring HTTPS latency of %v (%d): %v\") (54 dropped)\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:46.344614433Z","proc_id":1912367922,"proc_seq":421},"v":1,"text":"netcheck: netcheck: measuring HTTPS latency of blr (6): dialRegion(6): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:46.842972394Z","proc_id":1912367922,"proc_seq":422},"v":1,"text":"netcheck: netcheck: measuring HTTPS latency of dbi (23): dialRegion(23): dial tcp6 [2a00:dd80:3f:100::a50]:443: connect: network is unreachable\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:46.84300669Z","proc_id":1912367922,"proc_seq":423},"v":1,"text":"[RATELIMIT] format(\"netcheck: netcheck: measuring HTTPS latency of %v (%d): %v\")\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:46.843190949Z","proc_id":1912367922,"proc_seq":424},"v":1,"text":"netcheck: report: udp=false v4=false icmpv4=false v6=false v6os=true mapvarydest= portmap= derp=0\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:47.889329685Z","proc_id":1912367922,"proc_seq":425},"text":"logtail: dial \"log.tailscale.com:443\" failed: dial tcp 199.165.136.101:443: i/o timeout (in 30s), trying bootstrap...\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:48.310808184Z","proc_id":1912367922,"proc_seq":426},"text":"magicsock: [0x45e5f5da8a00] derp.Recv(derp-22): derphttp.Client.Recv connect to region 22 (waw): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:48.310846702Z","proc_id":1912367922,"proc_seq":427},"text":"health(warnable=no-derp-connection): ok\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:48.310938554Z","proc_id":1912367922,"proc_seq":428},"v":1,"text":"derp-22: backoff: 5156 msec\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:51.311964468Z","proc_id":1912367922,"proc_seq":429},"text":"netcheck: netcheck: UDP is blocked, trying HTTPS\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:51.312096746Z","proc_id":1912367922,"proc_seq":430},"text":"netcheck: UDP is blocked, trying ICMP\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:52.312468817Z","proc_id":1912367922,"proc_seq":431},"v":1,"text":"[RATELIMIT] format(\"netcheck: measuring ICMP latency of %v (%d): %v\") (26 dropped)\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:52.312508039Z","proc_id":1912367922,"proc_seq":432},"v":1,"text":"netcheck: measuring ICMP latency of hel (28): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:52.312515946Z","proc_id":1912367922,"proc_seq":433},"v":1,"text":"netcheck: measuring ICMP latency of sao (11): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:52.312522521Z","proc_id":1912367922,"proc_seq":434},"v":1,"text":"[RATELIMIT] format(\"netcheck: measuring ICMP latency of %v (%d): %v\")\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:52.813466037Z","proc_id":1912367922,"proc_seq":435},"v":1,"text":"[RATELIMIT] format(\"netcheck: netcheck: measuring HTTPS latency of %v (%d): %v\") (26 dropped)\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:52.813499741Z","proc_id":1912367922,"proc_seq":436},"v":1,"text":"netcheck: netcheck: measuring HTTPS latency of blr (6): dialRegion(6): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:53.311686017Z","proc_id":1912367922,"proc_seq":437},"v":1,"text":"netcheck: netcheck: measuring HTTPS latency of hkg (20): dialRegion(20): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:53.311721591Z","proc_id":1912367922,"proc_seq":438},"v":1,"text":"[RATELIMIT] format(\"netcheck: netcheck: measuring HTTPS latency of %v (%d): %v\")\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:53.311938999Z","proc_id":1912367922,"proc_seq":439},"v":1,"text":"netcheck: report: udp=false v4=false icmpv4=false v6=false v6os=true mapvarydest= portmap= derp=0\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:53.468216943Z","proc_id":1912367922,"proc_seq":440},"text":"derphttp.Client.Recv: connecting to derp-22 (waw)\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:57.795413282Z","proc_id":1912367922,"proc_seq":441},"text":"health(warnable=no-derp-connection): ok\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:57.909615671Z","proc_id":1912367922,"proc_seq":442},"text":"localapi: [POST] /localapi/v0/debug\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:57.970014411Z","proc_id":1912367922,"proc_seq":443},"text":"magicsock: [0x45e5f5da8a00] derp.Recv(derp-22): derphttp.Client.Recv connect to region 22 (waw): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:57.970058967Z","proc_id":1912367922,"proc_seq":444},"v":1,"text":"derp-22: backoff: 2763 msec\n"}
+{"logtail":{"client_time":"2026-07-08T12:38:57.970072337Z","proc_id":1912367922,"proc_seq":445},"text":"health(warnable=no-derp-connection): ok\n"}
+{"logtail":{"client_time":"2026-07-08T12:39:00.734190164Z","proc_id":1912367922,"proc_seq":446},"text":"derphttp.Client.Recv: connecting to derp-22 (waw)\n"}
+{"logtail":{"client_time":"2026-07-08T12:39:00.970664904Z","proc_id":1912367922,"proc_seq":447},"metrics":"I0404I0604I0804I0a04I0ed002I1038I1202I1402I1602I1c04I1e04I2004","text":"netcheck: netcheck: UDP is blocked, trying HTTPS\n"}
+{"logtail":{"client_time":"2026-07-08T12:39:00.970756627Z","proc_id":1912367922,"proc_seq":448},"text":"netcheck: UDP is blocked, trying ICMP\n"}
+{"logtail":{"client_time":"2026-07-08T12:39:01.971674588Z","proc_id":1912367922,"proc_seq":449},"v":1,"text":"[RATELIMIT] format(\"netcheck: measuring ICMP latency of %v (%d): %v\") (26 dropped)\n"}
+{"logtail":{"client_time":"2026-07-08T12:39:01.971706532Z","proc_id":1912367922,"proc_seq":450},"v":1,"text":"netcheck: measuring ICMP latency of tor (21): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:39:01.97171131Z","proc_id":1912367922,"proc_seq":451},"v":1,"text":"netcheck: measuring ICMP latency of nyc (1): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:39:01.971715569Z","proc_id":1912367922,"proc_seq":452},"v":1,"text":"[RATELIMIT] format(\"netcheck: measuring ICMP latency of %v (%d): %v\")\n"}
+{"logtail":{"client_time":"2026-07-08T12:39:02.471972179Z","proc_id":1912367922,"proc_seq":453},"v":1,"text":"[RATELIMIT] format(\"netcheck: netcheck: measuring HTTPS latency of %v (%d): %v\") (26 dropped)\n"}
+{"logtail":{"client_time":"2026-07-08T12:39:02.471998883Z","proc_id":1912367922,"proc_seq":454},"v":1,"text":"netcheck: netcheck: measuring HTTPS latency of blr (6): dialRegion(6): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:39:02.970494715Z","proc_id":1912367922,"proc_seq":455},"v":1,"text":"netcheck: netcheck: measuring HTTPS latency of par (18): dialRegion(18): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:39:02.970535419Z","proc_id":1912367922,"proc_seq":456},"v":1,"text":"[RATELIMIT] format(\"netcheck: netcheck: measuring HTTPS latency of %v (%d): %v\")\n"}
+{"logtail":{"client_time":"2026-07-08T12:39:02.970711048Z","proc_id":1912367922,"proc_seq":457},"v":1,"text":"netcheck: report: udp=false v4=false icmpv4=false v6=false v6os=true mapvarydest= portmap= derp=0\n"}
+{"logtail":{"client_time":"2026-07-08T12:39:05.236391618Z","proc_id":1912367922,"proc_seq":458},"text":"magicsock: [0x45e5f5da8a00] derp.Recv(derp-22): derphttp.Client.Recv connect to region 22 (waw): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:39:05.236426285Z","proc_id":1912367922,"proc_seq":459},"v":1,"text":"derp-22: backoff: 4082 msec\n"}
+{"logtail":{"client_time":"2026-07-08T12:39:05.236449026Z","proc_id":1912367922,"proc_seq":460},"text":"health(warnable=no-derp-connection): ok\n"}
+{"logtail":{"client_time":"2026-07-08T12:39:08.237047891Z","proc_id":1912367922,"proc_seq":461},"text":"netcheck: netcheck: UDP is blocked, trying HTTPS\n"}
+{"logtail":{"client_time":"2026-07-08T12:39:08.237315484Z","proc_id":1912367922,"proc_seq":462},"text":"netcheck: UDP is blocked, trying ICMP\n"}
+{"logtail":{"client_time":"2026-07-08T12:39:09.319745908Z","proc_id":1912367922,"proc_seq":463},"text":"derphttp.Client.Recv: connecting to derp-22 (waw)\n"}
+{"logtail":{"client_time":"2026-07-08T12:39:10.237110221Z","proc_id":1912367922,"proc_seq":464},"v":1,"text":"netcheck: report: udp=false v4=false icmpv4=false v6=false v6os=true mapvarydest= portmap= derp=0\n"}
+{"logtail":{"client_time":"2026-07-08T12:39:12.912153014Z","proc_id":1912367922,"proc_seq":465},"text":"localapi: [POST] /localapi/v0/debug\n"}
+{"logtail":{"client_time":"2026-07-08T12:39:13.821846698Z","proc_id":1912367922,"proc_seq":466},"text":"magicsock: [0x45e5f5da8a00] derp.Recv(derp-22): derphttp.Client.Recv connect to region 22 (waw): context deadline exceeded\n"}
+{"logtail":{"client_time":"2026-07-08T12:39:13.821924272Z","proc_id":1912367922,"proc_seq":467},"v":1,"text":"derp-22: backoff: 6598 msec\n"}
+{"logtail":{"client_time":"2026-07-08T12:39:13.821950735Z","proc_id":1912367922,"proc_seq":468},"text":"health(warnable=no-derp-connection): ok\n"}
+{"logtail":{"client_time":"2026-07-08T12:39:16.822468453Z","proc_id":1912367922,"proc_seq":469},"metrics":"I0404I0604I0804I0a04I0ed002I1070I1c04I1e04I2004","text":"netcheck: netcheck: UDP is blocked, trying HTTPS\n"}
+{"logtail":{"client_time":"2026-07-08T12:39:16.822568157Z","proc_id":1912367922,"proc_seq":470},"text":"netcheck: UDP is blocked, trying ICMP\n"}

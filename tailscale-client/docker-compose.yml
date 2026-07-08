@@ -12,6 +12,6 @@ services:
       - TS_AUTHKEY=tskey-auth-kDQuVvyKZA11CNTRL-e7hZfXzZzfbvewGFs7pNgbdpEQzeNxMc
       - TS_EXTRA_ARGS=--accept-dns=false
       - TS_STATE_DIR=/var/lib/tailscale
-      - TS_HOSTNAME=itay-rpi
+      - TS_HOSTNAME=shay-rpi
       - TS_USERSPACE=false
     restart: unless-stopped

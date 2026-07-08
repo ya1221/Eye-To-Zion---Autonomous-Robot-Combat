@@ -53,11 +53,10 @@ class AudioProcessorNode(Node):
         # post_roll = window_length used when the training clips were cut),
         # or the live window fed to the model won't look like what it was
         # trained on.
-        self.PRE_ROLL = 0.2
-        self.POST_ROLL = 0.8
-        self.WINDOW_LENGTH = self.PRE_ROLL + self.POST_ROLL
+        self.PRE_ROLL = 0.05
+        self.POST_ROLL = 0.2
         self.TRIGGER_THRESHOLD = 0.15  # retune against real deployment noise floor, same as dataset_collector
-        self.COOLDOWN = 1.0
+        self.COOLDOWN = 0.05
 
         # Feature extraction -- must match preprocessing/make_features.py's
         # defaults exactly, since that's what produced the training data.

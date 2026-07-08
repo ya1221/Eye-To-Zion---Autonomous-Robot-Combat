@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 """Convert raw impact/background WAVs into fixed-size log-mel (or MFCC)
 feature arrays the stage-3 CNN can train on directly.
 
@@ -161,7 +162,7 @@ def parse_args():
     p.add_argument("--out-dir", default="dataset/processed")
     p.add_argument("--labels", nargs="+", default=None, help="labels to process (default: all subfolders of --in-dir)")
     p.add_argument("--feature-type", choices=["logmel", "mfcc"], default="logmel")
-    p.add_argument("--window-length", type=float, default=1.0, help="seconds per window / model input")
+    p.add_argument("--window-length", type=float, default=0.25, help="seconds per window / model input")
     p.add_argument("--hop", type=float, default=None, help="seconds between window starts (default = --window-length, i.e. no overlap)")
     p.add_argument("--n-mels", type=int, default=64)
     p.add_argument("--n-fft", type=int, default=1024)
@@ -175,7 +176,7 @@ def parse_args():
         help="only run event-detection on files at least this many seconds long; shorter (already-isolated) clips still use fixed-hop slicing unchanged",
     )
     p.add_argument("--event-threshold", type=float, default=0.15, help="peak level to count as an event, fraction of full scale (0-1)")
-    p.add_argument("--event-pre-roll", type=float, default=0.2, help="seconds of context kept before a detected event")
+    p.add_argument("--event-pre-roll", type=float, default=0.05, help="seconds of context kept before a detected event")
     p.add_argument("--event-refractory", type=float, default=1.0, help="minimum seconds between two detected events (avoids double-counting one event's decay)")
     return p.parse_args()
 
