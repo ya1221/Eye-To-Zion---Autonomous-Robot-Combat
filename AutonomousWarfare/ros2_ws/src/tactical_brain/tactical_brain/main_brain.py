@@ -1,6 +1,7 @@
 import json
 import math
 import os
+import threading
 import time
 
 from tactical_brain import world_model
@@ -1160,6 +1161,19 @@ class TacticalBrainNode(Node):
         # enemies_by_detector is keyed by whichever robot_id reported each
         # sighting, so my own detection and a teammate's don't clobber each
         # other if both are currently tracking (possibly different) enemies.
+        #
+        # Guards enemies_by_detector against the executor's two threads:
+        # the team/local-detection callbacks (pose_callback_group) mutate it
+        # IN PLACE while sense_and_think (the tree timer, default group)
+        # iterates it in prune_stale_enemies - a concurrent insert during
+        # that iteration raises "dictionary changed size during iteration"
+        # and kills the node. MultiThreadedExecutor + separate callback
+        # groups (needed so A* doesn't starve pose updates) is exactly what
+        # makes these run in parallel, so a lock is required. teammates_dict
+        # is only ever REASSIGNED wholesale (never mutated in place), so it
+        # doesn't need this - update_blackboard just captures one local
+        # reference to avoid a read-after-reassign KeyError.
+        self._state_lock = threading.Lock()
         self.enemies_by_detector = {}
         self.team_enemy_pub = self.create_publisher(
             String,
@@ -1312,8 +1326,15 @@ class TacticalBrainNode(Node):
         # my_team_positions_callback - כאן רק מנקים זיהויים ישנים (מכל
         # הרובוטים שדיווחו) ומחשבים מהם את הרשתות הטקטיות, בעזרת
         # static_obstacles שרק אנחנו מחזיקים)
-        self.enemies_by_detector = world_model.prune_stale_enemies(self.enemies_by_detector)
-        self.enemies_list = list(self.enemies_by_detector.values())
+        # Lock while pruning/snapshotting: the detection callbacks insert
+        # into enemies_by_detector in place on the other executor thread,
+        # and iterating it here without the lock can raise "dictionary
+        # changed size during iteration" (see self._state_lock in __init__).
+        # enemies_list is a plain snapshot the rest of the tick reads from,
+        # so nothing past this point touches the live dict.
+        with self._state_lock:
+            self.enemies_by_detector = world_model.prune_stale_enemies(self.enemies_by_detector)
+            self.enemies_list = list(self.enemies_by_detector.values())
         self.danger_dict = world_model.get_danger_dict(self.danger_dict, self.enemies_list, self.static_obstacles)
         self.danger_dict = world_model.delete_old_danger_squares(self.danger_dict)
         self.teammates_aura_set = world_model.get_teammates_aura_set(self.teammates_dict)
@@ -1371,11 +1392,12 @@ class TacticalBrainNode(Node):
         # world_model.prune_stale_enemies so an old detection doesn't linger
         # forever once the enemy is no longer seen.
         now = time.time()
-        self.enemies_by_detector[self.robot_id] = {
-            'x': msg.pose.position.x,
-            'y': msg.pose.position.y,
-            'timestamp': now,
-        }
+        with self._state_lock:
+            self.enemies_by_detector[self.robot_id] = {
+                'x': msg.pose.position.x,
+                'y': msg.pose.position.y,
+                'timestamp': now,
+            }
         # Don't just keep this to myself - broadcast it on the team-scoped
         # topic (mirrored across Zenoh exactly like teams/team_X/positions)
         # so every teammate's main_brain merges it into their own picture.
@@ -1398,11 +1420,12 @@ class TacticalBrainNode(Node):
             # in local_enemy_position_callback, no need to process again.
             return
 
-        self.enemies_by_detector[detector_id] = {
-            'x': data['x'],
-            'y': data['y'],
-            'timestamp': data.get('timestamp', time.time()),
-        }
+        with self._state_lock:
+            self.enemies_by_detector[detector_id] = {
+                'x': data['x'],
+                'y': data['y'],
+                'timestamp': data.get('timestamp', time.time()),
+            }
 
     def update_blackboard_from_world_state(self):
         # 1. עדכון נתוני אויבים
@@ -1487,11 +1510,18 @@ class TacticalBrainNode(Node):
             self.cmd_vel_pub.publish(Twist())
 
         # 2. עדכון נתוני חברי צוות
-        self.blackboard.num_teammates = len(self.teammates_dict)
-        if self.teammates_dict:
-            first_teammate_id = list(self.teammates_dict.keys())[0]
-            teammate_data = self.teammates_dict[first_teammate_id]
-            
+        # Capture one reference: my_team_positions_callback reassigns
+        # self.teammates_dict wholesale on the other executor thread, so
+        # reading it twice (keys()[0] then [first_teammate_id]) could hit
+        # two different dicts and KeyError. One local binding is a
+        # consistent snapshot - no lock needed since it's never mutated in
+        # place, only rebound.
+        teammates = self.teammates_dict
+        self.blackboard.num_teammates = len(teammates)
+        if teammates:
+            first_teammate_id = list(teammates.keys())[0]
+            teammate_data = teammates[first_teammate_id]
+
             self.blackboard.teammate_x = teammate_data.get('x')
             self.blackboard.teammate_y = teammate_data.get('y')
             self.blackboard.teammate_requested_help = teammate_data.get('needs_help', False)
