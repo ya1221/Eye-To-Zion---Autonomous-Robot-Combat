@@ -1385,9 +1385,18 @@ class TacticalBrainNode(Node):
             visible_enemies = []
             hidden_enemies = []
             
+            # המרה לקואורדינטות רשת (גריד) עבור בדיקת קו ראייה
+            grid_current_pos = (
+                self.blackboard.current_x / A_planner.XY_RESOLUTION,
+                self.blackboard.current_y / A_planner.XY_RESOLUTION
+            )
+            
             for enemy in self.enemies_list:
-                enemy_pos = (enemy['x'], enemy['y'])
-                if world_model.line_of_sight_clear(current_pos, enemy_pos, self.static_obstacles):
+                grid_enemy_pos = (
+                    enemy['x'] / A_planner.XY_RESOLUTION,
+                    enemy['y'] / A_planner.XY_RESOLUTION
+                )
+                if world_model.line_of_sight_clear(grid_current_pos, grid_enemy_pos, self.static_obstacles):
                     visible_enemies.append(enemy)
                 else:
                     hidden_enemies.append(enemy)
@@ -1429,6 +1438,14 @@ class TacticalBrainNode(Node):
             self.blackboard.dist_to_closest_enemy <= MAX_COMBAT_DISTANCE
             and self.blackboard.has_line_of_sight_to_closest_enemy
         )
+        
+        self.get_logger().info(
+            f"Shooting Inputs Debug | dist: {self.blackboard.dist_to_closest_enemy:.2f}, "
+            f"LOS: {self.blackboard.has_line_of_sight_to_closest_enemy}, "
+            f"heading_error: {self.blackboard.current_heading_error}, "
+            f"preconditions_met: {attack_preconditions_met}"
+        )
+
         if not attack_preconditions_met:
             self.trigger_controller.reset()
             self.cease_fire()
@@ -1467,13 +1484,18 @@ class TacticalBrainNode(Node):
 
     def command_shooting(self, heading_error_deg):
         """Unified shooting control — checks angle, manages mode/firing/fire_once."""
-        max_angle = self.get_parameter('max_fire_angle_deg').value
         mode = self.get_parameter('shooting_mode').value
+        dist = self.blackboard.dist_to_closest_enemy
+
+        # שימוש במנגנון ה-Debounce וה-Hysteresis במקום if פשוט ורגיש לרעשים
+        should_fire = self.trigger_controller.evaluate(dist, heading_error_deg)
+
+        self.get_logger().info(f"Shooting Control Debug | should_fire: {should_fire}, mode: {mode}")
 
         # Publish the current mode every tick so shooting_node stays in sync
         self.shooting_mode_pub.publish(String(data=mode))
 
-        if heading_error_deg is None or abs(heading_error_deg) >= max_angle:
+        if not should_fire:
             self.firing_pub.publish(Bool(data=False))
             return
 

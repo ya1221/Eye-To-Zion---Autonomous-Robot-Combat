@@ -9,6 +9,7 @@ from nav_msgs.msg import Odometry
 from sensor_msgs.msg import LaserScan
 from std_msgs.msg import String # ה-YOLO שלך שולח String עם JSON
 import message_filters
+from rclpy.qos import qos_profile_sensor_data
 
 class SensorFusionNode(Node):
     def __init__(self):
@@ -43,7 +44,7 @@ class SensorFusionNode(Node):
             LaserScan,
             '/scan',
             self.lidar_callback,
-            10
+            qos_profile_sensor_data
         )
         
         self.yolo_sub = self.create_subscription(
