@@ -1419,13 +1419,19 @@ class TacticalBrainNode(Node):
                 self.blackboard.current_x / A_planner.XY_RESOLUTION,
                 self.blackboard.current_y / A_planner.XY_RESOLUTION
             )
-            
+            # The enemy's own position is a lidar return SLAM marks
+            # occupied, so a ray checked all the way to it always reports
+            # "blocked" by the target itself - ignore a margin around both
+            # endpoints (see world_model.LOS_ENDPOINT_MARGIN_METERS). In
+            # grid cells, since grid_* are in world/XY_RESOLUTION units.
+            los_margin_cells = world_model.LOS_ENDPOINT_MARGIN_METERS / A_planner.XY_RESOLUTION
+
             for enemy in self.enemies_list:
                 grid_enemy_pos = (
                     enemy['x'] / A_planner.XY_RESOLUTION,
                     enemy['y'] / A_planner.XY_RESOLUTION
                 )
-                if world_model.line_of_sight_clear(grid_current_pos, grid_enemy_pos, self.static_obstacles):
+                if world_model.line_of_sight_clear(grid_current_pos, grid_enemy_pos, self.static_obstacles, endpoint_margin_cells=los_margin_cells):
                     visible_enemies.append(enemy)
                 else:
                     hidden_enemies.append(enemy)
