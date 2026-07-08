@@ -61,6 +61,18 @@ RUN pip3 install --no-cache-dir \
     smbus2 \
     sparkfun-qwiic-icm20948
 
+# Install dependencies for camera and AI vision
+RUN apt-get update && apt-get install -y \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip3 install --no-cache-dir "numpy<2.0.0" && \
+    pip3 install --no-cache-dir \
+    ultralytics \
+    ncnn \
+    lapx
+
 # Set the internal container workspace(root)
 WORKDIR /ros2_ws
 

@@ -1,7 +1,7 @@
 ai_inference:
   ros__parameters:
     # ── Model ──
-    model_path: /app/models/best_ncnn_model
+    model_path: /ros2_ws/src/ai_vision/models/best_ncnn_model
     inference_imgsz: 320
     tracker_config: bytetrack.yaml
 

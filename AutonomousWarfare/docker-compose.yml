@@ -36,9 +36,6 @@ services:
       # Persistent workspace: Code lives on the Pi but builds inside Docker
       - ./ros2_ws:/ros2_ws
       
-      # Bind Mount for AI code: Edit Python scripts on the Pi; updates instantly in Docker
-      - "./ai_vision:/app"
-      
       # The GUI Socket: A communication pipe that sends window data to your monitor
       - "/tmp/.X11-unix:/tmp/.X11-unix:rw" 
 

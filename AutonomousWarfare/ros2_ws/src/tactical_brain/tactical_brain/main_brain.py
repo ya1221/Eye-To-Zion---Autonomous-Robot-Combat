@@ -24,7 +24,7 @@ from robot_localization.srv import SetPose
 from tf2_ros import Buffer, TransformListener
 from tf2_ros import LookupException, ConnectivityException, ExtrapolationException
 import py_trees
-
+import std_srvs.srv
 
 # from A_alg import MAX_COMBAT_DISTANCE
 MAX_COMBAT_DISTANCE = 5.0 # ערך זמני עד שנשלב את שאר הקבצים
@@ -526,12 +526,8 @@ class AttackAction(py_trees.behaviour.Behaviour):
         # this action never runs at all (see that method for why - a
         # single-tick, always-SUCCESS leaf like this one can't rely on
         # terminate()/initialise() to detect "I was skipped this tick").
-        should_fire = self.ros_node.trigger_controller.evaluate(
-            self.blackboard.dist_to_closest_enemy,
-            self.blackboard.current_heading_error,
-        )
-        self.ros_node.shooting_mod_pub.publish(String(data="SINGLE"))
-        self.ros_node.shooting_cmd_pub.publish(Bool(data=should_fire))
+     
+        self.ros_node.command_shooting(self.blackboard.current_heading_error)
         return py_trees.common.Status.SUCCESS
     
 #######################
@@ -1182,8 +1178,16 @@ class TacticalBrainNode(Node):
         # centralized safety-reset (below) agree on the same debounce/
         # hysteresis state.
         self.trigger_controller = ballistics_helper.TriggerController()
-        self.shooting_mod_pub = self.create_publisher(String, 'shooting_mod', 10)
-        self.shooting_cmd_pub = self.create_publisher(Bool, 'shooting_cmd', 10)
+        # Correct topic names matching shooting_node's subscriptions
+        self.firing_pub = self.create_publisher(Bool, '/firing', 10)
+        # ── Shooting control (matches shooting_node's interface) ──
+        self.shooting_mode_pub = self.create_publisher(String, '/shooting_mode', 10)
+        self.fire_once_client = self.create_client(
+            std_srvs.srv.Trigger, '/shooting_node/fire_once')
+
+        self.declare_parameter('shooting_mode', 'single')   # 'single' or 'auto'
+        self.declare_parameter('auto_fire_rate_hz', 2.0)
+        self.declare_parameter('max_fire_angle_deg', 30.0)
 
         # AlignToEnemyAction's output (see aim_controller.py). Same topic
         # Nav2's controller normally publishes to - safe because
@@ -1329,6 +1333,7 @@ class TacticalBrainNode(Node):
             return
         self._latest_heading_error_deg = detections[0].get('angle')
         self._latest_detection_time = time.time()
+      
 
     def local_enemy_position_callback(self, msg):
         # sensor_fusion_node only publishes when it actually has a fused
@@ -1426,7 +1431,7 @@ class TacticalBrainNode(Node):
         )
         if not attack_preconditions_met:
             self.trigger_controller.reset()
-            self.shooting_cmd_pub.publish(Bool(data=False))
+            self.cease_fire()
             self.cmd_vel_pub.publish(Twist())
 
         # 2. עדכון נתוני חברי צוות
@@ -1459,6 +1464,33 @@ class TacticalBrainNode(Node):
         odom_msg.pose.covariance[35] = 0.01  # yaw
         
         self.aruco_odom_pub.publish(odom_msg)
+
+    def command_shooting(self, heading_error_deg):
+        """Unified shooting control — checks angle, manages mode/firing/fire_once."""
+        max_angle = self.get_parameter('max_fire_angle_deg').value
+        mode = self.get_parameter('shooting_mode').value
+
+        # Publish the current mode every tick so shooting_node stays in sync
+        self.shooting_mode_pub.publish(String(data=mode))
+
+        if heading_error_deg is None or abs(heading_error_deg) >= max_angle:
+            self.firing_pub.publish(Bool(data=False))
+            return
+
+        # Angle within threshold — fire
+        if mode == 'auto':
+            self.firing_pub.publish(Bool(data=True))
+        else:
+            # Single mode: enable firing + call fire_once service
+            self.firing_pub.publish(Bool(data=True))
+            if self.fire_once_client.service_is_ready():
+                self.fire_once_client.call_async(std_srvs.srv.Trigger.Request())
+            else:
+                self.get_logger().warn('fire_once service not ready')
+
+    def cease_fire(self):
+        """Kill all shooting outputs — used by the safety net."""
+        self.firing_pub.publish(Bool(data=False))
 
     def pose_callback(self, msg):
         self.blackboard.current_x = msg.pose.pose.position.x
