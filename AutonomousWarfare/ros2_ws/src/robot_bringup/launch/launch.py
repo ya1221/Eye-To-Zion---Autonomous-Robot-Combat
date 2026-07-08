@@ -65,6 +65,12 @@ def generate_launch_description():
         ),
     )
 
+    sensor_fusion_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([FindPackageShare('sensor_fusion_pkg'), 'launch', 'main.launch.py'])
+        ),
+    )
+
     return LaunchDescription([
         LogInfo(msg='========== Robot Bringup Starting =========='),
         hardware_launch,
@@ -75,6 +81,7 @@ def generate_launch_description():
         imu_launch,
         shooting_launch,
         ai_vision_launch,
+        sensor_fusion_launch,
         tactical_brain_launch,
         LogInfo(msg='========== All Subsystems Launched =========='),
     ])

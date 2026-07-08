@@ -9,6 +9,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(nav_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
 find_package(fmt REQUIRED)
 find_package(Boost REQUIRED)
 
@@ -16,7 +17,7 @@ add_executable(telegraf_bridge src/telegraf_bridge.cpp src/telemetry_sender.cpp)
 target_include_directories(telegraf_bridge PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
-ament_target_dependencies(telegraf_bridge rclcpp nav_msgs Boost)
+ament_target_dependencies(telegraf_bridge rclcpp nav_msgs std_msgs Boost)
 target_link_libraries(telegraf_bridge fmt::fmt)
 
 install(TARGETS telegraf_bridge
