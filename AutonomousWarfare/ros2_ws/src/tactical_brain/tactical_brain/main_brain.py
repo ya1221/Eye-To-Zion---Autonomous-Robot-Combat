@@ -26,8 +26,14 @@ from tf2_ros import LookupException, ConnectivityException, ExtrapolationExcepti
 import py_trees
 import std_srvs.srv
 
-# from A_alg import MAX_COMBAT_DISTANCE
-MAX_COMBAT_DISTANCE = 5.0 # ערך זמני עד שנשלב את שאר הקבצים
+# attack_branch's engagement range - tied directly to the gun's actual
+# firing envelope (ballistics_helper.MAX_FIRING_DISTANCE = 3.0m) instead
+# of a separate hardcoded 5.0. With 5.0 the robot would commit to an
+# engagement (stop patrolling, creep, align, log "Engaging enemy") from
+# 3-5m, where trigger_controller.evaluate can never actually fire
+# (dist > MAX_FIRING_DISTANCE) - it just looked like "aims but never
+# shoots". Single source of truth so the two can't drift apart again.
+MAX_COMBAT_DISTANCE = ballistics_helper.MAX_FIRING_DISTANCE
 
 # A raw /ai/detections reading older than this is treated as "no current
 # heading fix" rather than trusted stale data - two missed tree ticks
@@ -493,12 +499,19 @@ class AlignToEnemyAction(py_trees.behaviour.Behaviour):
         self.ros_node = ros_node
         self.blackboard = py_trees.blackboard.Client(name=self.name)
         self.blackboard.register_key(key="current_heading_error", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="dist_to_closest_enemy", access=py_trees.common.Access.READ)
 
     def update(self):
         heading_error = self.blackboard.current_heading_error
         cmd = Twist()
         if heading_error is not None:
-            cmd.linear.x, cmd.angular.z = aim_controller.compute_alignment_twist(heading_error)
+            # Pass dist_to_closest_enemy so compute_alignment_twist can hold
+            # at aim_controller.STANDOFF_DISTANCE_METERS instead of creeping
+            # all the way to point-blank/collision range against the target
+            # while firing.
+            cmd.linear.x, cmd.angular.z = aim_controller.compute_alignment_twist(
+                heading_error, self.blackboard.dist_to_closest_enemy
+            )
         # else: no fresh detection - publish the zero Twist() default
         # rather than creep blindly on a stale/missing heading error.
         self.ros_node.cmd_vel_pub.publish(cmd)
@@ -1053,6 +1066,22 @@ class TacticalBrainNode(Node):
         self.grid_to_meters = (
             self.get_parameter('arena_size_meters').get_parameter_value().double_value
             / self.get_parameter('grid_n').get_parameter_value().integer_value
+        )
+
+        # A*'s plannable-region geofence (A_planner.check_collision). This
+        # is the real DRIVABLE arena extent, deliberately SEPARATE from
+        # arena_size_meters above (which is the camera perspective-grid
+        # scale, not a drivable size - conflating them would strangle the
+        # 5m sim maze down to a 2m box). Default 5.0 reproduces the old
+        # hardcoded 0.1/4.9 geofence exactly, so sim is unchanged; on the
+        # real robot set PLANNING_ARENA_SIZE_METERS to the true arena side
+        # length so A* won't plan a node off the actual boundary.
+        self.declare_parameter(
+            'planning_arena_size_meters',
+            float(os.environ.get('PLANNING_ARENA_SIZE_METERS', 5.0))
+        )
+        A_planner.set_arena_bounds(
+            self.get_parameter('planning_arena_size_meters').get_parameter_value().double_value
         )
 
         # Real pose source is /odometry/global, robot_localization's
