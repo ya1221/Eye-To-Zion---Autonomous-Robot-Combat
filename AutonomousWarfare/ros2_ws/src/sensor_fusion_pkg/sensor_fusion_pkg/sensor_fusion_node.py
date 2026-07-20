@@ -11,6 +11,12 @@ from std_msgs.msg import String # ה-YOLO שלך שולח String עם JSON
 import message_filters
 from rclpy.qos import qos_profile_sensor_data
 
+# Same value/reasoning as main_brain.py's own dead-robot-cell merge
+# (team_comms.py's dead_robot_locations) - kept independent since these
+# are separate packages/processes, not shared state. Covers robot
+# footprint + normal fusion noise, not a precise measurement.
+DEAD_ROBOT_MATCH_RADIUS_METERS = 0.5
+
 class SensorFusionNode(Node):
     def __init__(self):
         super().__init__('sensor_fusion_node')
@@ -54,12 +60,40 @@ class SensorFusionNode(Node):
             10
         )
 
-        # 3. Publisher למיקום האויב המותך 
+        # 3. Publisher למיקום האויב המותך
         self.enemy_pose_pub = self.create_publisher(
             PoseStamped,
             '~/local_enemy_position',
             10
         )
+
+        # 4. Death broadcast - published by a (separate, not-this-package)
+        # HP/hit-detection node once a robot's HP reaches 0. Not team-scoped
+        # (teams/arena/..., matches the Zenoh bridge's ^/teams/.* allowlist
+        # regardless) since a dead enemy needs filtering out here the same
+        # as a dead teammate would. Own copy of this data, not shared with
+        # tactical_brain_node - separate process, and this one's need
+        # (filter before ever publishing) is different from that one's
+        # (mark as a planning obstacle).
+        self.dead_robot_locations = set()
+        self.death_message_sub = self.create_subscription(
+            String,
+            'teams/arena/death_message',
+            self.death_message_callback,
+            10
+        )
+
+    def death_message_callback(self, msg):
+        try:
+            data = json.loads(msg.data)
+        except json.JSONDecodeError:
+            return
+
+        x, y = data.get('x'), data.get('y')
+        if x is None or y is None:
+            return
+
+        self.dead_robot_locations.add((x, y))
 
     def robot_pose_callback(self, msg):
         """מעדכן את המיקום והאוריינטציה (Yaw) הנוכחיים של הרובוט במגרש"""
@@ -137,6 +171,16 @@ class SensorFusionNode(Node):
         global_enemy_angle = self.robot_yaw + relative_angle_rad
         enemy_x = self.robot_x + (distance * math.cos(global_enemy_angle))
         enemy_y = self.robot_y + (distance * math.sin(global_enemy_angle))
+
+        # A dead robot's body still sits there and can still trigger a
+        # YOLO+lidar detection - filter it out here, at the source, rather
+        # than publish a "live enemy" reading for a corpse (see
+        # death_message_callback). math.hypot inline rather than a
+        # distance() helper - that name's already taken above by the
+        # lidar range reading.
+        for dead_x, dead_y in self.dead_robot_locations:
+            if math.hypot(enemy_x - dead_x, enemy_y - dead_y) <= DEAD_ROBOT_MATCH_RADIUS_METERS:
+                return
 
         # פרסום
         output_msg = PoseStamped()

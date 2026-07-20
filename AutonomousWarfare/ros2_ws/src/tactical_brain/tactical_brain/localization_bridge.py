@@ -13,6 +13,7 @@ import math
 
 from rclpy.time import Time
 from nav_msgs.msg import Odometry
+from geometry_msgs.msg import PoseWithCovarianceStamped
 from tf2_ros import Buffer, TransformListener
 from robot_localization.srv import SetPose
 
@@ -21,6 +22,14 @@ from tactical_brain.geometry_utils import get_yaw_from_quaternion
 
 
 class LocalizationBridge:
+    # Above this much disagreement between ArUco and the currently tracked
+    # pose, ekf_global's continuous /aruco/odom fusion (see
+    # publish_aruco_odom) is assumed to not have caught up fast enough
+    # (e.g. after wheel slip) - check_drift then force-reseeds it via the
+    # /set_pose service instead of waiting for the continuous filter to
+    # converge on its own.
+    DRIFT_SNAP_THRESHOLD_METERS = 0.05
+
     def __init__(self, ros_node):
         self.ros_node = ros_node
         self.tf_buffer = Buffer()
@@ -130,3 +139,47 @@ class LocalizationBridge:
         odom_msg.pose.covariance[35] = 0.01  # yaw
 
         self.aruco_odom_pub.publish(odom_msg)
+
+    def check_drift(self, aruco_x, aruco_y, aruco_yaw, current_x, current_y, current_yaw):
+        """Large-drift safety net alongside the continuous /aruco/odom
+        fusion above (see ekf_global.yaml's odom2) - snap-corrects
+        ekf_global via its real /set_pose service (robot_localization) when
+        ArUco and the currently tracked pose disagree by more than
+        DRIFT_SNAP_THRESHOLD_METERS. /initialpose has no subscriber in this
+        stack (no AMCL; slam_toolbox and robot_localization don't reset
+        from that topic), so this is the service ekf_global actually
+        exposes for a one-shot reseed.
+        """
+        drift_x = aruco_x - current_x
+        drift_y = aruco_y - current_y
+        total_drift_meters = math.hypot(drift_x, drift_y)
+
+        if total_drift_meters <= self.DRIFT_SNAP_THRESHOLD_METERS:
+            return
+
+        self.ros_node.get_logger().warn(
+            f"HIGH ODOM DRIFT: {total_drift_meters * 100:.1f}cm! "
+            "Resetting ekf_global to ArUco ground truth."
+        )
+
+        reset_msg = PoseWithCovarianceStamped()
+        reset_msg.header.stamp = self.ros_node.get_clock().now().to_msg()
+        reset_msg.header.frame_id = 'map'
+
+        reset_msg.pose.pose.position.x = float(aruco_x)
+        reset_msg.pose.pose.position.y = float(aruco_y)
+        reset_msg.pose.pose.orientation.z = math.sin(aruco_yaw / 2.0)
+        reset_msg.pose.pose.orientation.w = math.cos(aruco_yaw / 2.0)
+
+        reset_msg.pose.covariance[0] = 0.05
+        reset_msg.pose.covariance[7] = 0.05
+        reset_msg.pose.covariance[35] = 0.05
+
+        if self.set_pose_client.service_is_ready():
+            request = SetPose.Request()
+            request.pose = reset_msg
+            self.set_pose_client.call_async(request)
+        else:
+            self.ros_node.get_logger().warn(
+                "ekf_global/set_pose not available - drift reset skipped this tick."
+            )

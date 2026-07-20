@@ -2,6 +2,7 @@ import json
 import math
 import os
 import time
+from collections import deque
 
 from tactical_brain import world_model
 from tactical_brain import A_planner
@@ -37,6 +38,29 @@ MAX_COMBAT_DISTANCE = ballistics_helper.MAX_FIRING_DISTANCE
 # heading fix" rather than trusted stale data - two missed tree ticks
 # (tree runs every 0.5s) worth of margin for a dropped frame or two.
 DETECTION_STALE_SEC = 1.0
+
+# How far RunFromEnemyAction retreats along the away-from-threat bearing
+# on each replan (see PathExecutor.REPLAN_COOLDOWN_SEC for how often
+# that's re-evaluated).
+RETREAT_DISTANCE_METERS = 1.5
+
+# AreTeammatesComing's threshold: a teammate within this radius is close
+# enough to be treated as "arriving to help" rather than "far away".
+TEAMMATE_HELP_ARRIVAL_RADIUS = 2.5
+
+# IsAtFinalGoal's threshold - placeholder pending a real measurement of
+# the physical capture zone, same caveat as ARENA_SIZE_METERS.
+CAPTURE_ZONE_RADIUS_METERS = 0.5
+
+# hide_x/y's "retreat along my own trail" memory (see safe_waypoints):
+# only record a new safe waypoint once we've moved at least this far from
+# the last one, so it doesn't fill up with near-duplicates while sitting
+# still or moving slowly.
+MIN_SAFE_WAYPOINT_SPACING_METERS = 0.5
+# Bounded history size - old waypoints age out once this many newer ones
+# have been recorded (deque(maxlen=...) below), so this doesn't grow
+# unbounded over a long match.
+MAX_SAFE_WAYPOINTS = 20
 
 #######################
 # attack branch
@@ -137,24 +161,29 @@ class IsLowHealthOrOutnumbered(py_trees.behaviour.Behaviour):
     def __init__(self, name = "is_low_health_or_outnumbered"):
         super(IsLowHealthOrOutnumbered, self).__init__(name)
         self.blackboard = py_trees.blackboard.Client(name=self.name)
-        self.blackboard.register_key(key="health", access=py_trees.common.Access.READ)
-        self.blackboard.register_key(key="num_enemies", access=py_trees.common.Access.READ)
-        self.blackboard.register_key(key="num_teammates", access=py_trees.common.Access.READ)
+        # am_i_in_danger is computed once in update_blackboard_from_world_
+        # state (the exact same health/outnumbered check this class used
+        # to duplicate) - shared with _publish_team_status's distress-call
+        # broadcast so the "what counts as danger" threshold lives in
+        # exactly one place.
+        self.blackboard.register_key(key="am_i_in_danger", access=py_trees.common.Access.READ)
 
     def update(self):
-        health = self.blackboard.health
-        num_enemies = self.blackboard.num_enemies
-        num_teammates = self.blackboard.num_teammates
-
-        if (health is not None and health < 0.5) or (num_enemies is not None and num_teammates is not None and num_enemies > num_teammates + 1):
+        if self.blackboard.am_i_in_danger:
             return py_trees.common.Status.SUCCESS
         return py_trees.common.Status.FAILURE
 
 class AreTeammatesComing(py_trees.behaviour.Behaviour):
     def __init__(self, name="are_teammates_coming"):
         super(AreTeammatesComing, self).__init__(name)
+        self.blackboard = py_trees.blackboard.Client(name=self.name)
+        self.blackboard.register_key(key="dist_to_nearest_teammate", access=py_trees.common.Access.READ)
+
     def update(self):
-        return py_trees.common.Status.FAILURE # נניח שכרגע אף אחד לא בא
+        dist = self.blackboard.dist_to_nearest_teammate
+        if dist is not None and dist <= TEAMMATE_HELP_ARRIVAL_RADIUS:
+            return py_trees.common.Status.SUCCESS
+        return py_trees.common.Status.FAILURE
 
 class HideAndWaitAction(py_trees.behaviour.Behaviour):
     def __init__(self, name="hide_and_wait_action", ros_node=None):
@@ -229,11 +258,55 @@ class RunFromEnemyAction(py_trees.behaviour.Behaviour):
         self.path_executor = PathExecutor(ros_node, name) if ros_node is not None else None
         self.blackboard = py_trees.blackboard.Client(name=self.name)
         self.blackboard.register_key(key="robot_command", access=py_trees.common.Access.WRITE)
+        self.blackboard.register_key(key="current_x", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="current_y", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="current_yaw", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="closest_enemy_x", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="closest_enemy_y", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="hide_x", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="hide_y", access=py_trees.common.Access.READ)
 
     def get_tactical_path(self):
+        if self.ros_node is None:
+            return None
+
         self.blackboard.robot_command = "RUNNING_FROM_ENEMY"
-        # מחזיר מסלול עם נקודה אחת כדי לא לקרוס (עד שנחבר את A*)
-        return [(0.0, 0.0, 0.0, 1)]
+        cx, cy = self.blackboard.current_x, self.blackboard.current_y
+        cyaw = self.blackboard.current_yaw
+        ex, ey = self.blackboard.closest_enemy_x, self.blackboard.closest_enemy_y
+
+        if ex is not None and ey is not None:
+            # Straight-line retreat directly away from the threat's bearing.
+            away_angle = math.atan2(cy - ey, cx - ex)
+            gx = cx + RETREAT_DISTANCE_METERS * math.cos(away_angle)
+            gy = cy + RETREAT_DISTANCE_METERS * math.sin(away_angle)
+        else:
+            # In danger (e.g. low health/outnumbered) with no specific
+            # threat position known - fall back to the designated rally
+            # point rather than fleeing in an undefined direction.
+            gx, gy = self.blackboard.hide_x, self.blackboard.hide_y
+            if gx is None or gy is None:
+                return None
+
+        start_pos = (cx, cy, cyaw)
+        goal_pos = (gx, gy, math.atan2(gy - cy, gx - cx))
+
+        result = A_planner.calc_hybrid_a_star(
+            start=start_pos,
+            goal=goal_pos,
+            obstacle_set=self.ros_node.static_obstacles,
+            xy_resolution=A_planner.XY_RESOLUTION,
+            yaw_resolution=A_planner.YAW_RESOLUTION,
+            danger_dict=self.ros_node.danger_dict,
+            teammates_aura_set=self.ros_node.teammates_aura_set
+        )
+        if result is None:
+            self.ros_node.get_logger().warn(f"[{self.name}] No escape path found!")
+            return None
+
+        path_obj, _ = result
+        x_path, y_path, theta_path, directions = path_obj
+        return [(x_path[i], y_path[i], theta_path[i], directions[i]) for i in range(len(x_path))]
 
     def update(self):
         if self.ros_node is None:
@@ -338,14 +411,14 @@ class MapsToGoalAction(py_trees.behaviour.Behaviour):
         self.blackboard.register_key(key="current_x", access=py_trees.common.Access.READ)
         self.blackboard.register_key(key="current_y", access=py_trees.common.Access.READ)
         self.blackboard.register_key(key="current_yaw", access=py_trees.common.Access.READ)
-        self.blackboard.register_key(key="goal_x", access=py_trees.common.Access.READ)
-        self.blackboard.register_key(key="goal_y", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="final_goal_x", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="final_goal_y", access=py_trees.common.Access.READ)
         self.blackboard.register_key(key="robot_command", access=py_trees.common.Access.WRITE)
 
     def get_tactical_path(self):
         cx, cy = self.blackboard.current_x, self.blackboard.current_y
         cyaw = self.blackboard.current_yaw
-        gx, gy = self.blackboard.goal_x, self.blackboard.goal_y
+        gx, gy = self.blackboard.final_goal_x, self.blackboard.final_goal_y
 
         if gx is not None and gy is not None and self.ros_node is not None:
             self.blackboard.robot_command = "NAVIGATING (A* PATH)"
@@ -383,6 +456,167 @@ class MapsToGoalAction(py_trees.behaviour.Behaviour):
         return None
 
     def update(self):
+        # Before the overhead camera has sighted the capture-zone marker
+        # even once, final_goal_x/y are still None. PathExecutor.tick()
+        # treats get_tactical_path() returning nothing as an A*-failed-to-
+        # find-a-path signal and starts counting toward a recovery
+        # backup-nudge after CONSECUTIVE_PLAN_FAILURE_THRESHOLD ticks - the
+        # robot isn't stuck here, it's just waiting on the camera, so skip
+        # straight to RUNNING instead of letting that bookkeeping misfire.
+        if self.blackboard.final_goal_x is None or self.blackboard.final_goal_y is None:
+            return py_trees.common.Status.RUNNING
+        if self.ros_node is None:
+            return py_trees.common.Status.SUCCESS
+        return self.path_executor.tick(self.get_tactical_path)
+
+    def terminate(self, new_status):
+        if new_status == py_trees.common.Status.INVALID and self.path_executor is not None:
+            self.path_executor.terminate()
+
+#######################
+# squad roles - deterministic, negotiation-free PUSHER/SCREEN split.
+# Every robot runs the exact same comparison independently from already-
+# shared state (own position, teammate's broadcast position, the locked
+# final_goal) - no "I'm pushing" message is ever exchanged, so there's no
+# leader/negotiation protocol to fail if a teammate drops out or dies.
+class IsCloserToGoal(py_trees.behaviour.Behaviour):
+    """SUCCESS => this robot takes the PUSHER role this tick."""
+    def __init__(self, name="is_closer_to_goal"):
+        super().__init__(name)
+        self.blackboard = py_trees.blackboard.Client(name=self.name)
+        self.blackboard.register_key(key="current_x", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="current_y", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="final_goal_x", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="final_goal_y", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="teammate_x", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="teammate_y", access=py_trees.common.Access.READ)
+
+    def update(self):
+        gx, gy = self.blackboard.final_goal_x, self.blackboard.final_goal_y
+        if gx is None or gy is None:
+            return py_trees.common.Status.FAILURE
+
+        current_pos = (self.blackboard.current_x, self.blackboard.current_y)
+        my_dist = distance(current_pos, (gx, gy))
+
+        tx, ty = self.blackboard.teammate_x, self.blackboard.teammate_y
+        if tx is None or ty is None:
+            # No teammate known at all - default to pushing rather than
+            # leaving the zone uncontested.
+            return py_trees.common.Status.SUCCESS
+
+        teammate_dist = distance((tx, ty), (gx, gy))
+        return (
+            py_trees.common.Status.SUCCESS if my_dist <= teammate_dist
+            else py_trees.common.Status.FAILURE
+        )
+
+class IsAtFinalGoal(py_trees.behaviour.Behaviour):
+    def __init__(self, name="is_at_final_goal"):
+        super().__init__(name)
+        self.blackboard = py_trees.blackboard.Client(name=self.name)
+        self.blackboard.register_key(key="current_x", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="current_y", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="final_goal_x", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="final_goal_y", access=py_trees.common.Access.READ)
+
+    def update(self):
+        gx, gy = self.blackboard.final_goal_x, self.blackboard.final_goal_y
+        if gx is None or gy is None:
+            return py_trees.common.Status.FAILURE
+        current_pos = (self.blackboard.current_x, self.blackboard.current_y)
+        d = distance(current_pos, (gx, gy))
+        return (
+            py_trees.common.Status.SUCCESS if d <= CAPTURE_ZONE_RADIUS_METERS
+            else py_trees.common.Status.FAILURE
+        )
+
+class HoldZoneAction(py_trees.behaviour.Behaviour):
+    """Stop and hold once inside the capture zone, instead of letting
+    MapsToGoalAction keep re-triggering trivial/zero-length A* replans.
+    survival_branch/attack_branch still preempt this every tick via the
+    root Selector's priority order (same mechanism AlignToEnemyAction's
+    docstring describes for attack_branch preempting patrol_branch), and
+    switching away from this back to MapsToGoalAction (e.g. pushed off
+    the zone) is handled for free by PathExecutor.terminate() canceling
+    whatever FollowPath goal was in flight.
+    """
+    def __init__(self, name="hold_zone_action", ros_node=None):
+        super().__init__(name)
+        self.ros_node = ros_node
+        self.blackboard = py_trees.blackboard.Client(name=self.name)
+        self.blackboard.register_key(key="robot_command", access=py_trees.common.Access.WRITE)
+
+    def update(self):
+        self.blackboard.robot_command = "HOLDING_ZONE"
+        if self.ros_node is not None:
+            self.ros_node.cmd_vel_pub.publish(Twist())
+        return py_trees.common.Status.SUCCESS
+
+class ScreenAction(py_trees.behaviour.Behaviour):
+    """The SCREEN role with no enemy currently in sight (attack_branch
+    already outranks this branch whenever one is, so this only ever runs
+    when there's nothing to engage) - patrol the midpoint between the
+    capture zone and the arena center, a generic "stay between the
+    objective and the likely enemy approach" position, so the PUSHER
+    doesn't have to cross open ground alone.
+    """
+    def __init__(self, name="screen_action", ros_node=None):
+        super().__init__(name)
+        self.ros_node = ros_node
+        self.path_executor = PathExecutor(ros_node, name) if ros_node is not None else None
+        self.blackboard = py_trees.blackboard.Client(name=self.name)
+        self.blackboard.register_key(key="current_x", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="current_y", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="current_yaw", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="final_goal_x", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="final_goal_y", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="robot_command", access=py_trees.common.Access.WRITE)
+
+    def get_tactical_path(self):
+        if self.ros_node is None:
+            return None
+
+        cx, cy = self.blackboard.current_x, self.blackboard.current_y
+        cyaw = self.blackboard.current_yaw
+        gx, gy = self.blackboard.final_goal_x, self.blackboard.final_goal_y
+        if gx is None or gy is None:
+            return None
+
+        arena_center = self.ros_node.arena_size_meters / 2.0
+        target_x = (gx + arena_center) / 2.0
+        target_y = (gy + arena_center) / 2.0
+
+        self.blackboard.robot_command = "SCREENING"
+        start_pos = (cx, cy, cyaw)
+        goal_pos = (target_x, target_y, math.atan2(target_y - cy, target_x - cx))
+
+        result = A_planner.calc_hybrid_a_star(
+            start=start_pos,
+            goal=goal_pos,
+            obstacle_set=self.ros_node.static_obstacles,
+            xy_resolution=A_planner.XY_RESOLUTION,
+            yaw_resolution=A_planner.YAW_RESOLUTION,
+            danger_dict=self.ros_node.danger_dict,
+            teammates_aura_set=self.ros_node.teammates_aura_set
+        )
+        if result is None:
+            return None
+
+        path_obj, _ = result
+        x_path, y_path, theta_path, directions = path_obj
+        return [(x_path[i], y_path[i], theta_path[i], directions[i]) for i in range(len(x_path))]
+
+    def update(self):
+        # Same reasoning as MapsToGoalAction's guard: before final_goal is
+        # locked, get_tactical_path() has nothing to compute a midpoint
+        # from. Unlike MapsToGoalAction (the tree's last resort), FAILURE
+        # is correct here, not RUNNING - patrol_branch is the real
+        # fallback for this case, and it's role_branch's sibling in the
+        # root Selector, so role_branch must actually fail (both
+        # pusher_branch and this) for the Selector to reach it.
+        if self.blackboard.final_goal_x is None or self.blackboard.final_goal_y is None:
+            return py_trees.common.Status.FAILURE
         if self.ros_node is None:
             return py_trees.common.Status.SUCCESS
         return self.path_executor.tick(self.get_tactical_path)
@@ -427,12 +661,42 @@ def create_tree(ros_node=None):
          IsDistanceToTeammateAcceptable(name = "is distance to teammate acceptable"),
          DriveToTeammateAction(name = "drive to teammate action", ros_node=ros_node)])
 
+    # Squad roles: PUSHER drives to final_goal and holds once there, SCREEN
+    # roams to intercept. Sits below help_teammate_branch (a dying
+    # teammate outranks your assigned role) and above patrol_branch, which
+    # remains as the fallback for the one case role_branch can't resolve -
+    # final_goal not locked in yet (see IsCloserToGoal/ScreenAction, both
+    # of which FAILURE in that case, same as MapsToGoalAction's own guard).
+    hold_zone_sequence = py_trees.composites.Sequence(name="hold_zone_sequence", memory=False)
+    hold_zone_sequence.add_children([
+        IsAtFinalGoal(name="is at final goal"),
+        HoldZoneAction(name="hold zone action", ros_node=ros_node)
+    ])
+
+    pusher_action_selector = py_trees.composites.Selector(name="pusher_action_selector", memory=False)
+    pusher_action_selector.add_children([
+        hold_zone_sequence,
+        MapsToGoalAction(name="maps to goal action (pusher)", ros_node=ros_node)
+    ])
+
+    pusher_branch = py_trees.composites.Sequence(name="pusher_branch", memory=False)
+    pusher_branch.add_children([
+        IsCloserToGoal(name="is closer to goal"),
+        pusher_action_selector
+    ])
+
+    role_branch = py_trees.composites.Selector(name="role_branch", memory=False)
+    role_branch.add_children([
+        pusher_branch,
+        ScreenAction(name="screen action", ros_node=ros_node)
+    ])
+
     patrol_branch = py_trees.composites.Sequence(name="patrol_branch", memory = False)
     patrol_branch.add_children(
-        [MapsToGoalAction(name = "maps to goal action", ros_node=ros_node)])
+        [MapsToGoalAction(name = "maps to goal action (fallback)", ros_node=ros_node)])
 
     root = py_trees.composites.Selector(name="root", memory = False)
-    root.add_children([survival_branch, attack_branch, help_teammate_branch, patrol_branch])
+    root.add_children([survival_branch, attack_branch, help_teammate_branch, role_branch, patrol_branch])
 
     return py_trees.trees.BehaviourTree(root)
 
@@ -457,8 +721,9 @@ class TacticalBrainNode(Node):
         self.my_team_idx = self.get_parameter('my_team_idx').get_parameter_value().integer_value
         self.declare_parameter('arena_size_meters', float(os.environ.get('ARENA_SIZE_METERS', 2.0)))
         self.declare_parameter('grid_n', int(os.environ.get('GRID_N', 2000)))
+        self.arena_size_meters = self.get_parameter('arena_size_meters').get_parameter_value().double_value
         self.grid_to_meters = (
-            self.get_parameter('arena_size_meters').get_parameter_value().double_value
+            self.arena_size_meters
             / self.get_parameter('grid_n').get_parameter_value().integer_value
         )
 
@@ -516,6 +781,21 @@ class TacticalBrainNode(Node):
             String,
             f'teams/team_{self.my_team_idx}/positions',
             self.my_team_positions_callback,
+            10,
+            callback_group=self.pose_callback_group
+        )
+
+        # Capture-zone marker (physically static, one per team) tracked by
+        # the same overhead-camera node as teams/team_X/positions, mirrored
+        # across Zenoh the same way. Locked onto the first sighting in
+        # final_goal_callback rather than kept live, since re-reading a
+        # static marker's per-frame ArUco jitter would retarget MapsToGoal's
+        # A* goal for no reason.
+        self.final_goal_locked = False
+        self.final_goal_sub = self.create_subscription(
+            String,
+            f'teams/team_{self.my_team_idx}/target_position',
+            self.final_goal_callback,
             10,
             callback_group=self.pose_callback_group
         )
@@ -580,13 +860,21 @@ class TacticalBrainNode(Node):
         self.danger_dict = {}
         self.teammates_aura_set = set()
 
+        # hide_x/y's "retreat along my own trail" fallback (see
+        # update_blackboard_from_world_state) - starts empty and gets
+        # seeded with the real starting position on the first pose_
+        # callback firing (not the current_x/y placeholder default), since
+        # that's the actual point the robot begins from.
+        self.safe_waypoints = deque(maxlen=MAX_SAFE_WAYPOINTS)
+
         self.map_sub = self.create_subscription(OccupancyGrid, '/map', self.map_callback, 1)
 
         # 1. רישום כל המשתנים שהעץ צריך ב-Blackboard
         self.blackboard = py_trees.blackboard.Client(name="global")
         keys = [
-            "current_x", "current_y", "current_yaw", "hide_x", "hide_y", "goal_x", "goal_y", "teammate_x", "teammate_y",
+            "current_x", "current_y", "current_yaw", "hide_x", "hide_y", "final_goal_x", "final_goal_y", "teammate_x", "teammate_y",
             "dist_to_closest_enemy", "has_line_of_sight_to_closest_enemy", "current_heading_error",
+            "closest_enemy_x", "closest_enemy_y", "dist_to_nearest_teammate", "am_i_in_danger", "am_i_fighting",
             "health", "num_enemies", "num_teammates",
             "teammate_requested_help", "dist_to_help_teammate", "robot_command"
         ]
@@ -608,6 +896,11 @@ class TacticalBrainNode(Node):
         self.blackboard.dist_to_closest_enemy = 100.0
         self.blackboard.has_line_of_sight_to_closest_enemy = False
         self.blackboard.current_heading_error = None
+        self.blackboard.closest_enemy_x = None
+        self.blackboard.closest_enemy_y = None
+        self.blackboard.dist_to_nearest_teammate = 100.0
+        self.blackboard.am_i_in_danger = False
+        self.blackboard.am_i_fighting = False
         self.blackboard.health = 1.0
         self.blackboard.num_enemies = 0
         self.blackboard.num_teammates = 1
@@ -618,26 +911,23 @@ class TacticalBrainNode(Node):
         self.blackboard.current_x = 2.0
         self.blackboard.current_y = 2.0
         self.blackboard.current_yaw = 0.0
-        self.blackboard.hide_x = 2.25
-        self.blackboard.hide_y = 4.75
-        # Diagnostic direction-change test: every prior straight-east
-        # test (goal ~0.8m east of spawn) converged on the same overshoot
-        # magnitude (~13-14.4deg peak heading deviation) AND the same
-        # final wedge position/heading (~5.3-5.4, ~2-3.1, ~70-75deg)
-        # regardless of goal_checker tuning, path density, MPPI batch_size,
-        # or noise regeneration - suspicious for a goal-driven controller.
-        # Pointing the goal north instead (perpendicular, same ~0.8m
-        # distance, clear of every wall in maze/model.sdf by >0.7m) tests
-        # whether the robot still converges on that same east-side
-        # location/heading regardless of where the goal actually is -
-        # which would prove the attractor is goal-independent.
-        # Back to the pure-straight test (zero planned curvature, yaw=0
-        # throughout) so any angular.z seen on /cmd_vel_nav is unambiguous
-        # MPPI bias, not legitimate path-curvature-following.
-        self.blackboard.goal_x = 3.9
-        self.blackboard.goal_y = 1.3
-        self.blackboard.teammate_x = 1.5
-        self.blackboard.teammate_y = 1.0
+        # Recomputed every tick in update_blackboard_from_world_state
+        # (nearest safe teammate, else last known-safe waypoint) - these
+        # are just the pre-first-tick placeholders.
+        self.blackboard.hide_x = 2.0
+        self.blackboard.hide_y = 2.0
+        # Not known until the overhead camera's capture-zone marker is
+        # sighted at least once (see final_goal_callback) - None until
+        # then. MapsToGoalAction.update() explicitly treats this as
+        # "waiting", not a failed plan.
+        self.blackboard.final_goal_x = None
+        self.blackboard.final_goal_y = None
+        # None (not a placeholder point) until teammates_dict actually has
+        # an entry - IsCloserToGoal reads a None teammate position as
+        # "no teammate known, default to PUSHER", which a fake stale
+        # coordinate would silently defeat.
+        self.blackboard.teammate_x = None
+        self.blackboard.teammate_y = None
 
     def sense_and_think(self):
         """
@@ -649,12 +939,18 @@ class TacticalBrainNode(Node):
         # תמונת מצב מנוקה (snapshot) ומחשבים ממנה את הרשתות הטקטיות,
         # בעזרת static_obstacles שרק אנחנו מחזיקים.
         self.enemies_list = self.team_comms.get_enemies_snapshot()
+        self.team_comms.prune_stale_help_status()
         self.danger_dict = world_model.get_danger_dict(self.danger_dict, self.enemies_list, self.static_obstacles)
         self.danger_dict = world_model.delete_old_danger_squares(self.danger_dict)
         self.teammates_aura_set = world_model.get_teammates_aura_set(self.team_comms.get_teammates())
 
         # שלב ב': Translation
         self.update_blackboard_from_world_state()
+        # Distress-call broadcast - see team_comms.publish_status. Reads
+        # am_i_in_danger/am_i_fighting rather than recomputing either, so
+        # this and IsLowHealthOrOutnumbered/attack_branch can never
+        # disagree on what those mean.
+        self.team_comms.publish_status(self.blackboard.am_i_in_danger, self.blackboard.am_i_fighting)
 
         # שלב ג': Think
         self.tree.tick()
@@ -676,11 +972,31 @@ class TacticalBrainNode(Node):
             aruco_y = my_entry['y'] * self.grid_to_meters
             aruco_yaw = math.radians(my_entry['angle'])
             self.localization_bridge.publish_aruco_odom(aruco_x, aruco_y, aruco_yaw)
+            self.localization_bridge.check_drift(
+                aruco_x, aruco_y, aruco_yaw,
+                self.blackboard.current_x, self.blackboard.current_y, self.blackboard.current_yaw
+            )
 
         self.team_comms.set_teammates({
-            r['id']: {'x': r['x'] * self.grid_to_meters, 'y': r['y'] * self.grid_to_meters, 'needs_help': False}
+            r['id']: {'x': r['x'] * self.grid_to_meters, 'y': r['y'] * self.grid_to_meters}
             for r in robots if r.get('id') != self.robot_id
         })
+
+    def final_goal_callback(self, msg):
+        if self.final_goal_locked:
+            return
+        try:
+            target = json.loads(msg.data)
+        except json.JSONDecodeError:
+            return
+
+        self.blackboard.final_goal_x = target['x'] * self.grid_to_meters
+        self.blackboard.final_goal_y = target['y'] * self.grid_to_meters
+        self.final_goal_locked = True
+        self.get_logger().info(
+            f"Final goal (capture zone) locked at "
+            f"({self.blackboard.final_goal_x:.2f}, {self.blackboard.final_goal_y:.2f})"
+        )
 
     def ai_detections_callback(self, msg):
         # Same raw JSON sensor_fusion_node.py parses ('angle' in degrees,
@@ -710,10 +1026,9 @@ class TacticalBrainNode(Node):
     def update_blackboard_from_world_state(self):
         # 1. עדכון נתוני אויבים
         self.blackboard.num_enemies = len(self.enemies_list)
+        current_pos = (self.blackboard.current_x, self.blackboard.current_y)
 
         if self.enemies_list:
-            current_pos = (self.blackboard.current_x, self.blackboard.current_y)
-
             visible_enemies = []
             hidden_enemies = []
 
@@ -747,9 +1062,18 @@ class TacticalBrainNode(Node):
                 self.blackboard.has_line_of_sight_to_closest_enemy = False
 
             self.blackboard.dist_to_closest_enemy = distance(current_pos, (closest_enemy['x'], closest_enemy['y']))
+            self.blackboard.closest_enemy_x = closest_enemy['x']
+            self.blackboard.closest_enemy_y = closest_enemy['y']
         else:
             self.blackboard.dist_to_closest_enemy = 100.0
             self.blackboard.has_line_of_sight_to_closest_enemy = False
+            self.blackboard.closest_enemy_x = None
+            self.blackboard.closest_enemy_y = None
+            # "Didn't encounter any enemies" - record this spot as a safe
+            # retreat point for hide_x/y's fallback, provided we've moved
+            # far enough from the last one to be worth a new entry.
+            if not self.safe_waypoints or distance(current_pos, self.safe_waypoints[-1]) >= MIN_SAFE_WAYPOINT_SPACING_METERS:
+                self.safe_waypoints.append(current_pos)
 
         # Raw camera bearing to whatever /ai/detections last saw, discarded
         # once stale (see DETECTION_STALE_SEC) so a frozen old reading
@@ -776,6 +1100,11 @@ class TacticalBrainNode(Node):
             self.blackboard.dist_to_closest_enemy <= MAX_COMBAT_DISTANCE
             and self.blackboard.has_line_of_sight_to_closest_enemy
         )
+        # Shared with _publish_team_status's is_fighting field (a teammate
+        # broadcasting this as True is disqualified as a safe retreat
+        # target) - single source of truth, same reasoning as
+        # am_i_in_danger below.
+        self.blackboard.am_i_fighting = attack_preconditions_met
 
         self.get_logger().info(
             f"Shooting Inputs Debug | dist: {self.blackboard.dist_to_closest_enemy:.2f}, "
@@ -792,18 +1121,62 @@ class TacticalBrainNode(Node):
         # 2. עדכון נתוני חברי צוות
         teammates = self.team_comms.get_teammates()
         self.blackboard.num_teammates = len(teammates)
+        teammate_is_safe_refuge = False
         if teammates:
             first_teammate_id = list(teammates.keys())[0]
             teammate_data = teammates[first_teammate_id]
 
             self.blackboard.teammate_x = teammate_data.get('x')
             self.blackboard.teammate_y = teammate_data.get('y')
-            self.blackboard.teammate_requested_help = teammate_data.get('needs_help', False)
+            self.blackboard.dist_to_nearest_teammate = distance(
+                current_pos,
+                (self.blackboard.teammate_x, self.blackboard.teammate_y)
+            )
+            # needs_help/is_fighting come from the same teammate's own
+            # distress-call broadcast (teams/team_X/status, see
+            # team_comms.py), not from this position broadcast, which
+            # never carries either.
+            help_status = self.team_comms.get_teammate_help_status(first_teammate_id)
+            self.blackboard.dist_to_help_teammate = self.blackboard.dist_to_nearest_teammate
+            self.blackboard.teammate_requested_help = (
+                help_status is not None and help_status.get('needs_help', False)
+            )
+            teammate_is_safe_refuge = not (help_status is not None and help_status.get('is_fighting', False))
+        else:
+            self.blackboard.dist_to_nearest_teammate = 100.0
+            self.blackboard.teammate_requested_help = False
+
+        # 3. hide_x/y: run to my nearest teammate, provided they're not
+        # currently fighting (a teammate under fire is not a safe refuge) -
+        # else retreat to the most recent point on my own trail where no
+        # enemy was in sight (safe_waypoints, populated above). Used by
+        # both HideAndWaitAction and RunFromEnemyAction's no-known-threat
+        # fallback.
+        if teammate_is_safe_refuge and self.blackboard.teammate_x is not None:
+            self.blackboard.hide_x = self.blackboard.teammate_x
+            self.blackboard.hide_y = self.blackboard.teammate_y
+        elif self.safe_waypoints:
+            self.blackboard.hide_x, self.blackboard.hide_y = self.safe_waypoints[-1]
+        else:
+            self.blackboard.hide_x, self.blackboard.hide_y = current_pos
+
+        # am_i_in_danger is the single source of truth for "am I in
+        # trouble" - read by both IsLowHealthOrOutnumbered (survival
+        # branch) and _publish_team_status/sense_and_think (the
+        # distress-call broadcast teammates react to), so the threshold
+        # can't drift between them.
+        self.blackboard.am_i_in_danger = (
+            self.blackboard.health < 0.5
+            or self.blackboard.num_enemies > self.blackboard.num_teammates + 1
+        )
 
     def pose_callback(self, msg):
         self.blackboard.current_x = msg.pose.pose.position.x
         self.blackboard.current_y = msg.pose.pose.position.y
         self.blackboard.current_yaw = geometry_utils.get_yaw_from_quaternion(msg.pose.pose.orientation)
+
+        if not self.safe_waypoints:
+            self.safe_waypoints.append((self.blackboard.current_x, self.blackboard.current_y))
 
     def map_callback(self, msg):
         # slam_toolbox's /map lives in its own run-relative TF frame (it
@@ -820,8 +1193,20 @@ class TacticalBrainNode(Node):
         except (LookupException, ConnectivityException, ExtrapolationException):
             return
 
-        self.static_obstacles = obstacles
-        self.get_logger().info(f"static_obstacles updated from /map: {len(obstacles)} occupied cells")
+        # /map only ever tells us about walls/terrain - dead robots are a
+        # separate, non-SLAM source of obstacles, merged in fresh each time
+        # rather than kept in a second persistent set, since this
+        # assignment would otherwise wholesale-overwrite them (see
+        # team_comms.py's dead_robot_locations docstring).
+        dead_cells = {
+            (round(dx_m / A_planner.XY_RESOLUTION), round(dy_m / A_planner.XY_RESOLUTION))
+            for dx_m, dy_m in self.team_comms.get_dead_robot_locations()
+        }
+        self.static_obstacles = obstacles | dead_cells
+        self.get_logger().info(
+            f"static_obstacles updated from /map: {len(obstacles)} occupied cells "
+            f"(+{len(dead_cells)} dead-robot cells)"
+        )
 
 def distance(a, b):
     return math.hypot(a[0] - b[0], a[1] - b[1])
