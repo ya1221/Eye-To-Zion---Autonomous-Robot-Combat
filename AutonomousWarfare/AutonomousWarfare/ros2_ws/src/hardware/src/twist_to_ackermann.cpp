@@ -25,8 +25,13 @@ void TwistToAckermann::twistCallback(const geometry_msgs::msg::Twist::SharedPtr 
   out->header.frame_id = "base_link";
   out->twist = *msg;
 
-  // Removed flawed angular.z offset logic.
-  // Mechanical steering offset should be handled in the hardware driver.
+  // Read the offset parameter (in degrees) and convert to radians
+  double offset_deg = this->get_parameter("steering_angle_offset").as_double();
+  double offset_rad = offset_deg * (M_PI / 180.0);
+  
+  // Note: angular.z is angular velocity (rad/s), not steering angle directly.
+  // Adding an offset here means adding a constant angular velocity.
+  out->twist.angular.z += offset_rad;
 
   RCLCPP_INFO(this->get_logger(), "The angle is: %f", out->twist.angular.z);
   pub_->publish(std::move(out));

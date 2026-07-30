@@ -1,0 +1,4 @@
+source;share/foxglove/local_setup.bash
+source;share/foxglove/local_setup.dsv
+source;share/foxglove/local_setup.sh
+source;share/foxglove/local_setup.zsh

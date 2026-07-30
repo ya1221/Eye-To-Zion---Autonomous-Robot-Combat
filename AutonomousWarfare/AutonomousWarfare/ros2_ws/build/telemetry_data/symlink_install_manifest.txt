@@ -1,0 +1,17 @@
+/ros2_ws/install/telemetry_data/lib/telemetry_data/telegraf_bridge
+/ros2_ws/install/telemetry_data/share/telemetry_data/launch/launch.py
+/ros2_ws/install/telemetry_data/share/ament_index/resource_index/package_run_dependencies/telemetry_data
+/ros2_ws/install/telemetry_data/share/ament_index/resource_index/parent_prefix_path/telemetry_data
+/ros2_ws/install/telemetry_data/share/telemetry_data/environment/ament_prefix_path.sh
+/ros2_ws/install/telemetry_data/share/telemetry_data/environment/ament_prefix_path.dsv
+/ros2_ws/install/telemetry_data/share/telemetry_data/environment/path.sh
+/ros2_ws/install/telemetry_data/share/telemetry_data/environment/path.dsv
+/ros2_ws/install/telemetry_data/share/telemetry_data/local_setup.bash
+/ros2_ws/install/telemetry_data/share/telemetry_data/local_setup.sh
+/ros2_ws/install/telemetry_data/share/telemetry_data/local_setup.zsh
+/ros2_ws/install/telemetry_data/share/telemetry_data/local_setup.dsv
+/ros2_ws/install/telemetry_data/share/telemetry_data/package.dsv
+/ros2_ws/install/telemetry_data/share/ament_index/resource_index/packages/telemetry_data
+/ros2_ws/install/telemetry_data/share/telemetry_data/cmake/telemetry_dataConfig.cmake
+/ros2_ws/install/telemetry_data/share/telemetry_data/cmake/telemetry_dataConfig-version.cmake
+/ros2_ws/install/telemetry_data/share/telemetry_data/package.xml

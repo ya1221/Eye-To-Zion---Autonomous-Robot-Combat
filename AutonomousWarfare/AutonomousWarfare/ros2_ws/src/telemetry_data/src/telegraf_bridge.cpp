@@ -13,6 +13,12 @@ TelegrafBridge::TelegrafBridge() : Node("telegraf_bridge"), telemetry_sender_()
         std::bind(&TelegrafBridge::pose_callback, this, std::placeholders::_1)
     );
 
+    ammo_sub_ = this->create_subscription<std_msgs::msg::Int32>(
+        "/ammo", 
+        10, 
+        std::bind(&TelegrafBridge::ammo_callback, this, std::placeholders::_1)
+    );
+
     std::random_device rd;
     rng_ = std::mt19937(rd());
     dist_ = std::uniform_int_distribution<int>(0, 100);
@@ -76,6 +82,17 @@ void TelegrafBridge::health_callback(){
     );
 
     telemetry_sender_.send_metric(health);
+}
+
+void TelegrafBridge::ammo_callback(const std_msgs::msg::Int32::SharedPtr ammo_msg)
+{
+    std::string ammo_payload = fmt::format(
+        "robot_ammo,id=1 ammo={} {}\n",
+        ammo_msg->data,
+        get_timestamp()
+    );
+
+    telemetry_sender_.send_metric(ammo_payload);
 }
 
 

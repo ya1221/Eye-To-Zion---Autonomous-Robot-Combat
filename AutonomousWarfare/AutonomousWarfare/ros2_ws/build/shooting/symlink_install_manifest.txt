@@ -1,0 +1,17 @@
+/ros2_ws/install/shooting/lib/shooting/shooting_node
+/ros2_ws/install/shooting/share/shooting/launch/launch.py
+/ros2_ws/install/shooting/share/ament_index/resource_index/package_run_dependencies/shooting
+/ros2_ws/install/shooting/share/ament_index/resource_index/parent_prefix_path/shooting
+/ros2_ws/install/shooting/share/shooting/environment/ament_prefix_path.sh
+/ros2_ws/install/shooting/share/shooting/environment/ament_prefix_path.dsv
+/ros2_ws/install/shooting/share/shooting/environment/path.sh
+/ros2_ws/install/shooting/share/shooting/environment/path.dsv
+/ros2_ws/install/shooting/share/shooting/local_setup.bash
+/ros2_ws/install/shooting/share/shooting/local_setup.sh
+/ros2_ws/install/shooting/share/shooting/local_setup.zsh
+/ros2_ws/install/shooting/share/shooting/local_setup.dsv
+/ros2_ws/install/shooting/share/shooting/package.dsv
+/ros2_ws/install/shooting/share/ament_index/resource_index/packages/shooting
+/ros2_ws/install/shooting/share/shooting/cmake/shootingConfig.cmake
+/ros2_ws/install/shooting/share/shooting/cmake/shootingConfig-version.cmake
+/ros2_ws/install/shooting/share/shooting/package.xml

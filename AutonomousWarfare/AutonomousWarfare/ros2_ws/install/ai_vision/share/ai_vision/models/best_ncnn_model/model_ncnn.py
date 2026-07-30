@@ -1,0 +1,1 @@
+/ros2_ws/build/ai_vision/models/best_ncnn_model/model_ncnn.py

@@ -1,44 +1,44 @@
-# /ydlidar_ros2_driver_node:
-#   ros__parameters:
-#     port: "/dev/ttyUSB0"
-#     baudrate: 512000        # Mandatory for TG15
-#     lidar_type: 0           # 0 = TOF family
-#     device_type: 0          # 0 = Serial
-#     sample_rate: 20         # TG15 supports 20kHz
-#     isToFLidar: true        # CRITICAL: Enables TOF parsing
-#     frame_id: "lidar_link"
-#     inverted: false
-#     angle_max: 180.0
-#     angle_min: -180.0
-#     range_max: 15.0
-#     range_min: 0.01
-#     frequency: 10.0        # Motor rotation (Hz)
-#     auto_reconnect: true
-#     fixed_resolution: true  # Forces consistent point count per scan
-#     isSingleChannel: false  # Required for TG-series (multi-channel TOF)
-#     reversion: true         # TG-series scan direction correction
-#     intensity: false        # TG15 does not provide intensity data
-
-ydlidar_ros2_driver_node:
+/ydlidar_ros2_driver_node:
   ros__parameters:
-    port: /dev/ttyUSB0
-    frame_id: lidar_link        # match your URDF
-    baudrate: 230400
-    lidar_type: 0               # 0 = triangle-ranging (0xAA 0x55 protocol)
-    device_type: 0              # serial
-    sample_rate: 4              # ~4250 samples/sec (425 pts × 10 Hz)
-    isSingleChannel: true       # CRITICAL: D6 is passive/one-way, no command response
-    intensity: true             # your packets have 3-byte samples
-    intensity_bit: 8            # 8-bit intensity (your values 89-144)
-    abnormal_check_count: 4
-    fixed_resolution: true
-    reversion: false
+    port: "/dev/ttyUSB0"
+    baudrate: 512000        # Mandatory for TG15
+    lidar_type: 0           # 0 = TOF family
+    device_type: 0          # 0 = Serial
+    sample_rate: 20         # TG15 supports 20kHz
+    isToFLidar: true        # CRITICAL: Enables TOF parsing
+    frame_id: "lidar_link"
     inverted: false
-    auto_reconnect: true
-    support_motor_dtr: false
     angle_max: 180.0
     angle_min: -180.0
-    range_max: 12.0
-    range_min: 0.02
-    frequency: 10.0             # confirmed 10.0 Hz
-    invalid_range_is_inf: false
+    range_max: 15.0
+    range_min: 0.01
+    frequency: 10.0        # Motor rotation (Hz)
+    auto_reconnect: true
+    fixed_resolution: true  # Forces consistent point count per scan
+    isSingleChannel: false  # Required for TG-series (multi-channel TOF)
+    reversion: true         # TG-series scan direction correction
+    intensity: false        # TG15 does not provide intensity data
+
+# ydlidar_ros2_driver_node:
+#   ros__parameters:
+#     port: /dev/ttyUSB0
+#     frame_id: lidar_link        # match your URDF
+#     baudrate: 230400
+#     lidar_type: 0               # 0 = triangle-ranging (0xAA 0x55 protocol)
+#     device_type: 0              # serial
+#     sample_rate: 4              # ~4250 samples/sec (425 pts × 10 Hz)
+#     isSingleChannel: true       # CRITICAL: D6 is passive/one-way, no command response
+#     intensity: true             # your packets have 3-byte samples
+#     intensity_bit: 8            # 8-bit intensity (your values 89-144)
+#     abnormal_check_count: 4
+#     fixed_resolution: true
+#     reversion: false
+#     inverted: false
+#     auto_reconnect: true
+#     support_motor_dtr: false
+#     angle_max: 180.0
+#     angle_min: -180.0
+#     range_max: 12.0
+#     range_min: 0.02
+#     frequency: 10.0             # confirmed 10.0 Hz
+#     invalid_range_is_inf: false

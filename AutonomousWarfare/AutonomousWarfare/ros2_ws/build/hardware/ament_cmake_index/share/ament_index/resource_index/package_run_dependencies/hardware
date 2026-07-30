@@ -1,0 +1,1 @@
+rclcpp;rclcpp_lifecycle;hardware_interface;pluginlib;geometry_msgs;libgpiod-dev;sensor_msgs;tf2;nav_msgs;xacro;controller_manager;robot_state_publisher;ackermann_steering_controller;joint_state_broadcaster;ament_lint_auto;ament_lint_common

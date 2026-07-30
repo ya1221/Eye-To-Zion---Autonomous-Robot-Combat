@@ -21,6 +21,9 @@ services:
       - "/dev/ttyUSB0:/dev/ttyUSB0"
       - "/dev/ttyACM0:/dev/ttyACM0"
     
+    env_file:
+      - .env
+
     environment:
       # Sets the ROS 2 communication group (must match your laptop/other robots)
       - ROS_DOMAIN_ID=0  
@@ -32,9 +35,6 @@ services:
     volumes:
       # Persistent workspace: Code lives on the Pi but builds inside Docker
       - ./ros2_ws:/ros2_ws
-      
-      # Bind Mount for AI code: Edit Python scripts on the Pi; updates instantly in Docker
-      - "./ai_vision:/app"
       
       # The GUI Socket: A communication pipe that sends window data to your monitor
       - "/tmp/.X11-unix:/tmp/.X11-unix:rw" 
@@ -107,7 +107,7 @@ services:
     volumes:
       # Template, not the final config - @@MY_TEAM_IDX@@ gets substituted
       # by $MY_TEAM_IDX at container startup (see entrypoint/command below).
-      - ./zenoh_bridge_config.json5.template:/zenoh_bridge_config.json5.template:ro
+      - ./zenoh_config.json5.template:/zenoh_bridge_config.json5.template:ro
     # Overriding entrypoint to render the allow-list template before
     # exec'ing the real bridge binary (confirmed via `docker run --entrypoint
     # sh ... cat /entrypoint.sh`: the image's own entrypoint is just
@@ -131,7 +131,7 @@ services:
         sed "s/@@MY_TEAM_IDX@@/$$MY_TEAM_IDX/g" /zenoh_bridge_config.json5.template > /tmp/zenoh_bridge_config.json5 &&
         exec /zenoh-bridge-ros2dds
         -c /tmp/zenoh_bridge_config.json5
-        -e tcp/remote-pc:7447
+        -e tcp/100.72.140.5:7447
         -e tcp/itay-laptop:7447
         -e tcp/itay-laptop-1:7447
         -e tcp/itay-laptop-2:7447

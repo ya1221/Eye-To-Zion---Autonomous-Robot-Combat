@@ -31,6 +31,32 @@ ROBOT_RADIUS = 0.25   # רדיוס פיזי של הרובוט להתנגשויו
 PLANNING_CLEARANCE = 0.40
 BUCKET_CELLS = math.ceil(PLANNING_CLEARANCE / XY_RESOLUTION) + 1  # spatial-index bucket size for check_collision
 
+# Plannable-region geofence [meters]. check_collision rejects any node
+# outside [ARENA_MIN, ARENA_MAX] on both axes. These used to be the bare
+# literals 0.1 / 4.9 hardcoded inside check_collision - fine for the 5m
+# Gazebo maze, but on the real arena that boundary is either meaningless
+# (never protects the true edge) or, if the arena is smaller, lets the
+# robot plan straight off it. Now configurable via set_arena_bounds() so
+# main_brain can point it at the real arena size at startup. DEFAULTS ARE
+# THE OLD 0.1 / 4.9 so sim behaviour is byte-for-byte unchanged until
+# something calls the setter. NOTE: this is the *planning* arena, distinct
+# from the camera-grid arena_size_meters (that's a perspective-grid scale
+# factor, not the drivable extent) - do not conflate the two.
+ARENA_MIN = 0.1
+ARENA_MAX = 4.9
+
+
+def set_arena_bounds(size_meters, margin=0.1):
+    """Point the plannable-region geofence at the real arena.
+
+    size_meters is the drivable arena's side length; margin keeps A* off
+    the very edge. Call once at startup (see main_brain). Leaves the
+    defaults (sim maze) in place if never called.
+    """
+    global ARENA_MIN, ARENA_MAX
+    ARENA_MIN = margin
+    ARENA_MAX = size_meters - margin
+
 # === פרמטרי עלויות (Costs) ===
 H_WEIGHT = 1.2        # משקל ההיוריסטיקה (Weighted A*) - מאוזן למניעת תקיעה
 # Minimum consecutive steps (0.6m at MOVE_STEP=0.2) a direction run must
@@ -297,8 +323,8 @@ def check_collision(node, obstacle_set, xy_res, spatial_index):
     curr_x = node.x_ind * xy_res
     curr_y = node.y_ind * xy_res
 
-    # 1. גבולות המגרש
-    if curr_x <= 0.1 or curr_x >= 4.9 or curr_y <= 0.1 or curr_y >= 4.9:
+    # 1. גבולות המגרש (configurable geofence, see set_arena_bounds)
+    if curr_x <= ARENA_MIN or curr_x >= ARENA_MAX or curr_y <= ARENA_MIN or curr_y >= ARENA_MAX:
         return False
 
     # 2. בדיקה שהמשבצת הנוכחית אינה קיר

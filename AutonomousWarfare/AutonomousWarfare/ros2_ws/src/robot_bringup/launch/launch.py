@@ -53,17 +53,21 @@ def generate_launch_description():
         ),
     )
 
-    # --- Sensor fusion (YOLO /ai/detections + /scan -> local_enemy_position) --- #
-    sensor_fusion_launch = IncludeLaunchDescription(
+    ai_vision_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            PathJoinSubstitution([FindPackageShare('sensor_fusion_pkg'), 'launch', 'main.launch.py'])
+            PathJoinSubstitution([FindPackageShare('ai_vision'), 'launch', 'launch.py'])
         ),
     )
 
-    # --- Tactical brain (BT + A* orchestrator, drives controller_server directly) --- #
     tactical_brain_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution([FindPackageShare('tactical_brain'), 'launch', 'main.launch.py'])
+        ),
+    )
+
+    sensor_fusion_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([FindPackageShare('sensor_fusion_pkg'), 'launch', 'main.launch.py'])
         ),
     )
 
@@ -76,6 +80,7 @@ def generate_launch_description():
         telemetry_launch,
         imu_launch,
         shooting_launch,
+        ai_vision_launch,
         sensor_fusion_launch,
         tactical_brain_launch,
         LogInfo(msg='========== All Subsystems Launched =========='),

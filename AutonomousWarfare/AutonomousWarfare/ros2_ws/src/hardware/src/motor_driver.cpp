@@ -176,15 +176,6 @@ hardware_interface::CallbackReturn MotorDriver::on_init(const hardware_interface
             servo.servo_index = std::stoi(joint.parameters.at("servo_index"));
             // Steering uses position command
             servo.cmd_index = (updater.cmd_pos_idx != -1) ? updater.cmd_pos_idx : total_commands;
-            
-            // Read optional trim_rad parameter
-            if (joint.parameters.find("trim_rad") != joint.parameters.end()) {
-                servo.trim_rad = std::stod(joint.parameters.at("trim_rad"));
-                RCLCPP_INFO(rclcpp::get_logger("motor_driver"),
-                    "Applying trim_rad=%.4f to servo_index=%d",
-                    servo.trim_rad, servo.servo_index);
-            }
-
             this->active_servos_.push_back(servo);
 
             RCLCPP_INFO(rclcpp::get_logger("motor_driver"),
@@ -515,13 +506,13 @@ hardware_interface::return_type MotorDriver::write(const rclcpp::Time &, const r
         int cmd_len;
 
         if (this->active_servos_.size() >= 2) {
-            double left_rad  = this->hw_commands_[this->active_servos_[0].cmd_index] + this->active_servos_[0].trim_rad;
-            double right_rad = this->hw_commands_[this->active_servos_[1].cmd_index] + this->active_servos_[1].trim_rad;
+            double left_rad  = this->hw_commands_[this->active_servos_[0].cmd_index];
+            double right_rad = this->hw_commands_[this->active_servos_[1].cmd_index];
 
             cmd_len = snprintf(cmd_buf, sizeof(cmd_buf), "S%.4f,%.4f\n", left_rad, right_rad);
         } else {
             // Single servo fallback
-            double rad = this->hw_commands_[this->active_servos_[0].cmd_index] + this->active_servos_[0].trim_rad;
+            double rad = this->hw_commands_[this->active_servos_[0].cmd_index];
             cmd_len = snprintf(cmd_buf, sizeof(cmd_buf), "S%.4f\n", rad);
         }
 

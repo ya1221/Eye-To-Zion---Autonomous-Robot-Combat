@@ -1,0 +1,9 @@
+/ros2_ws/build/main_brain/CMakeFiles/uninstall.dir
+/ros2_ws/build/main_brain/CMakeFiles/main_brain_uninstall.dir
+/ros2_ws/build/main_brain/CMakeFiles/test.dir
+/ros2_ws/build/main_brain/CMakeFiles/edit_cache.dir
+/ros2_ws/build/main_brain/CMakeFiles/rebuild_cache.dir
+/ros2_ws/build/main_brain/CMakeFiles/list_install_components.dir
+/ros2_ws/build/main_brain/CMakeFiles/install.dir
+/ros2_ws/build/main_brain/CMakeFiles/install/local.dir
+/ros2_ws/build/main_brain/CMakeFiles/install/strip.dir

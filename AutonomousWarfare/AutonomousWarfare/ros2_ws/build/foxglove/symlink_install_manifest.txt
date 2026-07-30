@@ -1,0 +1,16 @@
+/ros2_ws/install/foxglove/share/foxglove/launch/launch.py
+/ros2_ws/install/foxglove/share/ament_index/resource_index/package_run_dependencies/foxglove
+/ros2_ws/install/foxglove/share/ament_index/resource_index/parent_prefix_path/foxglove
+/ros2_ws/install/foxglove/share/foxglove/environment/ament_prefix_path.sh
+/ros2_ws/install/foxglove/share/foxglove/environment/ament_prefix_path.dsv
+/ros2_ws/install/foxglove/share/foxglove/environment/path.sh
+/ros2_ws/install/foxglove/share/foxglove/environment/path.dsv
+/ros2_ws/install/foxglove/share/foxglove/local_setup.bash
+/ros2_ws/install/foxglove/share/foxglove/local_setup.sh
+/ros2_ws/install/foxglove/share/foxglove/local_setup.zsh
+/ros2_ws/install/foxglove/share/foxglove/local_setup.dsv
+/ros2_ws/install/foxglove/share/foxglove/package.dsv
+/ros2_ws/install/foxglove/share/ament_index/resource_index/packages/foxglove
+/ros2_ws/install/foxglove/share/foxglove/cmake/foxgloveConfig.cmake
+/ros2_ws/install/foxglove/share/foxglove/cmake/foxgloveConfig-version.cmake
+/ros2_ws/install/foxglove/share/foxglove/package.xml

@@ -1,6 +1,7 @@
 import json
 import math
 import os
+import threading
 import time
 
 from tactical_brain import world_model
@@ -24,10 +25,16 @@ from robot_localization.srv import SetPose
 from tf2_ros import Buffer, TransformListener
 from tf2_ros import LookupException, ConnectivityException, ExtrapolationException
 import py_trees
+import std_srvs.srv
 
-
-# from A_alg import MAX_COMBAT_DISTANCE
-MAX_COMBAT_DISTANCE = 5.0 # ערך זמני עד שנשלב את שאר הקבצים
+# attack_branch's engagement range - tied directly to the gun's actual
+# firing envelope (ballistics_helper.MAX_FIRING_DISTANCE = 3.0m) instead
+# of a separate hardcoded 5.0. With 5.0 the robot would commit to an
+# engagement (stop patrolling, creep, align, log "Engaging enemy") from
+# 3-5m, where trigger_controller.evaluate can never actually fire
+# (dist > MAX_FIRING_DISTANCE) - it just looked like "aims but never
+# shoots". Single source of truth so the two can't drift apart again.
+MAX_COMBAT_DISTANCE = ballistics_helper.MAX_FIRING_DISTANCE
 
 # A raw /ai/detections reading older than this is treated as "no current
 # heading fix" rather than trusted stale data - two missed tree ticks
@@ -452,11 +459,10 @@ class IsEnemyClose(py_trees.behaviour.Behaviour):
     def __init__(self, name = "is_enemy_close"):
         super(IsEnemyClose, self).__init__(name)
         self.blackboard = py_trees.blackboard.Client(name=self.name)
-        self.blackboard.register_key(key="dist_to_closest_enemy", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="current_heading_error", access=py_trees.common.Access.READ)
 
     def update(self):
-        dist= self.blackboard.dist_to_closest_enemy
-        if dist is not None and dist <= MAX_COMBAT_DISTANCE:
+        if self.blackboard.current_heading_error is not None:
             return py_trees.common.Status.SUCCESS
         return py_trees.common.Status.FAILURE
     
@@ -464,11 +470,10 @@ class HasLineOfSightToEnemy(py_trees.behaviour.Behaviour):
     def __init__(self, name = "has_line_of_sight_to_enemy"):
         super(HasLineOfSightToEnemy, self).__init__(name)
         self.blackboard = py_trees.blackboard.Client(name=self.name)
-        self.blackboard.register_key(key="has_line_of_sight_to_closest_enemy", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="current_heading_error", access=py_trees.common.Access.READ)
 
     def update(self):
-        has_line_of_sight_to_enemy = self.blackboard.has_line_of_sight_to_closest_enemy
-        if has_line_of_sight_to_enemy is not None and has_line_of_sight_to_enemy:
+        if self.blackboard.current_heading_error is not None:
             return py_trees.common.Status.SUCCESS
         return py_trees.common.Status.FAILURE
 
@@ -493,12 +498,19 @@ class AlignToEnemyAction(py_trees.behaviour.Behaviour):
         self.ros_node = ros_node
         self.blackboard = py_trees.blackboard.Client(name=self.name)
         self.blackboard.register_key(key="current_heading_error", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="dist_to_closest_enemy", access=py_trees.common.Access.READ)
 
     def update(self):
         heading_error = self.blackboard.current_heading_error
         cmd = Twist()
         if heading_error is not None:
-            cmd.linear.x, cmd.angular.z = aim_controller.compute_alignment_twist(heading_error)
+            # Pass dist_to_closest_enemy so compute_alignment_twist can hold
+            # at aim_controller.STANDOFF_DISTANCE_METERS instead of creeping
+            # all the way to point-blank/collision range against the target
+            # while firing.
+            cmd.linear.x, cmd.angular.z = aim_controller.compute_alignment_twist(
+                heading_error, self.blackboard.dist_to_closest_enemy
+            )
         # else: no fresh detection - publish the zero Twist() default
         # rather than creep blindly on a stale/missing heading error.
         self.ros_node.cmd_vel_pub.publish(cmd)
@@ -526,12 +538,8 @@ class AttackAction(py_trees.behaviour.Behaviour):
         # this action never runs at all (see that method for why - a
         # single-tick, always-SUCCESS leaf like this one can't rely on
         # terminate()/initialise() to detect "I was skipped this tick").
-        should_fire = self.ros_node.trigger_controller.evaluate(
-            self.blackboard.dist_to_closest_enemy,
-            self.blackboard.current_heading_error,
-        )
-        self.ros_node.shooting_mod_pub.publish(String(data="SINGLE"))
-        self.ros_node.shooting_cmd_pub.publish(Bool(data=should_fire))
+     
+        self.ros_node.command_shooting(self.blackboard.current_heading_error)
         return py_trees.common.Status.SUCCESS
     
 #######################
@@ -1059,6 +1067,22 @@ class TacticalBrainNode(Node):
             / self.get_parameter('grid_n').get_parameter_value().integer_value
         )
 
+        # A*'s plannable-region geofence (A_planner.check_collision). This
+        # is the real DRIVABLE arena extent, deliberately SEPARATE from
+        # arena_size_meters above (which is the camera perspective-grid
+        # scale, not a drivable size - conflating them would strangle the
+        # 5m sim maze down to a 2m box). Default 5.0 reproduces the old
+        # hardcoded 0.1/4.9 geofence exactly, so sim is unchanged; on the
+        # real robot set PLANNING_ARENA_SIZE_METERS to the true arena side
+        # length so A* won't plan a node off the actual boundary.
+        self.declare_parameter(
+            'planning_arena_size_meters',
+            float(os.environ.get('PLANNING_ARENA_SIZE_METERS', 5.0))
+        )
+        A_planner.set_arena_bounds(
+            self.get_parameter('planning_arena_size_meters').get_parameter_value().double_value
+        )
+
         # Real pose source is /odometry/global, robot_localization's
         # ekf_global node (map->odom, ArUco-corrected - see
         # localization/launch.py on the rpi5 branch) - NOT /amcl_pose,
@@ -1135,6 +1159,19 @@ class TacticalBrainNode(Node):
         # enemies_by_detector is keyed by whichever robot_id reported each
         # sighting, so my own detection and a teammate's don't clobber each
         # other if both are currently tracking (possibly different) enemies.
+        #
+        # Guards enemies_by_detector against the executor's two threads:
+        # the team/local-detection callbacks (pose_callback_group) mutate it
+        # IN PLACE while sense_and_think (the tree timer, default group)
+        # iterates it in prune_stale_enemies - a concurrent insert during
+        # that iteration raises "dictionary changed size during iteration"
+        # and kills the node. MultiThreadedExecutor + separate callback
+        # groups (needed so A* doesn't starve pose updates) is exactly what
+        # makes these run in parallel, so a lock is required. teammates_dict
+        # is only ever REASSIGNED wholesale (never mutated in place), so it
+        # doesn't need this - update_blackboard just captures one local
+        # reference to avoid a read-after-reassign KeyError.
+        self._state_lock = threading.Lock()
         self.enemies_by_detector = {}
         self.team_enemy_pub = self.create_publisher(
             String,
@@ -1182,14 +1219,25 @@ class TacticalBrainNode(Node):
         # centralized safety-reset (below) agree on the same debounce/
         # hysteresis state.
         self.trigger_controller = ballistics_helper.TriggerController()
-        self.shooting_mod_pub = self.create_publisher(String, 'shooting_mod', 10)
-        self.shooting_cmd_pub = self.create_publisher(Bool, 'shooting_cmd', 10)
+        # Correct topic names matching shooting_node's subscriptions
+        self.firing_pub = self.create_publisher(Bool, '/firing', 10)
+        # ── Shooting control (matches shooting_node's interface) ──
+        self.shooting_mode_pub = self.create_publisher(String, '/shooting_mode', 10)
+        self.fire_once_client = self.create_client(
+            std_srvs.srv.Trigger, '/shooting_node/fire_once')
+
+        self.declare_parameter('shooting_mode', 'single')   # 'single' or 'auto'
+        self.declare_parameter('auto_fire_rate_hz', 2.0)
+        self.declare_parameter('max_fire_angle_deg', 30.0)
 
         # AlignToEnemyAction's output (see aim_controller.py). Same topic
         # Nav2's controller normally publishes to - safe because
         # attack_branch preempts patrol_branch (see AlignToEnemyAction's
         # docstring), so only one of the two is ever actively driving.
         self.cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel', 10)
+
+        # ArUco Odometry continuous publisher (for EKF fusion)
+        self.aruco_odom_pub = self.create_publisher(Odometry, '/aruco/odom', 10)
 
         # 2. אתחול משתני מצב מקומיים (enemies_by_detector כבר אותחל למעלה,
         # ליד team_enemy_pub/team_enemy_sub; enemies_list נגזר ממנו כל טיק)
@@ -1276,8 +1324,15 @@ class TacticalBrainNode(Node):
         # my_team_positions_callback - כאן רק מנקים זיהויים ישנים (מכל
         # הרובוטים שדיווחו) ומחשבים מהם את הרשתות הטקטיות, בעזרת
         # static_obstacles שרק אנחנו מחזיקים)
-        self.enemies_by_detector = world_model.prune_stale_enemies(self.enemies_by_detector)
-        self.enemies_list = list(self.enemies_by_detector.values())
+        # Lock while pruning/snapshotting: the detection callbacks insert
+        # into enemies_by_detector in place on the other executor thread,
+        # and iterating it here without the lock can raise "dictionary
+        # changed size during iteration" (see self._state_lock in __init__).
+        # enemies_list is a plain snapshot the rest of the tick reads from,
+        # so nothing past this point touches the live dict.
+        with self._state_lock:
+            self.enemies_by_detector = world_model.prune_stale_enemies(self.enemies_by_detector)
+            self.enemies_list = list(self.enemies_by_detector.values())
         self.danger_dict = world_model.get_danger_dict(self.danger_dict, self.enemies_list, self.static_obstacles)
         self.danger_dict = world_model.delete_old_danger_squares(self.danger_dict)
         self.teammates_aura_set = world_model.get_teammates_aura_set(self.teammates_dict)
@@ -1304,7 +1359,7 @@ class TacticalBrainNode(Node):
             aruco_x = my_entry['x'] * self.grid_to_meters
             aruco_y = my_entry['y'] * self.grid_to_meters
             aruco_yaw = math.radians(my_entry['angle'])
-            self._check_drift(aruco_x, aruco_y, aruco_yaw)
+            self._publish_aruco_odom(aruco_x, aruco_y, aruco_yaw)
 
         self.teammates_dict = {
             r['id']: {'x': r['x'] * self.grid_to_meters, 'y': r['y'] * self.grid_to_meters, 'needs_help': False}
@@ -1326,6 +1381,7 @@ class TacticalBrainNode(Node):
             return
         self._latest_heading_error_deg = detections[0].get('angle')
         self._latest_detection_time = time.time()
+      
 
     def local_enemy_position_callback(self, msg):
         # sensor_fusion_node only publishes when it actually has a fused
@@ -1334,11 +1390,12 @@ class TacticalBrainNode(Node):
         # world_model.prune_stale_enemies so an old detection doesn't linger
         # forever once the enemy is no longer seen.
         now = time.time()
-        self.enemies_by_detector[self.robot_id] = {
-            'x': msg.pose.position.x,
-            'y': msg.pose.position.y,
-            'timestamp': now,
-        }
+        with self._state_lock:
+            self.enemies_by_detector[self.robot_id] = {
+                'x': msg.pose.position.x,
+                'y': msg.pose.position.y,
+                'timestamp': now,
+            }
         # Don't just keep this to myself - broadcast it on the team-scoped
         # topic (mirrored across Zenoh exactly like teams/team_X/positions)
         # so every teammate's main_brain merges it into their own picture.
@@ -1361,11 +1418,12 @@ class TacticalBrainNode(Node):
             # in local_enemy_position_callback, no need to process again.
             return
 
-        self.enemies_by_detector[detector_id] = {
-            'x': data['x'],
-            'y': data['y'],
-            'timestamp': data.get('timestamp', time.time()),
-        }
+        with self._state_lock:
+            self.enemies_by_detector[detector_id] = {
+                'x': data['x'],
+                'y': data['y'],
+                'timestamp': data.get('timestamp', time.time()),
+            }
 
     def update_blackboard_from_world_state(self):
         # 1. עדכון נתוני אויבים
@@ -1377,9 +1435,24 @@ class TacticalBrainNode(Node):
             visible_enemies = []
             hidden_enemies = []
             
+            # המרה לקואורדינטות רשת (גריד) עבור בדיקת קו ראייה
+            grid_current_pos = (
+                self.blackboard.current_x / A_planner.XY_RESOLUTION,
+                self.blackboard.current_y / A_planner.XY_RESOLUTION
+            )
+            # The enemy's own position is a lidar return SLAM marks
+            # occupied, so a ray checked all the way to it always reports
+            # "blocked" by the target itself - ignore a margin around both
+            # endpoints (see world_model.LOS_ENDPOINT_MARGIN_METERS). In
+            # grid cells, since grid_* are in world/XY_RESOLUTION units.
+            los_margin_cells = world_model.LOS_ENDPOINT_MARGIN_METERS / A_planner.XY_RESOLUTION
+
             for enemy in self.enemies_list:
-                enemy_pos = (enemy['x'], enemy['y'])
-                if world_model.line_of_sight_clear(current_pos, enemy_pos, self.static_obstacles):
+                grid_enemy_pos = (
+                    enemy['x'] / A_planner.XY_RESOLUTION,
+                    enemy['y'] / A_planner.XY_RESOLUTION
+                )
+                if world_model.line_of_sight_clear(grid_current_pos, grid_enemy_pos, self.static_obstacles, endpoint_margin_cells=los_margin_cells):
                     visible_enemies.append(enemy)
                 else:
                     hidden_enemies.append(enemy)
@@ -1417,65 +1490,88 @@ class TacticalBrainNode(Node):
         # catch "enemy lost" here - see ballistics_helper.py's docstring
         # and the AttackAction comment for why terminate()/initialise()
         # can't do this for a single-tick, always-SUCCESS leaf.
-        attack_preconditions_met = (
-            self.blackboard.dist_to_closest_enemy <= MAX_COMBAT_DISTANCE
-            and self.blackboard.has_line_of_sight_to_closest_enemy
+        attack_preconditions_met = self.blackboard.current_heading_error is not None
+        
+        self.get_logger().info(
+            f"Shooting Inputs Debug | dist: {self.blackboard.dist_to_closest_enemy:.2f}, "
+            f"LOS: {self.blackboard.has_line_of_sight_to_closest_enemy}, "
+            f"heading_error: {self.blackboard.current_heading_error}, "
+            f"preconditions_met: {attack_preconditions_met}"
         )
+
         if not attack_preconditions_met:
             self.trigger_controller.reset()
-            self.shooting_cmd_pub.publish(Bool(data=False))
+            self.cease_fire()
             self.cmd_vel_pub.publish(Twist())
 
         # 2. עדכון נתוני חברי צוות
-        self.blackboard.num_teammates = len(self.teammates_dict)
-        if self.teammates_dict:
-            first_teammate_id = list(self.teammates_dict.keys())[0]
-            teammate_data = self.teammates_dict[first_teammate_id]
-            
+        # Capture one reference: my_team_positions_callback reassigns
+        # self.teammates_dict wholesale on the other executor thread, so
+        # reading it twice (keys()[0] then [first_teammate_id]) could hit
+        # two different dicts and KeyError. One local binding is a
+        # consistent snapshot - no lock needed since it's never mutated in
+        # place, only rebound.
+        teammates = self.teammates_dict
+        self.blackboard.num_teammates = len(teammates)
+        if teammates:
+            first_teammate_id = list(teammates.keys())[0]
+            teammate_data = teammates[first_teammate_id]
+
             self.blackboard.teammate_x = teammate_data.get('x')
             self.blackboard.teammate_y = teammate_data.get('y')
             self.blackboard.teammate_requested_help = teammate_data.get('needs_help', False)
 
     
-    def _check_drift(self, aruco_x, aruco_y, aruco_yaw):
-        self.aruco_x = aruco_x
-        self.aruco_y = aruco_y
-        self.aruco_yaw = aruco_yaw
+    def _publish_aruco_odom(self, aruco_x, aruco_y, aruco_yaw):
+        odom_msg = Odometry()
+        odom_msg.header.stamp = self.get_clock().now().to_msg()
+        odom_msg.header.frame_id = 'map'
+        odom_msg.child_frame_id = 'base_footprint'
+        
+        odom_msg.pose.pose.position.x = float(aruco_x)
+        odom_msg.pose.pose.position.y = float(aruco_y)
+        odom_msg.pose.pose.position.z = 0.0
+        
+        odom_msg.pose.pose.orientation.z = math.sin(aruco_yaw / 2.0)
+        odom_msg.pose.pose.orientation.w = math.cos(aruco_yaw / 2.0)
 
-        self.drift_x = self.aruco_x - self.blackboard.current_x
-        self.drift_y = self.aruco_y - self.blackboard.current_y
-        yaw_diff = self.aruco_yaw - self.blackboard.current_yaw
-        self.drift_yaw = math.atan2(math.sin(yaw_diff), math.cos(yaw_diff))
+        # High confidence for ArUco absolute position (0.01)
+        odom_msg.pose.covariance[0] = 0.01   # x
+        odom_msg.pose.covariance[7] = 0.01   # y
+        odom_msg.pose.covariance[35] = 0.01  # yaw
+        
+        self.aruco_odom_pub.publish(odom_msg)
 
-        total_drift_meters = math.hypot(self.drift_x, self.drift_y)
+    def command_shooting(self, heading_error_deg):
+        """Unified shooting control — checks angle, manages mode/firing/fire_once."""
+        mode = self.get_parameter('shooting_mode').value
+        max_angle = self.get_parameter('max_fire_angle_deg').value
 
-        if total_drift_meters > 0.05:
-            self.get_logger().warn(f"HIGH ODOM DRIFT: {total_drift_meters*100:.1f}cm! Resetting ekf_global to ArUco ground truth.")
+        should_fire = heading_error_deg is not None and abs(heading_error_deg) <= max_angle
 
-            reset_msg = PoseWithCovarianceStamped()
-            reset_msg.header.stamp = self.get_clock().now().to_msg()
-            reset_msg.header.frame_id = 'map'
+        self.get_logger().info(f"Shooting Control Debug | should_fire: {should_fire}, mode: {mode}")
 
-            reset_msg.pose.pose.position.x = self.aruco_x
-            reset_msg.pose.pose.position.y = self.aruco_y
-            reset_msg.pose.pose.orientation.z = math.sin(self.aruco_yaw / 2.0)
-            reset_msg.pose.pose.orientation.w = math.cos(self.aruco_yaw / 2.0)
+        # Publish the current mode every tick so shooting_node stays in sync
+        self.shooting_mode_pub.publish(String(data=mode))
 
-            reset_msg.pose.covariance[0] = 0.05
-            reset_msg.pose.covariance[7] = 0.05
-            reset_msg.pose.covariance[35] = 0.05
+        if not should_fire:
+            self.firing_pub.publish(Bool(data=False))
+            return
 
-            # /initialpose has no subscriber in this stack (see set_pose_client
-            # setup above) - ekf_global's real reseed interface is this service.
-            if self.set_pose_client.service_is_ready():
-                request = SetPose.Request()
-                request.pose = reset_msg
-                self.set_pose_client.call_async(request)
+        # Angle within threshold — fire
+        if mode == 'auto':
+            self.firing_pub.publish(Bool(data=True))
+        else:
+            # Single mode: enable firing + call fire_once service
+            self.firing_pub.publish(Bool(data=True))
+            if self.fire_once_client.service_is_ready():
+                self.fire_once_client.call_async(std_srvs.srv.Trigger.Request())
             else:
-                self.get_logger().warn("ekf_global/set_pose not available - drift reset skipped this tick.")
+                self.get_logger().warn('fire_once service not ready')
 
-            self.drift_x = 0.0
-            self.drift_y = 0.0
+    def cease_fire(self):
+        """Kill all shooting outputs — used by the safety net."""
+        self.firing_pub.publish(Bool(data=False))
 
     def pose_callback(self, msg):
         self.blackboard.current_x = msg.pose.pose.position.x

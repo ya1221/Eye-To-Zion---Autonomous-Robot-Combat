@@ -9,6 +9,7 @@ from nav_msgs.msg import Odometry
 from sensor_msgs.msg import LaserScan
 from std_msgs.msg import String # ה-YOLO שלך שולח String עם JSON
 import message_filters
+from rclpy.qos import qos_profile_sensor_data
 
 class SensorFusionNode(Node):
     def __init__(self):
@@ -36,17 +37,22 @@ class SensorFusionNode(Node):
         )
 
         # 2. סנכרון אסינכרוני בין המצלמה (YOLO) ללידאר
-        # ה-YOLO משדר JSON בתוך String לערוץ /ai/detections
-        self.yolo_sub = message_filters.Subscriber(self, String, '/ai/detections')
-        self.lidar_sub = message_filters.Subscriber(self, LaserScan, '/scan')
-
-        # סנכרון עם גמישות
-        self.ts = message_filters.ApproximateTimeSynchronizer(
-            [self.yolo_sub, self.lidar_sub], 
-            queue_size=10, 
-            slop=0.05 
+        # ה-YOLO משדר JSON בתוך String שאין לו header.stamp, ולכן אי אפשר להשתמש ב-message_filters.
+        self.latest_lidar_msg = None
+        
+        self.lidar_sub = self.create_subscription(
+            LaserScan,
+            '/scan',
+            self.lidar_callback,
+            qos_profile_sensor_data
         )
-        self.ts.registerCallback(self.fusion_callback)
+        
+        self.yolo_sub = self.create_subscription(
+            String,
+            '/ai/detections',
+            self.yolo_callback,
+            10
+        )
 
         # 3. Publisher למיקום האויב המותך 
         self.enemy_pose_pub = self.create_publisher(
@@ -69,8 +75,14 @@ class SensorFusionNode(Node):
 
         self.has_robot_pose = True
 
-    def fusion_callback(self, yolo_msg, lidar_msg):
-        """מבצע היתוך מידע בין זיהוי ה-YOLO לסריקת הלייזר"""
+    def lidar_callback(self, msg):
+        self.latest_lidar_msg = msg
+
+    def yolo_callback(self, yolo_msg):
+        """מבצע היתוך מידע בין זיהוי ה-YOLO לסריקת הלייזר האחרונה"""
+        lidar_msg = self.latest_lidar_msg
+        if lidar_msg is None:
+            return
         if not self.has_robot_pose:
             self.get_logger().warn('Missing global robot pose. Skipping fusion.')
             return
@@ -103,11 +115,23 @@ class SensorFusionNode(Node):
             self.get_logger().error('Target angle out of LiDAR bounds.')
             return
 
-        distance = lidar_msg.ranges[lidar_index]
-
-        # סינון קריאות לא תקינות
-        if math.isinf(distance) or math.isnan(distance) or distance < lidar_msg.range_min or distance > lidar_msg.range_max:
+        # חיפוש חלון קטן סביב האינדקס כדי להתגבר על קריאות 0.0 מקומיות
+        window_size = 5 # +/- 5 קרניים
+        start_idx = max(0, lidar_index - window_size)
+        end_idx = min(len(lidar_msg.ranges), lidar_index + window_size + 1)
+        
+        valid_distances = []
+        for i in range(start_idx, end_idx):
+            d = lidar_msg.ranges[i]
+            if not math.isinf(d) and not math.isnan(d) and d >= lidar_msg.range_min and d <= lidar_msg.range_max:
+                valid_distances.append(d)
+                
+        if not valid_distances:
+            self.get_logger().warn(f'No valid LiDAR reading around angle {relative_angle_deg:.2f}')
             return
+            
+        # ניקח את המרחק המינימלי (הקרוב ביותר) בחלון זה (כנראה הפגיעה באויב)
+        distance = min(valid_distances)
 
         # היתוך לקרטזי גלובלי
         global_enemy_angle = self.robot_yaw + relative_angle_rad

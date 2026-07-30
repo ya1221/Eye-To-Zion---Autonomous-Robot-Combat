@@ -1,0 +1,15 @@
+/ros2_ws/install/main_brain/share/ament_index/resource_index/package_run_dependencies/main_brain
+/ros2_ws/install/main_brain/share/ament_index/resource_index/parent_prefix_path/main_brain
+/ros2_ws/install/main_brain/share/main_brain/environment/ament_prefix_path.sh
+/ros2_ws/install/main_brain/share/main_brain/environment/ament_prefix_path.dsv
+/ros2_ws/install/main_brain/share/main_brain/environment/path.sh
+/ros2_ws/install/main_brain/share/main_brain/environment/path.dsv
+/ros2_ws/install/main_brain/share/main_brain/local_setup.bash
+/ros2_ws/install/main_brain/share/main_brain/local_setup.sh
+/ros2_ws/install/main_brain/share/main_brain/local_setup.zsh
+/ros2_ws/install/main_brain/share/main_brain/local_setup.dsv
+/ros2_ws/install/main_brain/share/main_brain/package.dsv
+/ros2_ws/install/main_brain/share/ament_index/resource_index/packages/main_brain
+/ros2_ws/install/main_brain/share/main_brain/cmake/main_brainConfig.cmake
+/ros2_ws/install/main_brain/share/main_brain/cmake/main_brainConfig-version.cmake
+/ros2_ws/install/main_brain/share/main_brain/package.xml

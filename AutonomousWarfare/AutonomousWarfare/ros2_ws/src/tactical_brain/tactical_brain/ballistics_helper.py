@@ -30,8 +30,8 @@ DISTANCE_SLOPE = (MAX_ALLOWABLE_ANGLE - MIN_ALLOWABLE_ANGLE) / MAX_FIRING_DISTAN
 HYSTERESIS_MARGIN_DEG = 2.0
 
 # Consecutive ticks the target must stay inside the (tight, non-widened)
-# envelope before the trigger commits to firing.
-REQUIRED_CONSECUTIVE_FRAMES = 5
+# envelope before the trigger commits to firing. (At 2Hz, 2 frames = 1 sec delay)
+REQUIRED_CONSECUTIVE_FRAMES = 2
 
 
 def allowable_angle_deg(distance_m):

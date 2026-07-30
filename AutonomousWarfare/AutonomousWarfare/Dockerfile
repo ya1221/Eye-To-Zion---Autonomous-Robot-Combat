@@ -13,6 +13,8 @@ RUN apt-get update && apt-get install -y \
     # Navigation 2 (The "Brain")
     ros-humble-navigation2 \
     ros-humble-nav2-bringup \
+    ros-humble-py-trees \
+    ros-humble-py-trees-ros \
     # Extra tools
     git \
     nano \
@@ -44,6 +46,7 @@ RUN apt-get update && apt-get install -y \
 # For foxglove bridge
 RUN apt-get update && apt-get install -y \
     ros-humble-foxglove-bridge \
+    ros-humble-foxglove-msgs \
     && rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update && apt-get install -y \
@@ -57,6 +60,33 @@ RUN pip3 install --no-cache-dir \
     icm20948 \
     smbus2 \
     sparkfun-qwiic-icm20948
+
+# Install dependencies for camera and AI vision
+RUN apt-get update && apt-get install -y \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip3 install --no-cache-dir "numpy<2.0.0" && \
+    pip3 install --no-cache-dir \
+    "numpy<2.0.0" \
+    ultralytics \
+    ncnn \
+    lapx
+
+# We must uninstall the PyPI version of opencv-python (installed by ultralytics) 
+# to use the system one with GStreamer support compiled in.
+RUN pip3 uninstall -y opencv-python opencv-python-headless && \
+    apt-get update && apt-get install -y \
+    python3-opencv \
+    gstreamer1.0-tools \
+    gstreamer1.0-plugins-good \
+    gstreamer1.0-plugins-bad \
+    gstreamer1.0-plugins-base \
+    gstreamer1.0-libav \
+    libturbojpeg \
+    && rm -rf /var/lib/apt/lists/*
+RUN pip3 install --no-cache-dir "PyTurboJPEG<2.0"
 
 # Set the internal container workspace(root)
 WORKDIR /ros2_ws
