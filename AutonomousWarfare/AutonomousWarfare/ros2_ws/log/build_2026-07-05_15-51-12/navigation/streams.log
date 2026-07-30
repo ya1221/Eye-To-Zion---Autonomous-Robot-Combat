@@ -1,0 +1,50 @@
+[0.019s] Invoking command in '/ros2_ws/build/navigation': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /ros2_ws/src/navigation -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/ros2_ws/install/navigation
+[0.095s] -- The C compiler identification is GNU 11.4.0
+[0.192s] -- The CXX compiler identification is GNU 11.4.0
+[0.202s] -- Detecting C compiler ABI info
+[0.303s] -- Detecting C compiler ABI info - done
+[0.315s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.316s] -- Detecting C compile features
+[0.316s] -- Detecting C compile features - done
+[0.320s] -- Detecting CXX compiler ABI info
+[0.450s] -- Detecting CXX compiler ABI info - done
+[0.465s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.466s] -- Detecting CXX compile features
+[0.467s] -- Detecting CXX compile features - done
+[0.474s] -- Found ament_cmake: 1.3.14 (/opt/ros/humble/share/ament_cmake/cmake)
+[0.709s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+[0.866s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[0.934s] -- Found ament_lint_auto: 0.12.15 (/opt/ros/humble/share/ament_lint_auto/cmake)
+[1.165s] -- Added test 'flake8' to check Python code syntax and style conventions
+[1.168s] -- Added test 'lint_cmake' to check CMake code style
+[1.170s] -- Added test 'pep257' to check Python code against some of the docstring style conventions in PEP 257
+[1.173s] -- Added test 'xmllint' to check XML markup files
+[1.191s] -- Configuring done
+[1.191s] -- Generating done
+[1.191s] -- Build files have been written to: /ros2_ws/build/navigation
+[1.204s] Invoked command in '/ros2_ws/build/navigation' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /ros2_ws/src/navigation -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/ros2_ws/install/navigation
+[1.206s] Invoking command in '/ros2_ws/build/navigation': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/navigation -- -j4 -l4
+[1.265s] Invoked command in '/ros2_ws/build/navigation' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/navigation -- -j4 -l4
+[1.266s] Invoking command in '/ros2_ws/build/navigation': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/navigation
+[1.291s] -- Install configuration: ""
+[1.292s] -- Execute custom install script
+[1.292s] -- Symlinking: /ros2_ws/install/navigation/share/navigation/launch/launch.py
+[1.313s] -- Symlinking: /ros2_ws/install/navigation/share/navigation/config/nav2.yaml
+[1.343s] -- Symlinking: /ros2_ws/install/navigation/share/navigation/behavior_trees/ackermann_nav_through_poses.xml
+[1.367s] -- Symlinking: /ros2_ws/install/navigation/share/navigation/behavior_trees/ackermann_nav_to_pose.xml
+[1.391s] -- Symlinking: /ros2_ws/install/navigation/share/ament_index/resource_index/package_run_dependencies/navigation
+[1.414s] -- Symlinking: /ros2_ws/install/navigation/share/ament_index/resource_index/parent_prefix_path/navigation
+[1.434s] -- Symlinking: /ros2_ws/install/navigation/share/navigation/environment/ament_prefix_path.sh
+[1.446s] -- Symlinking: /ros2_ws/install/navigation/share/navigation/environment/ament_prefix_path.dsv
+[1.458s] -- Symlinking: /ros2_ws/install/navigation/share/navigation/environment/path.sh
+[1.467s] -- Symlinking: /ros2_ws/install/navigation/share/navigation/environment/path.dsv
+[1.478s] -- Symlinking: /ros2_ws/install/navigation/share/navigation/local_setup.bash
+[1.494s] -- Symlinking: /ros2_ws/install/navigation/share/navigation/local_setup.sh
+[1.500s] -- Symlinking: /ros2_ws/install/navigation/share/navigation/local_setup.zsh
+[1.511s] -- Symlinking: /ros2_ws/install/navigation/share/navigation/local_setup.dsv
+[1.522s] -- Symlinking: /ros2_ws/install/navigation/share/navigation/package.dsv
+[1.535s] -- Symlinking: /ros2_ws/install/navigation/share/ament_index/resource_index/packages/navigation
+[1.547s] -- Symlinking: /ros2_ws/install/navigation/share/navigation/cmake/navigationConfig.cmake
+[1.558s] -- Symlinking: /ros2_ws/install/navigation/share/navigation/cmake/navigationConfig-version.cmake
+[1.569s] -- Symlinking: /ros2_ws/install/navigation/share/navigation/package.xml
+[1.583s] Invoked command in '/ros2_ws/build/navigation' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/navigation

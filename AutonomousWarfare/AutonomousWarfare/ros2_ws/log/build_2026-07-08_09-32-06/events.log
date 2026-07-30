@@ -1,0 +1,84 @@
+[0.000000] (-) TimerEvent: {}
+[0.000762] (-) JobUnselected: {'identifier': 'foxglove'}
+[0.000848] (-) JobUnselected: {'identifier': 'hardware'}
+[0.000874] (-) JobUnselected: {'identifier': 'icm20948_ros2'}
+[0.000891] (-) JobUnselected: {'identifier': 'localization'}
+[0.000915] (-) JobUnselected: {'identifier': 'main_brain'}
+[0.000954] (-) JobUnselected: {'identifier': 'navigation'}
+[0.001006] (-) JobUnselected: {'identifier': 'rf2o_laser_odometry'}
+[0.001049] (-) JobUnselected: {'identifier': 'robot_bringup'}
+[0.001075] (-) JobUnselected: {'identifier': 'robot_description'}
+[0.001091] (-) JobUnselected: {'identifier': 'sensor_fusion_pkg'}
+[0.001106] (-) JobUnselected: {'identifier': 'shooting'}
+[0.001121] (-) JobUnselected: {'identifier': 'tactical_brain'}
+[0.001136] (-) JobUnselected: {'identifier': 'telemetry_data'}
+[0.001150] (-) JobUnselected: {'identifier': 'ydlidar_ros2_driver'}
+[0.001179] (ai_vision) JobQueued: {'identifier': 'ai_vision', 'dependencies': OrderedDict()}
+[0.002301] (ai_vision) JobStarted: {'identifier': 'ai_vision'}
+[0.100769] (-) TimerEvent: {}
+[0.200976] (-) TimerEvent: {}
+[0.302292] (-) TimerEvent: {}
+[0.402511] (-) TimerEvent: {}
+[0.502711] (-) TimerEvent: {}
+[0.602952] (-) TimerEvent: {}
+[0.703232] (-) TimerEvent: {}
+[0.803640] (-) TimerEvent: {}
+[0.903988] (-) TimerEvent: {}
+[1.004234] (-) TimerEvent: {}
+[1.106213] (-) TimerEvent: {}
+[1.206615] (-) TimerEvent: {}
+[1.306976] (-) TimerEvent: {}
+[1.407382] (-) TimerEvent: {}
+[1.507836] (-) TimerEvent: {}
+[1.608348] (-) TimerEvent: {}
+[1.708674] (-) TimerEvent: {}
+[1.809508] (-) TimerEvent: {}
+[1.910885] (-) TimerEvent: {}
+[2.011263] (-) TimerEvent: {}
+[2.112274] (-) TimerEvent: {}
+[2.212527] (-) TimerEvent: {}
+[2.315754] (-) TimerEvent: {}
+[2.416358] (-) TimerEvent: {}
+[2.519099] (-) TimerEvent: {}
+[2.619413] (-) TimerEvent: {}
+[2.721141] (-) TimerEvent: {}
+[2.822263] (-) TimerEvent: {}
+[2.922527] (-) TimerEvent: {}
+[3.023857] (-) TimerEvent: {}
+[3.124823] (-) TimerEvent: {}
+[3.225042] (-) TimerEvent: {}
+[3.326179] (-) TimerEvent: {}
+[3.422417] (ai_vision) Command: {'cmd': ['/usr/bin/python3', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'develop', '--editable', '--build-directory', '/ros2_ws/build/ai_vision/build', '--no-deps', 'symlink_data'], 'cwd': '/ros2_ws/build/ai_vision', 'env': {'HOSTNAME': 'yahav', 'GRID_N': '2000', 'SHLVL': '0', 'LD_LIBRARY_PATH': '/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib', 'HOME': '/root', 'MY_TEAM_IDX': '0', 'OLDPWD': '/ros2_ws', 'PYTHONUNBUFFERED': '1', 'ROS_PYTHON_VERSION': '3', 'ROS_DISTRO': 'humble', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'ROS_LOCALHOST_ONLY': '0', 'PATH': '/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin', 'DISPLAY': '', 'LANG': 'C.UTF-8', 'ROS_DOMAIN_ID': '0', 'AMENT_PREFIX_PATH': '/opt/ros/humble', 'ROBOT_ID': '8', 'ARENA_SIZE_METERS': '2.0', 'PWD': '/ros2_ws/build/ai_vision', 'LC_ALL': 'C.UTF-8', 'PYTHONPATH': '/ros2_ws/build/ai_vision/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/ros2_ws/install/ai_vision/lib/python3.10/site-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages', 'COLCON': '1'}, 'shell': False}
+[3.426533] (-) TimerEvent: {}
+[3.527538] (-) TimerEvent: {}
+[3.627769] (-) TimerEvent: {}
+[3.728665] (-) TimerEvent: {}
+[3.828912] (-) TimerEvent: {}
+[3.929357] (-) TimerEvent: {}
+[4.030248] (-) TimerEvent: {}
+[4.130478] (-) TimerEvent: {}
+[4.165491] (ai_vision) StdoutLine: {'line': b'running develop\n'}
+[4.230711] (-) TimerEvent: {}
+[4.331944] (-) TimerEvent: {}
+[4.432092] (-) TimerEvent: {}
+[4.495973] (ai_vision) StdoutLine: {'line': b'running egg_info\n'}
+[4.496163] (ai_vision) StdoutLine: {'line': b'writing ai_vision.egg-info/PKG-INFO\n'}
+[4.496239] (ai_vision) StdoutLine: {'line': b'writing dependency_links to ai_vision.egg-info/dependency_links.txt\n'}
+[4.498751] (ai_vision) StdoutLine: {'line': b'writing entry points to ai_vision.egg-info/entry_points.txt\n'}
+[4.499607] (ai_vision) StdoutLine: {'line': b'writing requirements to ai_vision.egg-info/requires.txt\n'}
+[4.500244] (ai_vision) StdoutLine: {'line': b'writing top-level names to ai_vision.egg-info/top_level.txt\n'}
+[4.503250] (ai_vision) StdoutLine: {'line': b"reading manifest file 'ai_vision.egg-info/SOURCES.txt'\n"}
+[4.504649] (ai_vision) StdoutLine: {'line': b"writing manifest file 'ai_vision.egg-info/SOURCES.txt'\n"}
+[4.507963] (ai_vision) StdoutLine: {'line': b'running build_ext\n'}
+[4.512691] (ai_vision) StdoutLine: {'line': b'Creating /ros2_ws/install/ai_vision/lib/python3.10/site-packages/ai-vision.egg-link (link to .)\n'}
+[4.521768] (ai_vision) StdoutLine: {'line': b'Installing ai_inference_node script to /ros2_ws/install/ai_vision/lib/ai_vision\n'}
+[4.523251] (ai_vision) StdoutLine: {'line': b'Installing cv_processor_node script to /ros2_ws/install/ai_vision/lib/ai_vision\n'}
+[4.523979] (ai_vision) StdoutLine: {'line': b'\n'}
+[4.524094] (ai_vision) StdoutLine: {'line': b'Installed /ros2_ws/build/ai_vision\n'}
+[4.524159] (ai_vision) StdoutLine: {'line': b'running symlink_data\n'}
+[4.533045] (-) TimerEvent: {}
+[4.634124] (-) TimerEvent: {}
+[4.686699] (ai_vision) CommandEnded: {'returncode': 0}
+[4.734558] (-) TimerEvent: {}
+[4.753116] (ai_vision) JobEnded: {'identifier': 'ai_vision', 'rc': 0}
+[4.756530] (-) EventReactorShutdown: {}

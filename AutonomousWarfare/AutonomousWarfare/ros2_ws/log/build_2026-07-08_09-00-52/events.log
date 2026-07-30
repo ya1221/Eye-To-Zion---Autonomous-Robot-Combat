@@ -1,0 +1,66 @@
+[0.000000] (-) TimerEvent: {}
+[0.000105] (-) JobUnselected: {'identifier': 'ai_vision'}
+[0.000132] (-) JobUnselected: {'identifier': 'foxglove'}
+[0.000151] (-) JobUnselected: {'identifier': 'hardware'}
+[0.000167] (-) JobUnselected: {'identifier': 'icm20948_ros2'}
+[0.000183] (-) JobUnselected: {'identifier': 'localization'}
+[0.000200] (-) JobUnselected: {'identifier': 'main_brain'}
+[0.000215] (-) JobUnselected: {'identifier': 'navigation'}
+[0.000230] (-) JobUnselected: {'identifier': 'rf2o_laser_odometry'}
+[0.000246] (-) JobUnselected: {'identifier': 'robot_bringup'}
+[0.000261] (-) JobUnselected: {'identifier': 'robot_description'}
+[0.000276] (-) JobUnselected: {'identifier': 'sensor_fusion_pkg'}
+[0.000291] (-) JobUnselected: {'identifier': 'shooting'}
+[0.001141] (-) JobUnselected: {'identifier': 'telemetry_data'}
+[0.001290] (-) JobUnselected: {'identifier': 'ydlidar_ros2_driver'}
+[0.001336] (tactical_brain) JobQueued: {'identifier': 'tactical_brain', 'dependencies': OrderedDict()}
+[0.002225] (tactical_brain) JobStarted: {'identifier': 'tactical_brain'}
+[0.099234] (-) TimerEvent: {}
+[0.199446] (-) TimerEvent: {}
+[0.299658] (-) TimerEvent: {}
+[0.399867] (-) TimerEvent: {}
+[0.500424] (-) TimerEvent: {}
+[0.601334] (-) TimerEvent: {}
+[0.701696] (-) TimerEvent: {}
+[0.802236] (-) TimerEvent: {}
+[0.902963] (-) TimerEvent: {}
+[1.003490] (-) TimerEvent: {}
+[1.103702] (-) TimerEvent: {}
+[1.204312] (-) TimerEvent: {}
+[1.304669] (-) TimerEvent: {}
+[1.404879] (-) TimerEvent: {}
+[1.505227] (-) TimerEvent: {}
+[1.606837] (-) TimerEvent: {}
+[1.707834] (-) TimerEvent: {}
+[1.808462] (-) TimerEvent: {}
+[1.909623] (-) TimerEvent: {}
+[2.011954] (-) TimerEvent: {}
+[2.112329] (-) TimerEvent: {}
+[2.212768] (-) TimerEvent: {}
+[2.265029] (tactical_brain) Command: {'cmd': ['/usr/bin/python3', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'develop', '--editable', '--build-directory', '/ros2_ws/build/tactical_brain/build', '--no-deps', 'symlink_data'], 'cwd': '/ros2_ws/build/tactical_brain', 'env': {'HOSTNAME': 'yahav', 'GRID_N': '2000', 'SHLVL': '1', 'LD_LIBRARY_PATH': '/ros2_ws/install/hardware/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib', 'HOME': '/root', 'MY_TEAM_IDX': '0', 'PYTHONUNBUFFERED': '1', 'ROS_PYTHON_VERSION': '3', 'COLCON_PREFIX_PATH': '/ros2_ws/install', 'ROS_DISTRO': 'humble', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'ROS_LOCALHOST_ONLY': '0', 'PATH': '/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin', 'DISPLAY': '', 'LANG': 'C.UTF-8', 'ROS_DOMAIN_ID': '0', 'AMENT_PREFIX_PATH': '/ros2_ws/install/robot_bringup:/ros2_ws/install/localization:/ros2_ws/install/ydlidar_ros2_driver:/ros2_ws/install/telemetry_data:/ros2_ws/install/tactical_brain:/ros2_ws/install/shooting:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/robot_description:/ros2_ws/install/rf2o_laser_odometry:/ros2_ws/install/navigation:/ros2_ws/install/main_brain:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/hardware:/ros2_ws/install/foxglove:/ros2_ws/install/ai_vision:/opt/ros/humble', 'ROBOT_ID': '8', 'ARENA_SIZE_METERS': '2.0', 'PWD': '/ros2_ws/build/tactical_brain', 'LC_ALL': 'C.UTF-8', 'PYTHONPATH': '/ros2_ws/build/tactical_brain/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/ros2_ws/install/tactical_brain/lib/python3.10/site-packages:/ros2_ws/build/tactical_brain:/ros2_ws/install/tactical_brain/lib/python3.10/site-packages:/ros2_ws/build/sensor_fusion_pkg:/ros2_ws/install/sensor_fusion_pkg/lib/python3.10/site-packages:/ros2_ws/build/icm20948_ros2:/ros2_ws/install/icm20948_ros2/lib/python3.10/site-packages:/ros2_ws/build/ai_vision:/ros2_ws/install/ai_vision/lib/python3.10/site-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages', 'COLCON': '1', 'CMAKE_PREFIX_PATH': '/ros2_ws/install/robot_bringup:/ros2_ws/install/localization:/ros2_ws/install/ydlidar_ros2_driver:/ros2_ws/install/telemetry_data:/ros2_ws/install/shooting:/ros2_ws/install/robot_description:/ros2_ws/install/rf2o_laser_odometry:/ros2_ws/install/navigation:/ros2_ws/install/main_brain:/ros2_ws/install/hardware:/ros2_ws/install/foxglove'}, 'shell': False}
+[2.313327] (-) TimerEvent: {}
+[2.417873] (-) TimerEvent: {}
+[2.518339] (-) TimerEvent: {}
+[2.619076] (-) TimerEvent: {}
+[2.691919] (tactical_brain) StdoutLine: {'line': b'running develop\n'}
+[2.719183] (-) TimerEvent: {}
+[2.820151] (-) TimerEvent: {}
+[2.886550] (tactical_brain) StdoutLine: {'line': b'running egg_info\n'}
+[2.887314] (tactical_brain) StdoutLine: {'line': b'writing tactical_brain.egg-info/PKG-INFO\n'}
+[2.888291] (tactical_brain) StdoutLine: {'line': b'writing dependency_links to tactical_brain.egg-info/dependency_links.txt\n'}
+[2.891667] (tactical_brain) StdoutLine: {'line': b'writing entry points to tactical_brain.egg-info/entry_points.txt\n'}
+[2.891903] (tactical_brain) StdoutLine: {'line': b'writing requirements to tactical_brain.egg-info/requires.txt\n'}
+[2.891979] (tactical_brain) StdoutLine: {'line': b'writing top-level names to tactical_brain.egg-info/top_level.txt\n'}
+[2.893434] (tactical_brain) StdoutLine: {'line': b"reading manifest file 'tactical_brain.egg-info/SOURCES.txt'\n"}
+[2.896083] (tactical_brain) StdoutLine: {'line': b"writing manifest file 'tactical_brain.egg-info/SOURCES.txt'\n"}
+[2.903514] (tactical_brain) StdoutLine: {'line': b'running build_ext\n'}
+[2.906180] (tactical_brain) StdoutLine: {'line': b'Creating /ros2_ws/install/tactical_brain/lib/python3.10/site-packages/tactical-brain.egg-link (link to .)\n'}
+[2.906587] (tactical_brain) StdoutLine: {'line': b'Installing brain_node script to /ros2_ws/install/tactical_brain/lib/tactical_brain\n'}
+[2.906772] (tactical_brain) StdoutLine: {'line': b'Installing mock_pose_publisher script to /ros2_ws/install/tactical_brain/lib/tactical_brain\n'}
+[2.906925] (tactical_brain) StdoutLine: {'line': b'\n'}
+[2.907023] (tactical_brain) StdoutLine: {'line': b'Installed /ros2_ws/build/tactical_brain\n'}
+[2.907116] (tactical_brain) StdoutLine: {'line': b'running symlink_data\n'}
+[2.920486] (-) TimerEvent: {}
+[2.989288] (tactical_brain) CommandEnded: {'returncode': 0}
+[3.015177] (tactical_brain) JobEnded: {'identifier': 'tactical_brain', 'rc': 0}
+[3.018832] (-) EventReactorShutdown: {}

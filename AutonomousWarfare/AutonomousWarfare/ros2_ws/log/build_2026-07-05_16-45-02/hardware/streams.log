@@ -1,0 +1,40 @@
+[0.042s] Invoking command in '/ros2_ws/build/hardware': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/icm20948_ros2:/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/hardware -- -j4 -l4
+[0.796s] [ 33%] Built target twist_to_ackermann
+[0.807s] [ 66%] Built target motor_driver
+[0.827s] [100%] Built target heading_pid_controller
+[1.136s] Invoked command in '/ros2_ws/build/hardware' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/icm20948_ros2:/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/hardware -- -j4 -l4
+[1.140s] Invoking command in '/ros2_ws/build/hardware': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/icm20948_ros2:/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/hardware
+[1.151s] -- Install configuration: ""
+[1.156s] -- Execute custom install script
+[1.160s] -- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware//hardware_interface_plugins.xml
+[1.165s] -- Up-to-date symlink: /ros2_ws/install/hardware/lib/libmotor_driver.so
+[1.171s] -- Up-to-date symlink: /ros2_ws/install/hardware/lib/hardware/twist_to_ackermann
+[1.171s] -- Up-to-date symlink: /ros2_ws/install/hardware/lib/hardware/heading_pid_controller
+[1.172s] -- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/config/ackermann_steering_controller.yaml
+[1.172s] -- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/config/controller_manager.yaml
+[1.172s] -- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/config/joint_state_broadcaster.yaml
+[1.172s] -- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/config/pid_params.yaml
+[1.172s] -- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/config/ackermann_steering_controller.yaml
+[1.184s] -- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/config/controller_manager.yaml
+[1.185s] -- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/config/joint_state_broadcaster.yaml
+[1.185s] -- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/config/pid_params.yaml
+[1.185s] -- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/launch/launch.py
+[1.185s] -- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/ros2_control.xacro
+[1.185s] -- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/hardware_interface_plugins.xml
+[1.185s] -- Up-to-date symlink: /ros2_ws/install/hardware/share/ament_index/resource_index/package_run_dependencies/hardware
+[1.186s] -- Up-to-date symlink: /ros2_ws/install/hardware/share/ament_index/resource_index/parent_prefix_path/hardware
+[1.186s] -- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/environment/ament_prefix_path.sh
+[1.186s] -- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/environment/ament_prefix_path.dsv
+[1.186s] -- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/environment/path.sh
+[1.187s] -- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/environment/path.dsv
+[1.187s] -- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/local_setup.bash
+[1.187s] -- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/local_setup.sh
+[1.187s] -- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/local_setup.zsh
+[1.188s] -- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/local_setup.dsv
+[1.188s] -- Symlinking: /ros2_ws/install/hardware/share/hardware/package.dsv
+[1.189s] -- Up-to-date symlink: /ros2_ws/install/hardware/share/ament_index/resource_index/packages/hardware
+[1.189s] -- Up-to-date symlink: /ros2_ws/install/hardware/share/ament_index/resource_index/hardware_interface__pluginlib__plugin/hardware
+[1.189s] -- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/cmake/hardwareConfig.cmake
+[1.189s] -- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/cmake/hardwareConfig-version.cmake
+[1.189s] -- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/package.xml
+[1.190s] Invoked command in '/ros2_ws/build/hardware' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/icm20948_ros2:/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/hardware

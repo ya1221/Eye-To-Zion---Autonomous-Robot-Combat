@@ -1,0 +1,73 @@
+[0.035s] Invoking command in '/ros2_ws/build/shooting': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /ros2_ws/src/shooting -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/ros2_ws/install/shooting
+[0.148s] -- The C compiler identification is GNU 11.4.0
+[0.298s] -- The CXX compiler identification is GNU 11.4.0
+[0.317s] -- Detecting C compiler ABI info
+[0.628s] -- Detecting C compiler ABI info - done
+[0.650s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.650s] -- Detecting C compile features
+[0.651s] -- Detecting C compile features - done
+[0.665s] -- Detecting CXX compiler ABI info
+[0.949s] -- Detecting CXX compiler ABI info - done
+[0.972s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.974s] -- Detecting CXX compile features
+[0.979s] -- Detecting CXX compile features - done
+[0.994s] -- Found ament_cmake: 1.3.14 (/opt/ros/humble/share/ament_cmake/cmake)
+[1.563s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+[1.697s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[1.770s] -- Found rclcpp: 16.0.19 (/opt/ros/humble/share/rclcpp/cmake)
+[2.039s] -- Found rosidl_generator_c: 3.1.8 (/opt/ros/humble/share/rosidl_generator_c/cmake)
+[2.080s] -- Found rosidl_adapter: 3.1.8 (/opt/ros/humble/share/rosidl_adapter/cmake)
+[2.146s] -- Found rosidl_generator_cpp: 3.1.8 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)
+[2.214s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[2.323s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[2.604s] -- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)
+[2.621s] -- Found rmw_fastrtps_cpp: 6.2.10 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)
+[3.049s] -- Found OpenSSL: /usr/lib/aarch64-linux-gnu/libcrypto.so (found version "3.0.2")  
+[3.181s] -- Found FastRTPS: /opt/ros/humble/include  
+[3.346s] -- Using RMW implementation 'rmw_fastrtps_cpp' as default
+[3.417s] -- Looking for pthread.h
+[3.690s] -- Looking for pthread.h - found
+[3.695s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+[3.930s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+[3.942s] -- Found Threads: TRUE  
+[4.316s] -- Found std_srvs: 4.9.1 (/opt/ros/humble/share/std_srvs/cmake)
+[4.365s] -- Found ament_lint_auto: 0.12.15 (/opt/ros/humble/share/ament_lint_auto/cmake)
+[4.904s] -- Added test 'cppcheck' to perform static code analysis on C / C++ code
+[4.909s] -- Configured cppcheck include dirs: $<BUILD_INTERFACE:/ros2_ws/src/shooting/include>
+[4.914s] -- Configured cppcheck exclude dirs and/or files: 
+[4.914s] -- Added test 'flake8' to check Python code syntax and style conventions
+[4.922s] -- Added test 'lint_cmake' to check CMake code style
+[4.923s] -- Added test 'pep257' to check Python code against some of the docstring style conventions in PEP 257
+[4.930s] -- Added test 'uncrustify' to check C / C++ code style
+[4.930s] -- Configured uncrustify additional arguments: 
+[4.942s] -- Added test 'xmllint' to check XML markup files
+[4.948s] -- Configuring done
+[5.011s] -- Generating done
+[5.031s] -- Build files have been written to: /ros2_ws/build/shooting
+[5.090s] Invoked command in '/ros2_ws/build/shooting' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /ros2_ws/src/shooting -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/ros2_ws/install/shooting
+[5.091s] Invoking command in '/ros2_ws/build/shooting': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/shooting -- -j4 -l4
+[5.244s] [ 50%] [32mBuilding CXX object CMakeFiles/shooting_node.dir/src/shooting_node.cpp.o[0m
+[44.413s] [100%] [32m[1mLinking CXX executable shooting_node[0m
+[46.187s] [100%] Built target shooting_node
+[46.206s] Invoked command in '/ros2_ws/build/shooting' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/shooting -- -j4 -l4
+[46.214s] Invoking command in '/ros2_ws/build/shooting': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/shooting
+[46.233s] -- Install configuration: ""
+[46.233s] -- Execute custom install script
+[46.234s] -- Symlinking: /ros2_ws/install/shooting/lib/shooting/shooting_node
+[46.248s] -- Symlinking: /ros2_ws/install/shooting/share/shooting/launch/launch.py
+[46.260s] -- Symlinking: /ros2_ws/install/shooting/share/ament_index/resource_index/package_run_dependencies/shooting
+[46.272s] -- Symlinking: /ros2_ws/install/shooting/share/ament_index/resource_index/parent_prefix_path/shooting
+[46.285s] -- Symlinking: /ros2_ws/install/shooting/share/shooting/environment/ament_prefix_path.sh
+[46.298s] -- Symlinking: /ros2_ws/install/shooting/share/shooting/environment/ament_prefix_path.dsv
+[46.315s] -- Symlinking: /ros2_ws/install/shooting/share/shooting/environment/path.sh
+[46.325s] -- Symlinking: /ros2_ws/install/shooting/share/shooting/environment/path.dsv
+[46.340s] -- Symlinking: /ros2_ws/install/shooting/share/shooting/local_setup.bash
+[46.354s] -- Symlinking: /ros2_ws/install/shooting/share/shooting/local_setup.sh
+[46.369s] -- Symlinking: /ros2_ws/install/shooting/share/shooting/local_setup.zsh
+[46.381s] -- Symlinking: /ros2_ws/install/shooting/share/shooting/local_setup.dsv
+[46.394s] -- Symlinking: /ros2_ws/install/shooting/share/shooting/package.dsv
+[46.410s] -- Symlinking: /ros2_ws/install/shooting/share/ament_index/resource_index/packages/shooting
+[46.435s] -- Symlinking: /ros2_ws/install/shooting/share/shooting/cmake/shootingConfig.cmake
+[46.473s] -- Symlinking: /ros2_ws/install/shooting/share/shooting/cmake/shootingConfig-version.cmake
+[46.516s] -- Symlinking: /ros2_ws/install/shooting/share/shooting/package.xml
+[46.542s] Invoked command in '/ros2_ws/build/shooting' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/shooting

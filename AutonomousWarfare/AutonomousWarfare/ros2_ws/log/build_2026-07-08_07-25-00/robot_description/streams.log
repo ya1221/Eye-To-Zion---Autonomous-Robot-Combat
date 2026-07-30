@@ -1,0 +1,25 @@
+[0.302s] Invoking command in '/ros2_ws/build/robot_description': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/robot_description -- -j4 -l4
+[1.513s] Invoked command in '/ros2_ws/build/robot_description' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/robot_description -- -j4 -l4
+[1.532s] Invoking command in '/ros2_ws/build/robot_description': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/robot_description
+[1.798s] -- Install configuration: ""
+[1.813s] -- Execute custom install script
+[1.823s] -- Up-to-date symlink: /ros2_ws/install/robot_description/share/robot_description/urdf/base.xacro
+[1.846s] -- Up-to-date symlink: /ros2_ws/install/robot_description/share/robot_description/urdf/robot_urdf.xacro
+[1.846s] -- Up-to-date symlink: /ros2_ws/install/robot_description/share/robot_description/urdf/sensors.xacro
+[1.846s] -- Up-to-date symlink: /ros2_ws/install/robot_description/share/robot_description/urdf/wheels.xacro
+[1.878s] -- Up-to-date symlink: /ros2_ws/install/robot_description/share/ament_index/resource_index/package_run_dependencies/robot_description
+[1.878s] -- Up-to-date symlink: /ros2_ws/install/robot_description/share/ament_index/resource_index/parent_prefix_path/robot_description
+[1.878s] -- Up-to-date symlink: /ros2_ws/install/robot_description/share/robot_description/environment/ament_prefix_path.sh
+[1.878s] -- Up-to-date symlink: /ros2_ws/install/robot_description/share/robot_description/environment/ament_prefix_path.dsv
+[1.878s] -- Up-to-date symlink: /ros2_ws/install/robot_description/share/robot_description/environment/path.sh
+[1.878s] -- Up-to-date symlink: /ros2_ws/install/robot_description/share/robot_description/environment/path.dsv
+[1.878s] -- Up-to-date symlink: /ros2_ws/install/robot_description/share/robot_description/local_setup.bash
+[1.878s] -- Up-to-date symlink: /ros2_ws/install/robot_description/share/robot_description/local_setup.sh
+[1.878s] -- Up-to-date symlink: /ros2_ws/install/robot_description/share/robot_description/local_setup.zsh
+[1.879s] -- Up-to-date symlink: /ros2_ws/install/robot_description/share/robot_description/local_setup.dsv
+[1.879s] -- Symlinking: /ros2_ws/install/robot_description/share/robot_description/package.dsv
+[1.940s] -- Up-to-date symlink: /ros2_ws/install/robot_description/share/ament_index/resource_index/packages/robot_description
+[1.956s] -- Up-to-date symlink: /ros2_ws/install/robot_description/share/robot_description/cmake/robot_descriptionConfig.cmake
+[1.956s] -- Up-to-date symlink: /ros2_ws/install/robot_description/share/robot_description/cmake/robot_descriptionConfig-version.cmake
+[1.957s] -- Up-to-date symlink: /ros2_ws/install/robot_description/share/robot_description/package.xml
+[5.855s] Invoked command in '/ros2_ws/build/robot_description' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/robot_description

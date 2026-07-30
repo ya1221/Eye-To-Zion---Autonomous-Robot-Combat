@@ -1,0 +1,18 @@
+[2.594s] Invoking command in '/ros2_ws/build/ai_vision': PYTHONPATH=/ros2_ws/build/ai_vision/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/ros2_ws/install/ai_vision/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /ros2_ws/build/ai_vision/build --no-deps symlink_data
+[3.116s] running develop
+[3.260s] running egg_info
+[3.260s] writing ai_vision.egg-info/PKG-INFO
+[3.261s] writing dependency_links to ai_vision.egg-info/dependency_links.txt
+[3.261s] writing entry points to ai_vision.egg-info/entry_points.txt
+[3.262s] writing requirements to ai_vision.egg-info/requires.txt
+[3.269s] writing top-level names to ai_vision.egg-info/top_level.txt
+[3.271s] reading manifest file 'ai_vision.egg-info/SOURCES.txt'
+[3.272s] writing manifest file 'ai_vision.egg-info/SOURCES.txt'
+[3.275s] running build_ext
+[3.280s] Creating /ros2_ws/install/ai_vision/lib/python3.10/site-packages/ai-vision.egg-link (link to .)
+[3.280s] Installing ai_inference_node script to /ros2_ws/install/ai_vision/lib/ai_vision
+[3.280s] Installing cv_processor_node script to /ros2_ws/install/ai_vision/lib/ai_vision
+[3.280s] 
+[3.281s] Installed /ros2_ws/build/ai_vision
+[3.281s] running symlink_data
+[3.368s] Invoked command in '/ros2_ws/build/ai_vision' returned '0': PYTHONPATH=/ros2_ws/build/ai_vision/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/ros2_ws/install/ai_vision/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /ros2_ws/build/ai_vision/build --no-deps symlink_data

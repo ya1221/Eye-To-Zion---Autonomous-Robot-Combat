@@ -1,0 +1,17 @@
+-- Install configuration: ""
+-- Execute custom install script
+-- Up-to-date symlink: /ros2_ws/install/main_brain/share/ament_index/resource_index/package_run_dependencies/main_brain
+-- Up-to-date symlink: /ros2_ws/install/main_brain/share/ament_index/resource_index/parent_prefix_path/main_brain
+-- Up-to-date symlink: /ros2_ws/install/main_brain/share/main_brain/environment/ament_prefix_path.sh
+-- Up-to-date symlink: /ros2_ws/install/main_brain/share/main_brain/environment/ament_prefix_path.dsv
+-- Up-to-date symlink: /ros2_ws/install/main_brain/share/main_brain/environment/path.sh
+-- Up-to-date symlink: /ros2_ws/install/main_brain/share/main_brain/environment/path.dsv
+-- Up-to-date symlink: /ros2_ws/install/main_brain/share/main_brain/local_setup.bash
+-- Up-to-date symlink: /ros2_ws/install/main_brain/share/main_brain/local_setup.sh
+-- Up-to-date symlink: /ros2_ws/install/main_brain/share/main_brain/local_setup.zsh
+-- Up-to-date symlink: /ros2_ws/install/main_brain/share/main_brain/local_setup.dsv
+-- Symlinking: /ros2_ws/install/main_brain/share/main_brain/package.dsv
+-- Up-to-date symlink: /ros2_ws/install/main_brain/share/ament_index/resource_index/packages/main_brain
+-- Up-to-date symlink: /ros2_ws/install/main_brain/share/main_brain/cmake/main_brainConfig.cmake
+-- Up-to-date symlink: /ros2_ws/install/main_brain/share/main_brain/cmake/main_brainConfig-version.cmake
+-- Up-to-date symlink: /ros2_ws/install/main_brain/share/main_brain/package.xml

@@ -1,0 +1,26 @@
+[0.010s] Invoking command in '/ros2_ws/build/shooting': /usr/bin/cmake --build /ros2_ws/build/shooting -- -j4 -l4
+[0.066s] [ 50%] Building CXX object CMakeFiles/shooting_node.dir/src/shooting_node.cpp.o
+[15.031s] [100%] Linking CXX executable shooting_node
+[16.095s] [100%] Built target shooting_node
+[16.109s] Invoked command in '/ros2_ws/build/shooting' returned '0': /usr/bin/cmake --build /ros2_ws/build/shooting -- -j4 -l4
+[16.117s] Invoking command in '/ros2_ws/build/shooting': /usr/bin/cmake --install /ros2_ws/build/shooting
+[16.124s] -- Install configuration: ""
+[16.125s] -- Execute custom install script
+[16.126s] -- Up-to-date symlink: /ros2_ws/install/shooting/lib/shooting/shooting_node
+[16.127s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/launch/launch.py
+[16.127s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/ament_index/resource_index/package_run_dependencies/shooting
+[16.127s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/ament_index/resource_index/parent_prefix_path/shooting
+[16.127s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/environment/ament_prefix_path.sh
+[16.127s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/environment/ament_prefix_path.dsv
+[16.127s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/environment/path.sh
+[16.127s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/environment/path.dsv
+[16.128s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/local_setup.bash
+[16.128s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/local_setup.sh
+[16.128s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/local_setup.zsh
+[16.128s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/local_setup.dsv
+[16.128s] -- Symlinking: /ros2_ws/install/shooting/share/shooting/package.dsv
+[16.135s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/ament_index/resource_index/packages/shooting
+[16.135s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/cmake/shootingConfig.cmake
+[16.135s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/cmake/shootingConfig-version.cmake
+[16.135s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/package.xml
+[16.138s] Invoked command in '/ros2_ws/build/shooting' returned '0': /usr/bin/cmake --install /ros2_ws/build/shooting

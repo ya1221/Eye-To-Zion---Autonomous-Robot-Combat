@@ -1,0 +1,26 @@
+[2.265s] Invoking command in '/ros2_ws/build/sensor_fusion_pkg': PYTHONPATH=/ros2_ws/build/sensor_fusion_pkg/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/ros2_ws/install/sensor_fusion_pkg/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /ros2_ws/build/sensor_fusion_pkg/build --no-deps symlink_data
+[2.671s] running develop
+[2.842s] running egg_info
+[2.842s] creating sensor_fusion_pkg.egg-info
+[2.843s] writing sensor_fusion_pkg.egg-info/PKG-INFO
+[2.844s] writing dependency_links to sensor_fusion_pkg.egg-info/dependency_links.txt
+[2.845s] writing entry points to sensor_fusion_pkg.egg-info/entry_points.txt
+[2.846s] writing requirements to sensor_fusion_pkg.egg-info/requires.txt
+[2.847s] writing top-level names to sensor_fusion_pkg.egg-info/top_level.txt
+[2.847s] writing manifest file 'sensor_fusion_pkg.egg-info/SOURCES.txt'
+[2.853s] reading manifest file 'sensor_fusion_pkg.egg-info/SOURCES.txt'
+[2.854s] writing manifest file 'sensor_fusion_pkg.egg-info/SOURCES.txt'
+[2.858s] running build_ext
+[2.861s] Creating /ros2_ws/install/sensor_fusion_pkg/lib/python3.10/site-packages/sensor-fusion-pkg.egg-link (link to .)
+[2.864s] Installing sensor_fusion_node script to /ros2_ws/install/sensor_fusion_pkg/lib/sensor_fusion_pkg
+[2.865s] 
+[2.865s] Installed /ros2_ws/build/sensor_fusion_pkg
+[2.866s] running symlink_data
+[2.866s] creating /ros2_ws/install/sensor_fusion_pkg/share/ament_index
+[2.866s] creating /ros2_ws/install/sensor_fusion_pkg/share/ament_index/resource_index
+[2.867s] creating /ros2_ws/install/sensor_fusion_pkg/share/ament_index/resource_index/packages
+[2.867s] symbolically linking /ros2_ws/build/sensor_fusion_pkg/resource/sensor_fusion_pkg -> /ros2_ws/install/sensor_fusion_pkg/share/ament_index/resource_index/packages
+[2.867s] symbolically linking /ros2_ws/build/sensor_fusion_pkg/package.xml -> /ros2_ws/install/sensor_fusion_pkg/share/sensor_fusion_pkg
+[2.868s] creating /ros2_ws/install/sensor_fusion_pkg/share/sensor_fusion_pkg/launch
+[2.868s] symbolically linking /ros2_ws/build/sensor_fusion_pkg/launch/main.launch.py -> /ros2_ws/install/sensor_fusion_pkg/share/sensor_fusion_pkg/launch
+[2.988s] Invoked command in '/ros2_ws/build/sensor_fusion_pkg' returned '0': PYTHONPATH=/ros2_ws/build/sensor_fusion_pkg/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/ros2_ws/install/sensor_fusion_pkg/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /ros2_ws/build/sensor_fusion_pkg/build --no-deps symlink_data

@@ -1,0 +1,76 @@
+[0.000000] (-) TimerEvent: {}
+[0.001314] (-) JobUnselected: {'identifier': 'ai_vision'}
+[0.001434] (-) JobUnselected: {'identifier': 'foxglove'}
+[0.001477] (-) JobUnselected: {'identifier': 'hardware'}
+[0.001503] (-) JobUnselected: {'identifier': 'icm20948_ros2'}
+[0.001526] (-) JobUnselected: {'identifier': 'localization'}
+[0.001548] (-) JobUnselected: {'identifier': 'main_brain'}
+[0.001571] (-) JobUnselected: {'identifier': 'navigation'}
+[0.002116] (-) JobUnselected: {'identifier': 'rf2o_laser_odometry'}
+[0.002177] (-) JobUnselected: {'identifier': 'robot_bringup'}
+[0.002537] (-) JobUnselected: {'identifier': 'robot_description'}
+[0.002682] (-) JobUnselected: {'identifier': 'shooting'}
+[0.002793] (-) JobUnselected: {'identifier': 'tactical_brain'}
+[0.002835] (-) JobUnselected: {'identifier': 'telemetry_data'}
+[0.002854] (-) JobUnselected: {'identifier': 'ydlidar_ros2_driver'}
+[0.002881] (sensor_fusion_pkg) JobQueued: {'identifier': 'sensor_fusion_pkg', 'dependencies': OrderedDict()}
+[0.003801] (sensor_fusion_pkg) JobStarted: {'identifier': 'sensor_fusion_pkg'}
+[0.107950] (-) TimerEvent: {}
+[0.208486] (-) TimerEvent: {}
+[0.308994] (-) TimerEvent: {}
+[0.411410] (-) TimerEvent: {}
+[0.511625] (-) TimerEvent: {}
+[0.614334] (-) TimerEvent: {}
+[0.714701] (-) TimerEvent: {}
+[0.814973] (-) TimerEvent: {}
+[0.915237] (-) TimerEvent: {}
+[1.018382] (-) TimerEvent: {}
+[1.120063] (-) TimerEvent: {}
+[1.221563] (-) TimerEvent: {}
+[1.322037] (-) TimerEvent: {}
+[1.422430] (-) TimerEvent: {}
+[1.522838] (-) TimerEvent: {}
+[1.624171] (-) TimerEvent: {}
+[1.725444] (-) TimerEvent: {}
+[1.828070] (-) TimerEvent: {}
+[1.929031] (-) TimerEvent: {}
+[2.030445] (-) TimerEvent: {}
+[2.131557] (-) TimerEvent: {}
+[2.234862] (-) TimerEvent: {}
+[2.339236] (-) TimerEvent: {}
+[2.440586] (-) TimerEvent: {}
+[2.541029] (-) TimerEvent: {}
+[2.641282] (-) TimerEvent: {}
+[2.747517] (-) TimerEvent: {}
+[2.802650] (sensor_fusion_pkg) Command: {'cmd': ['/usr/bin/python3', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'develop', '--editable', '--build-directory', '/ros2_ws/build/sensor_fusion_pkg/build', '--no-deps', 'symlink_data'], 'cwd': '/ros2_ws/build/sensor_fusion_pkg', 'env': {'HOSTNAME': 'yahav', 'GRID_N': '2000', 'SHLVL': '0', 'LD_LIBRARY_PATH': '/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib', 'HOME': '/root', 'MY_TEAM_IDX': '0', 'PYTHONUNBUFFERED': '1', 'ROS_PYTHON_VERSION': '3', 'ROS_DISTRO': 'humble', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'ROS_LOCALHOST_ONLY': '0', 'PATH': '/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin', 'DISPLAY': '', 'LANG': 'C.UTF-8', 'ROS_DOMAIN_ID': '0', 'AMENT_PREFIX_PATH': '/opt/ros/humble', 'ROBOT_ID': '8', 'ARENA_SIZE_METERS': '2.0', 'PWD': '/ros2_ws/build/sensor_fusion_pkg', 'LC_ALL': 'C.UTF-8', 'PYTHONPATH': '/ros2_ws/build/sensor_fusion_pkg/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/ros2_ws/install/sensor_fusion_pkg/lib/python3.10/site-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages', 'COLCON': '1'}, 'shell': False}
+[2.847725] (-) TimerEvent: {}
+[2.950450] (-) TimerEvent: {}
+[3.051138] (-) TimerEvent: {}
+[3.152263] (-) TimerEvent: {}
+[3.252929] (-) TimerEvent: {}
+[3.353364] (-) TimerEvent: {}
+[3.454170] (-) TimerEvent: {}
+[3.475327] (sensor_fusion_pkg) StdoutLine: {'line': b'running develop\n'}
+[3.554234] (-) TimerEvent: {}
+[3.654639] (-) TimerEvent: {}
+[3.755253] (-) TimerEvent: {}
+[3.826162] (sensor_fusion_pkg) StdoutLine: {'line': b'running egg_info\n'}
+[3.830251] (sensor_fusion_pkg) StdoutLine: {'line': b'writing sensor_fusion_pkg.egg-info/PKG-INFO\n'}
+[3.832236] (sensor_fusion_pkg) StdoutLine: {'line': b'writing dependency_links to sensor_fusion_pkg.egg-info/dependency_links.txt\n'}
+[3.836872] (sensor_fusion_pkg) StdoutLine: {'line': b'writing entry points to sensor_fusion_pkg.egg-info/entry_points.txt\n'}
+[3.837226] (sensor_fusion_pkg) StdoutLine: {'line': b'writing requirements to sensor_fusion_pkg.egg-info/requires.txt\n'}
+[3.837345] (sensor_fusion_pkg) StdoutLine: {'line': b'writing top-level names to sensor_fusion_pkg.egg-info/top_level.txt\n'}
+[3.847816] (sensor_fusion_pkg) StdoutLine: {'line': b"reading manifest file 'sensor_fusion_pkg.egg-info/SOURCES.txt'\n"}
+[3.853957] (sensor_fusion_pkg) StdoutLine: {'line': b"writing manifest file 'sensor_fusion_pkg.egg-info/SOURCES.txt'\n"}
+[3.855139] (sensor_fusion_pkg) StdoutLine: {'line': b'running build_ext\n'}
+[3.855561] (-) TimerEvent: {}
+[3.861095] (sensor_fusion_pkg) StdoutLine: {'line': b'Creating /ros2_ws/install/sensor_fusion_pkg/lib/python3.10/site-packages/sensor-fusion-pkg.egg-link (link to .)\n'}
+[3.863354] (sensor_fusion_pkg) StdoutLine: {'line': b'Installing sensor_fusion_node script to /ros2_ws/install/sensor_fusion_pkg/lib/sensor_fusion_pkg\n'}
+[3.865243] (sensor_fusion_pkg) StdoutLine: {'line': b'\n'}
+[3.865593] (sensor_fusion_pkg) StdoutLine: {'line': b'Installed /ros2_ws/build/sensor_fusion_pkg\n'}
+[3.866694] (sensor_fusion_pkg) StdoutLine: {'line': b'running symlink_data\n'}
+[3.956493] (-) TimerEvent: {}
+[4.056920] (-) TimerEvent: {}
+[4.059578] (sensor_fusion_pkg) CommandEnded: {'returncode': 0}
+[4.091454] (sensor_fusion_pkg) JobEnded: {'identifier': 'sensor_fusion_pkg', 'rc': 0}
+[4.092819] (-) EventReactorShutdown: {}

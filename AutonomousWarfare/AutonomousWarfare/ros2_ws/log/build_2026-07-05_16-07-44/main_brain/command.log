@@ -1,0 +1,4 @@
+Invoking command in '/ros2_ws/build/main_brain': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/main_brain -- -j4 -l4
+Invoked command in '/ros2_ws/build/main_brain' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/main_brain -- -j4 -l4
+Invoking command in '/ros2_ws/build/main_brain': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/main_brain
+Invoked command in '/ros2_ws/build/main_brain' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/main_brain

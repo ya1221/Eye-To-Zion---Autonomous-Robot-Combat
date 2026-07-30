@@ -1,0 +1,69 @@
+[0.013s] Invoking command in '/ros2_ws/build/localization': CMAKE_PREFIX_PATH=/ros2_ws/install/ydlidar_ros2_driver:/ros2_ws/install/rf2o_laser_odometry:/ros2_ws/install/robot_bringup:/ros2_ws/install/localization:/ros2_ws/install/telemetry_data:/ros2_ws/install/shooting:/ros2_ws/install/hardware:/ros2_ws/install/robot_description:/ros2_ws/install/navigation:/ros2_ws/install/main_brain:/ros2_ws/install/foxglove:/opt/ros/humble /usr/bin/cmake /ros2_ws/src/localization -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/ros2_ws/install/localization
+[0.083s] -- The C compiler identification is GNU 11.4.0
+[0.152s] -- The CXX compiler identification is GNU 11.4.0
+[0.163s] -- Detecting C compiler ABI info
+[0.289s] -- Detecting C compiler ABI info - done
+[0.300s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.301s] -- Detecting C compile features
+[0.301s] -- Detecting C compile features - done
+[0.305s] -- Detecting CXX compiler ABI info
+[0.405s] -- Detecting CXX compiler ABI info - done
+[0.411s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.412s] -- Detecting CXX compile features
+[0.412s] -- Detecting CXX compile features - done
+[0.417s] -- Found ament_cmake: 1.3.14 (/opt/ros/humble/share/ament_cmake/cmake)
+[0.563s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+[0.640s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[0.682s] -- Found tf2_ros: 0.25.20 (/opt/ros/humble/share/tf2_ros/cmake)
+[0.737s] -- Found rosidl_generator_c: 3.1.8 (/opt/ros/humble/share/rosidl_generator_c/cmake)
+[0.745s] -- Found rosidl_adapter: 3.1.8 (/opt/ros/humble/share/rosidl_adapter/cmake)
+[0.758s] -- Found rosidl_generator_cpp: 3.1.8 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)
+[0.775s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[0.801s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[0.922s] -- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)
+[0.926s] -- Found rmw_fastrtps_cpp: 6.2.10 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)
+[1.009s] -- Found OpenSSL: /usr/lib/aarch64-linux-gnu/libcrypto.so (found version "3.0.2")  
+[1.039s] -- Found FastRTPS: /opt/ros/humble/include  
+[1.088s] -- Using RMW implementation 'rmw_fastrtps_cpp' as default
+[1.100s] -- Looking for pthread.h
+[1.178s] -- Looking for pthread.h - found
+[1.178s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+[1.269s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+[1.273s] -- Found Threads: TRUE  
+[1.478s] -- Found ament_lint_auto: 0.12.15 (/opt/ros/humble/share/ament_lint_auto/cmake)
+[1.582s] -- Added test 'flake8' to check Python code syntax and style conventions
+[1.582s] -- Added test 'lint_cmake' to check CMake code style
+[1.583s] -- Added test 'pep257' to check Python code against some of the docstring style conventions in PEP 257
+[1.584s] -- Added test 'xmllint' to check XML markup files
+[1.588s] -- Configuring done
+[1.591s] -- Generating done
+[1.594s] -- Build files have been written to: /ros2_ws/build/localization
+[1.609s] Invoked command in '/ros2_ws/build/localization' returned '0': CMAKE_PREFIX_PATH=/ros2_ws/install/ydlidar_ros2_driver:/ros2_ws/install/rf2o_laser_odometry:/ros2_ws/install/robot_bringup:/ros2_ws/install/localization:/ros2_ws/install/telemetry_data:/ros2_ws/install/shooting:/ros2_ws/install/hardware:/ros2_ws/install/robot_description:/ros2_ws/install/navigation:/ros2_ws/install/main_brain:/ros2_ws/install/foxglove:/opt/ros/humble /usr/bin/cmake /ros2_ws/src/localization -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/ros2_ws/install/localization
+[1.610s] Invoking command in '/ros2_ws/build/localization': CMAKE_PREFIX_PATH=/ros2_ws/install/ydlidar_ros2_driver:/ros2_ws/install/rf2o_laser_odometry:/ros2_ws/install/robot_bringup:/ros2_ws/install/localization:/ros2_ws/install/telemetry_data:/ros2_ws/install/shooting:/ros2_ws/install/hardware:/ros2_ws/install/robot_description:/ros2_ws/install/navigation:/ros2_ws/install/main_brain:/ros2_ws/install/foxglove:/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/localization -- -j4 -l4
+[1.649s] Invoked command in '/ros2_ws/build/localization' returned '0': CMAKE_PREFIX_PATH=/ros2_ws/install/ydlidar_ros2_driver:/ros2_ws/install/rf2o_laser_odometry:/ros2_ws/install/robot_bringup:/ros2_ws/install/localization:/ros2_ws/install/telemetry_data:/ros2_ws/install/shooting:/ros2_ws/install/hardware:/ros2_ws/install/robot_description:/ros2_ws/install/navigation:/ros2_ws/install/main_brain:/ros2_ws/install/foxglove:/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/localization -- -j4 -l4
+[1.650s] Invoking command in '/ros2_ws/build/localization': CMAKE_PREFIX_PATH=/ros2_ws/install/ydlidar_ros2_driver:/ros2_ws/install/rf2o_laser_odometry:/ros2_ws/install/robot_bringup:/ros2_ws/install/localization:/ros2_ws/install/telemetry_data:/ros2_ws/install/shooting:/ros2_ws/install/hardware:/ros2_ws/install/robot_description:/ros2_ws/install/navigation:/ros2_ws/install/main_brain:/ros2_ws/install/foxglove:/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/localization
+[1.658s] -- Install configuration: ""
+[1.659s] -- Execute custom install script
+[1.659s] -- Symlinking: /ros2_ws/install/localization/share/localization/config/ekf.yaml
+[1.667s] -- Symlinking: /ros2_ws/install/localization/share/localization/config/ekf_global.yaml
+[1.675s] -- Symlinking: /ros2_ws/install/localization/share/localization/config/ekf_local.yaml
+[1.684s] -- Symlinking: /ros2_ws/install/localization/share/localization/config/lidar.yaml
+[1.692s] -- Symlinking: /ros2_ws/install/localization/share/localization/config/rf2o.yaml
+[1.700s] -- Symlinking: /ros2_ws/install/localization/share/localization/config/slam.yaml
+[1.708s] -- Symlinking: /ros2_ws/install/localization/share/localization/launch/launch.py
+[1.716s] -- Symlinking: /ros2_ws/install/localization/share/ament_index/resource_index/package_run_dependencies/localization
+[1.726s] -- Symlinking: /ros2_ws/install/localization/share/ament_index/resource_index/parent_prefix_path/localization
+[1.735s] -- Symlinking: /ros2_ws/install/localization/share/localization/environment/ament_prefix_path.sh
+[1.743s] -- Symlinking: /ros2_ws/install/localization/share/localization/environment/ament_prefix_path.dsv
+[1.751s] -- Symlinking: /ros2_ws/install/localization/share/localization/environment/path.sh
+[1.760s] -- Symlinking: /ros2_ws/install/localization/share/localization/environment/path.dsv
+[1.768s] -- Symlinking: /ros2_ws/install/localization/share/localization/local_setup.bash
+[1.776s] -- Symlinking: /ros2_ws/install/localization/share/localization/local_setup.sh
+[1.785s] -- Symlinking: /ros2_ws/install/localization/share/localization/local_setup.zsh
+[1.793s] -- Symlinking: /ros2_ws/install/localization/share/localization/local_setup.dsv
+[1.802s] -- Symlinking: /ros2_ws/install/localization/share/localization/package.dsv
+[1.811s] -- Symlinking: /ros2_ws/install/localization/share/ament_index/resource_index/packages/localization
+[1.819s] -- Symlinking: /ros2_ws/install/localization/share/localization/cmake/localizationConfig.cmake
+[1.827s] -- Symlinking: /ros2_ws/install/localization/share/localization/cmake/localizationConfig-version.cmake
+[1.835s] -- Symlinking: /ros2_ws/install/localization/share/localization/package.xml
+[1.847s] Invoked command in '/ros2_ws/build/localization' returned '0': CMAKE_PREFIX_PATH=/ros2_ws/install/ydlidar_ros2_driver:/ros2_ws/install/rf2o_laser_odometry:/ros2_ws/install/robot_bringup:/ros2_ws/install/localization:/ros2_ws/install/telemetry_data:/ros2_ws/install/shooting:/ros2_ws/install/hardware:/ros2_ws/install/robot_description:/ros2_ws/install/navigation:/ros2_ws/install/main_brain:/ros2_ws/install/foxglove:/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/localization

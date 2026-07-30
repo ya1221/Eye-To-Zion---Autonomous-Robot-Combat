@@ -1,0 +1,49 @@
+[0.000000] (-) TimerEvent: {}
+[0.000309] (-) JobUnselected: {'identifier': 'ai_vision'}
+[0.000347] (-) JobUnselected: {'identifier': 'foxglove'}
+[0.000367] (-) JobUnselected: {'identifier': 'hardware'}
+[0.000383] (-) JobUnselected: {'identifier': 'icm20948_ros2'}
+[0.000399] (-) JobUnselected: {'identifier': 'localization'}
+[0.000416] (-) JobUnselected: {'identifier': 'main_brain'}
+[0.000720] (-) JobUnselected: {'identifier': 'navigation'}
+[0.000748] (-) JobUnselected: {'identifier': 'rf2o_laser_odometry'}
+[0.000765] (-) JobUnselected: {'identifier': 'robot_bringup'}
+[0.000780] (-) JobUnselected: {'identifier': 'robot_description'}
+[0.000795] (-) JobUnselected: {'identifier': 'shooting'}
+[0.000810] (-) JobUnselected: {'identifier': 'telemetry_data'}
+[0.000826] (-) JobUnselected: {'identifier': 'ydlidar_ros2_driver'}
+[0.000846] (tactical_brain) JobQueued: {'identifier': 'tactical_brain', 'dependencies': OrderedDict()}
+[0.000868] (tactical_brain) JobStarted: {'identifier': 'tactical_brain'}
+[0.099573] (-) TimerEvent: {}
+[0.199994] (-) TimerEvent: {}
+[0.300956] (-) TimerEvent: {}
+[0.401180] (-) TimerEvent: {}
+[0.501749] (-) TimerEvent: {}
+[0.602009] (-) TimerEvent: {}
+[0.703434] (-) TimerEvent: {}
+[0.803736] (-) TimerEvent: {}
+[0.904168] (-) TimerEvent: {}
+[1.004409] (-) TimerEvent: {}
+[1.018226] (tactical_brain) Command: {'cmd': ['/usr/bin/python3', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'develop', '--editable', '--build-directory', '/ros2_ws/build/tactical_brain/build', '--no-deps', 'symlink_data'], 'cwd': '/ros2_ws/build/tactical_brain', 'env': {'HOSTNAME': 'yahav', 'GRID_N': '2000', 'SHLVL': '0', 'HOME': '/root', 'MY_TEAM_IDX': '0', 'OLDPWD': '/ros2_ws', 'PYTHONUNBUFFERED': '1', 'ROS_DISTRO': 'humble', '_': '/usr/bin/colcon', 'PATH': '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin', 'DISPLAY': '', 'LANG': 'C.UTF-8', 'ROS_DOMAIN_ID': '0', 'ROBOT_ID': '6', 'ARENA_SIZE_METERS': '2.0', 'PWD': '/ros2_ws/build/tactical_brain', 'LC_ALL': 'C.UTF-8', 'COLCON': '1', 'PYTHONPATH': '/ros2_ws/build/tactical_brain/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/ros2_ws/install/tactical_brain/lib/python3.10/site-packages:'}, 'shell': False}
+[1.104490] (-) TimerEvent: {}
+[1.204762] (-) TimerEvent: {}
+[1.243607] (tactical_brain) StdoutLine: {'line': b'running develop\n'}
+[1.301324] (tactical_brain) StdoutLine: {'line': b'running egg_info\n'}
+[1.301581] (tactical_brain) StdoutLine: {'line': b'writing tactical_brain.egg-info/PKG-INFO\n'}
+[1.302205] (tactical_brain) StdoutLine: {'line': b'writing dependency_links to tactical_brain.egg-info/dependency_links.txt\n'}
+[1.303946] (tactical_brain) StdoutLine: {'line': b'writing entry points to tactical_brain.egg-info/entry_points.txt\n'}
+[1.304620] (tactical_brain) StdoutLine: {'line': b'writing requirements to tactical_brain.egg-info/requires.txt\n'}
+[1.304813] (-) TimerEvent: {}
+[1.305316] (tactical_brain) StdoutLine: {'line': b'writing top-level names to tactical_brain.egg-info/top_level.txt\n'}
+[1.307646] (tactical_brain) StdoutLine: {'line': b"reading manifest file 'tactical_brain.egg-info/SOURCES.txt'\n"}
+[1.308491] (tactical_brain) StdoutLine: {'line': b"writing manifest file 'tactical_brain.egg-info/SOURCES.txt'\n"}
+[1.310035] (tactical_brain) StdoutLine: {'line': b'running build_ext\n'}
+[1.310317] (tactical_brain) StdoutLine: {'line': b'Creating /ros2_ws/install/tactical_brain/lib/python3.10/site-packages/tactical-brain.egg-link (link to .)\n'}
+[1.312090] (tactical_brain) StdoutLine: {'line': b'Installing brain_node script to /ros2_ws/install/tactical_brain/lib/tactical_brain\n'}
+[1.312344] (tactical_brain) StdoutLine: {'line': b'Installing mock_pose_publisher script to /ros2_ws/install/tactical_brain/lib/tactical_brain\n'}
+[1.312411] (tactical_brain) StdoutLine: {'line': b'\n'}
+[1.312470] (tactical_brain) StdoutLine: {'line': b'Installed /ros2_ws/build/tactical_brain\n'}
+[1.312539] (tactical_brain) StdoutLine: {'line': b'running symlink_data\n'}
+[1.370873] (tactical_brain) CommandEnded: {'returncode': 0}
+[1.393106] (tactical_brain) JobEnded: {'identifier': 'tactical_brain', 'rc': 0}
+[1.393915] (-) EventReactorShutdown: {}

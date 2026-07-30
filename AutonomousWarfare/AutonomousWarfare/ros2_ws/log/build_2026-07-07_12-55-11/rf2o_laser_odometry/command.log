@@ -1,0 +1,1 @@
+Invoking command in '/ros2_ws/build/rf2o_laser_odometry': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/rf2o_laser_odometry -- -j4 -l4

@@ -1,0 +1,61 @@
+[0.000000] (-) TimerEvent: {}
+[0.000124] (-) JobUnselected: {'identifier': 'foxglove'}
+[0.000335] (-) JobUnselected: {'identifier': 'hardware'}
+[0.000364] (-) JobUnselected: {'identifier': 'icm20948_ros2'}
+[0.000383] (-) JobUnselected: {'identifier': 'localization'}
+[0.000747] (-) JobUnselected: {'identifier': 'main_brain'}
+[0.000767] (-) JobUnselected: {'identifier': 'navigation'}
+[0.000784] (-) JobUnselected: {'identifier': 'rf2o_laser_odometry'}
+[0.000800] (-) JobUnselected: {'identifier': 'robot_bringup'}
+[0.000817] (-) JobUnselected: {'identifier': 'robot_description'}
+[0.000833] (-) JobUnselected: {'identifier': 'shooting'}
+[0.000849] (-) JobUnselected: {'identifier': 'tactical_brain'}
+[0.000864] (-) JobUnselected: {'identifier': 'telemetry_data'}
+[0.000880] (-) JobUnselected: {'identifier': 'ydlidar_ros2_driver'}
+[0.000899] (ai_vision) JobQueued: {'identifier': 'ai_vision', 'dependencies': OrderedDict()}
+[0.000920] (ai_vision) JobStarted: {'identifier': 'ai_vision'}
+[0.099710] (-) TimerEvent: {}
+[0.199963] (-) TimerEvent: {}
+[0.300213] (-) TimerEvent: {}
+[0.400453] (-) TimerEvent: {}
+[0.500708] (-) TimerEvent: {}
+[0.601010] (-) TimerEvent: {}
+[0.702406] (-) TimerEvent: {}
+[0.802799] (-) TimerEvent: {}
+[0.897636] (ai_vision) Command: {'cmd': ['/usr/bin/python3', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'develop', '--editable', '--build-directory', '/ros2_ws/build/ai_vision/build', '--no-deps', 'symlink_data'], 'cwd': '/ros2_ws/build/ai_vision', 'env': {'HOSTNAME': 'yahav', 'GRID_N': '2000', 'SHLVL': '0', 'HOME': '/root', 'MY_TEAM_IDX': '0', 'OLDPWD': '/ros2_ws', 'PYTHONUNBUFFERED': '1', 'ROS_DISTRO': 'humble', '_': '/usr/bin/colcon', 'PATH': '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin', 'DISPLAY': '', 'LANG': 'C.UTF-8', 'ROS_DOMAIN_ID': '0', 'ROBOT_ID': '6', 'ARENA_SIZE_METERS': '2.0', 'PWD': '/ros2_ws/build/ai_vision', 'LC_ALL': 'C.UTF-8', 'COLCON': '1', 'PYTHONPATH': '/ros2_ws/build/ai_vision/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/ros2_ws/install/ai_vision/lib/python3.10/site-packages:'}, 'shell': False}
+[0.902878] (-) TimerEvent: {}
+[1.003064] (-) TimerEvent: {}
+[1.103273] (-) TimerEvent: {}
+[1.105803] (ai_vision) StdoutLine: {'line': b'running develop\n'}
+[1.160866] (ai_vision) StdoutLine: {'line': b'running egg_info\n'}
+[1.161110] (ai_vision) StdoutLine: {'line': b'writing ai_vision.egg-info/PKG-INFO\n'}
+[1.161182] (ai_vision) StdoutLine: {'line': b'writing dependency_links to ai_vision.egg-info/dependency_links.txt\n'}
+[1.162603] (ai_vision) StdoutLine: {'line': b'writing entry points to ai_vision.egg-info/entry_points.txt\n'}
+[1.163336] (ai_vision) StdoutLine: {'line': b'writing requirements to ai_vision.egg-info/requires.txt\n'}
+[1.164108] (ai_vision) StdoutLine: {'line': b'writing top-level names to ai_vision.egg-info/top_level.txt\n'}
+[1.165484] (ai_vision) StdoutLine: {'line': b"reading manifest file 'ai_vision.egg-info/SOURCES.txt'\n"}
+[1.166451] (ai_vision) StdoutLine: {'line': b"writing manifest file 'ai_vision.egg-info/SOURCES.txt'\n"}
+[1.167959] (ai_vision) StdoutLine: {'line': b'running build_ext\n'}
+[1.168814] (ai_vision) StdoutLine: {'line': b'Creating /ros2_ws/install/ai_vision/lib/python3.10/site-packages/ai-vision.egg-link (link to .)\n'}
+[1.169807] (ai_vision) StdoutLine: {'line': b'Installing ai_inference_node script to /ros2_ws/install/ai_vision/lib/ai_vision\n'}
+[1.171251] (ai_vision) StdoutLine: {'line': b'Installing cv_processor_node script to /ros2_ws/install/ai_vision/lib/ai_vision\n'}
+[1.171371] (ai_vision) StdoutLine: {'line': b'\n'}
+[1.171437] (ai_vision) StdoutLine: {'line': b'Installed /ros2_ws/build/ai_vision\n'}
+[1.171498] (ai_vision) StdoutLine: {'line': b'running symlink_data\n'}
+[1.173139] (ai_vision) StdoutLine: {'line': b'symbolically linking /ros2_ws/build/ai_vision/resource/ai_vision -> /ros2_ws/install/ai_vision/share/ament_index/resource_index/packages\n'}
+[1.173867] (ai_vision) StdoutLine: {'line': b'symbolically linking /ros2_ws/build/ai_vision/package.xml -> /ros2_ws/install/ai_vision/share/ai_vision\n'}
+[1.174103] (ai_vision) StdoutLine: {'line': b'creating /ros2_ws/install/ai_vision/share/ai_vision/config\n'}
+[1.174189] (ai_vision) StdoutLine: {'line': b'symbolically linking /ros2_ws/build/ai_vision/config/ai_inference_params.yaml -> /ros2_ws/install/ai_vision/share/ai_vision/config\n'}
+[1.174261] (ai_vision) StdoutLine: {'line': b'symbolically linking /ros2_ws/build/ai_vision/config/cv_processor_params.yaml -> /ros2_ws/install/ai_vision/share/ai_vision/config\n'}
+[1.174345] (ai_vision) StdoutLine: {'line': b'creating /ros2_ws/install/ai_vision/share/ai_vision/launch\n'}
+[1.174410] (ai_vision) StdoutLine: {'line': b'symbolically linking /ros2_ws/build/ai_vision/launch/launch.py -> /ros2_ws/install/ai_vision/share/ai_vision/launch\n'}
+[1.176168] (ai_vision) StdoutLine: {'line': b'creating /ros2_ws/install/ai_vision/share/ai_vision/models\n'}
+[1.176259] (ai_vision) StdoutLine: {'line': b'creating /ros2_ws/install/ai_vision/share/ai_vision/models/best_ncnn_model\n'}
+[1.176331] (ai_vision) StdoutLine: {'line': b'symbolically linking /ros2_ws/build/ai_vision/models/best_ncnn_model/model.ncnn.bin -> /ros2_ws/install/ai_vision/share/ai_vision/models/best_ncnn_model\n'}
+[1.176399] (ai_vision) StdoutLine: {'line': b'symbolically linking /ros2_ws/build/ai_vision/models/best_ncnn_model/model.ncnn.param -> /ros2_ws/install/ai_vision/share/ai_vision/models/best_ncnn_model\n'}
+[1.176472] (ai_vision) StdoutLine: {'line': b'symbolically linking /ros2_ws/build/ai_vision/models/best_ncnn_model/metadata.yaml -> /ros2_ws/install/ai_vision/share/ai_vision/models/best_ncnn_model\n'}
+[1.176536] (ai_vision) StdoutLine: {'line': b'symbolically linking /ros2_ws/build/ai_vision/models/best_ncnn_model/model_ncnn.py -> /ros2_ws/install/ai_vision/share/ai_vision/models/best_ncnn_model\n'}
+[1.203394] (-) TimerEvent: {}
+[1.229890] (ai_vision) CommandEnded: {'returncode': 0}
+[1.248699] (ai_vision) JobEnded: {'identifier': 'ai_vision', 'rc': 0}
+[1.249096] (-) EventReactorShutdown: {}

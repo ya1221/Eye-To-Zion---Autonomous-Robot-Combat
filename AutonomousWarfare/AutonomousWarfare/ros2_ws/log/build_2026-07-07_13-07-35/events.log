@@ -1,0 +1,48 @@
+[0.000000] (-) TimerEvent: {}
+[0.000132] (-) JobUnselected: {'identifier': 'foxglove'}
+[0.000384] (-) JobUnselected: {'identifier': 'hardware'}
+[0.000405] (-) JobUnselected: {'identifier': 'icm20948_ros2'}
+[0.000676] (-) JobUnselected: {'identifier': 'localization'}
+[0.000698] (-) JobUnselected: {'identifier': 'main_brain'}
+[0.000937] (-) JobUnselected: {'identifier': 'navigation'}
+[0.001177] (-) JobUnselected: {'identifier': 'rf2o_laser_odometry'}
+[0.001456] (-) JobUnselected: {'identifier': 'robot_bringup'}
+[0.001505] (-) JobUnselected: {'identifier': 'robot_description'}
+[0.001525] (-) JobUnselected: {'identifier': 'shooting'}
+[0.001543] (-) JobUnselected: {'identifier': 'tactical_brain'}
+[0.001559] (-) JobUnselected: {'identifier': 'telemetry_data'}
+[0.001576] (-) JobUnselected: {'identifier': 'ydlidar_ros2_driver'}
+[0.001597] (ai_vision) JobQueued: {'identifier': 'ai_vision', 'dependencies': OrderedDict()}
+[0.001619] (ai_vision) JobStarted: {'identifier': 'ai_vision'}
+[0.099590] (-) TimerEvent: {}
+[0.199873] (-) TimerEvent: {}
+[0.300158] (-) TimerEvent: {}
+[0.400384] (-) TimerEvent: {}
+[0.500577] (-) TimerEvent: {}
+[0.600843] (-) TimerEvent: {}
+[0.701246] (-) TimerEvent: {}
+[0.801457] (-) TimerEvent: {}
+[0.901708] (-) TimerEvent: {}
+[0.906461] (ai_vision) Command: {'cmd': ['/usr/bin/python3', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'develop', '--editable', '--build-directory', '/ros2_ws/build/ai_vision/build', '--no-deps', 'symlink_data'], 'cwd': '/ros2_ws/build/ai_vision', 'env': {'HOSTNAME': 'yahav', 'GRID_N': '2000', 'SHLVL': '0', 'HOME': '/root', 'MY_TEAM_IDX': '0', 'OLDPWD': '/ros2_ws', 'PYTHONUNBUFFERED': '1', 'ROS_DISTRO': 'humble', '_': '/usr/bin/colcon', 'PATH': '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin', 'DISPLAY': '', 'LANG': 'C.UTF-8', 'ROS_DOMAIN_ID': '0', 'ROBOT_ID': '6', 'ARENA_SIZE_METERS': '2.0', 'PWD': '/ros2_ws/build/ai_vision', 'LC_ALL': 'C.UTF-8', 'COLCON': '1', 'PYTHONPATH': '/ros2_ws/build/ai_vision/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/ros2_ws/install/ai_vision/lib/python3.10/site-packages:'}, 'shell': False}
+[1.001799] (-) TimerEvent: {}
+[1.102028] (-) TimerEvent: {}
+[1.116447] (ai_vision) StdoutLine: {'line': b'running develop\n'}
+[1.169961] (ai_vision) StdoutLine: {'line': b'running egg_info\n'}
+[1.170184] (ai_vision) StdoutLine: {'line': b'writing ai_vision.egg-info/PKG-INFO\n'}
+[1.180506] (ai_vision) StdoutLine: {'line': b'writing dependency_links to ai_vision.egg-info/dependency_links.txt\n'}
+[1.181805] (ai_vision) StdoutLine: {'line': b'writing entry points to ai_vision.egg-info/entry_points.txt\n'}
+[1.182414] (ai_vision) StdoutLine: {'line': b'writing requirements to ai_vision.egg-info/requires.txt\n'}
+[1.183218] (ai_vision) StdoutLine: {'line': b'writing top-level names to ai_vision.egg-info/top_level.txt\n'}
+[1.185943] (ai_vision) StdoutLine: {'line': b"reading manifest file 'ai_vision.egg-info/SOURCES.txt'\n"}
+[1.186829] (ai_vision) StdoutLine: {'line': b"writing manifest file 'ai_vision.egg-info/SOURCES.txt'\n"}
+[1.188425] (ai_vision) StdoutLine: {'line': b'running build_ext\n'}
+[1.188706] (ai_vision) StdoutLine: {'line': b'Creating /ros2_ws/install/ai_vision/lib/python3.10/site-packages/ai-vision.egg-link (link to .)\n'}
+[1.189908] (ai_vision) StdoutLine: {'line': b'Installing ai_inference_node script to /ros2_ws/install/ai_vision/lib/ai_vision\n'}
+[1.190215] (ai_vision) StdoutLine: {'line': b'Installing cv_processor_node script to /ros2_ws/install/ai_vision/lib/ai_vision\n'}
+[1.190487] (ai_vision) StdoutLine: {'line': b'\n'}
+[1.190602] (ai_vision) StdoutLine: {'line': b'Installed /ros2_ws/build/ai_vision\n'}
+[1.190664] (ai_vision) StdoutLine: {'line': b'running symlink_data\n'}
+[1.202133] (-) TimerEvent: {}
+[1.251782] (ai_vision) CommandEnded: {'returncode': 0}
+[1.268683] (ai_vision) JobEnded: {'identifier': 'ai_vision', 'rc': 0}
+[1.269440] (-) EventReactorShutdown: {}

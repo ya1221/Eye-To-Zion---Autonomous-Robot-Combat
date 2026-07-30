@@ -1,0 +1,206 @@
+[0.000000] (-) TimerEvent: {}
+[0.000175] (-) JobUnselected: {'identifier': 'foxglove'}
+[0.000427] (-) JobUnselected: {'identifier': 'icm20948_ros2'}
+[0.000453] (-) JobUnselected: {'identifier': 'localization'}
+[0.000599] (-) JobUnselected: {'identifier': 'main_brain'}
+[0.000797] (-) JobUnselected: {'identifier': 'navigation'}
+[0.000851] (-) JobUnselected: {'identifier': 'rf2o_laser_odometry'}
+[0.000870] (-) JobUnselected: {'identifier': 'robot_bringup'}
+[0.000905] (-) JobUnselected: {'identifier': 'robot_description'}
+[0.000922] (-) JobUnselected: {'identifier': 'shooting'}
+[0.000939] (-) JobUnselected: {'identifier': 'telemetry_data'}
+[0.000954] (-) JobUnselected: {'identifier': 'ydlidar_ros2_driver'}
+[0.000975] (hardware) JobQueued: {'identifier': 'hardware', 'dependencies': OrderedDict()}
+[0.000996] (hardware) JobStarted: {'identifier': 'hardware'}
+[0.011559] (hardware) JobProgress: {'identifier': 'hardware', 'progress': 'cmake'}
+[0.012401] (hardware) JobProgress: {'identifier': 'hardware', 'progress': 'build'}
+[0.013300] (hardware) Command: {'cmd': ['/usr/bin/cmake', '--build', '/ros2_ws/build/hardware', '--', '-j4', '-l4'], 'cwd': '/ros2_ws/build/hardware', 'env': OrderedDict([('HOSTNAME', 'yahav'), ('SHLVL', '0'), ('LD_LIBRARY_PATH', '/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/root'), ('OLDPWD', '/ros2_ws'), ('PYTHONUNBUFFERED', '1'), ('ROS_PYTHON_VERSION', '3'), ('ROS_DISTRO', 'humble'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'), ('DISPLAY', ''), ('LANG', 'C.UTF-8'), ('ROS_DOMAIN_ID', '0'), ('AMENT_PREFIX_PATH', '/opt/ros/humble'), ('PWD', '/ros2_ws/build/hardware'), ('LC_ALL', 'C.UTF-8'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/opt/ros/humble')]), 'shell': False}
+[0.076275] (hardware) StdoutLine: {'line': b'[ 83%] Built target motor_driver\n'}
+[0.076591] (hardware) StdoutLine: {'line': b'[ 66%] Building CXX object CMakeFiles/twist_to_ackermann.dir/src/twist_to_ackermann.cpp.o\n'}
+[0.076670] (hardware) StdoutLine: {'line': b'[ 83%] Built target heading_pid_controller\n'}
+[0.099565] (-) TimerEvent: {}
+[0.199735] (-) TimerEvent: {}
+[0.299956] (-) TimerEvent: {}
+[0.400168] (-) TimerEvent: {}
+[0.500379] (-) TimerEvent: {}
+[0.600594] (-) TimerEvent: {}
+[0.700810] (-) TimerEvent: {}
+[0.801028] (-) TimerEvent: {}
+[0.901243] (-) TimerEvent: {}
+[1.001475] (-) TimerEvent: {}
+[1.101696] (-) TimerEvent: {}
+[1.201916] (-) TimerEvent: {}
+[1.302693] (-) TimerEvent: {}
+[1.402912] (-) TimerEvent: {}
+[1.503139] (-) TimerEvent: {}
+[1.603365] (-) TimerEvent: {}
+[1.703606] (-) TimerEvent: {}
+[1.803845] (-) TimerEvent: {}
+[1.904075] (-) TimerEvent: {}
+[2.004306] (-) TimerEvent: {}
+[2.104531] (-) TimerEvent: {}
+[2.204750] (-) TimerEvent: {}
+[2.304974] (-) TimerEvent: {}
+[2.405292] (-) TimerEvent: {}
+[2.505526] (-) TimerEvent: {}
+[2.605746] (-) TimerEvent: {}
+[2.705963] (-) TimerEvent: {}
+[2.806194] (-) TimerEvent: {}
+[2.906422] (-) TimerEvent: {}
+[3.007472] (-) TimerEvent: {}
+[3.107725] (-) TimerEvent: {}
+[3.208025] (-) TimerEvent: {}
+[3.314766] (-) TimerEvent: {}
+[3.415243] (-) TimerEvent: {}
+[3.515476] (-) TimerEvent: {}
+[3.617350] (-) TimerEvent: {}
+[3.717604] (-) TimerEvent: {}
+[3.817835] (-) TimerEvent: {}
+[3.918058] (-) TimerEvent: {}
+[4.018321] (-) TimerEvent: {}
+[4.118589] (-) TimerEvent: {}
+[4.218895] (-) TimerEvent: {}
+[4.319156] (-) TimerEvent: {}
+[4.419447] (-) TimerEvent: {}
+[4.519711] (-) TimerEvent: {}
+[4.619942] (-) TimerEvent: {}
+[4.720192] (-) TimerEvent: {}
+[4.822837] (-) TimerEvent: {}
+[4.923166] (-) TimerEvent: {}
+[5.023414] (-) TimerEvent: {}
+[5.123853] (-) TimerEvent: {}
+[5.224577] (-) TimerEvent: {}
+[5.324813] (-) TimerEvent: {}
+[5.425056] (-) TimerEvent: {}
+[5.526082] (-) TimerEvent: {}
+[5.627584] (-) TimerEvent: {}
+[5.727818] (-) TimerEvent: {}
+[5.828101] (-) TimerEvent: {}
+[5.928500] (-) TimerEvent: {}
+[6.028739] (-) TimerEvent: {}
+[6.128976] (-) TimerEvent: {}
+[6.229290] (-) TimerEvent: {}
+[6.329522] (-) TimerEvent: {}
+[6.429772] (-) TimerEvent: {}
+[6.530006] (-) TimerEvent: {}
+[6.630238] (-) TimerEvent: {}
+[6.730962] (-) TimerEvent: {}
+[6.831332] (-) TimerEvent: {}
+[6.931556] (-) TimerEvent: {}
+[7.031793] (-) TimerEvent: {}
+[7.132183] (-) TimerEvent: {}
+[7.232459] (-) TimerEvent: {}
+[7.332712] (-) TimerEvent: {}
+[7.438805] (-) TimerEvent: {}
+[7.539073] (-) TimerEvent: {}
+[7.639312] (-) TimerEvent: {}
+[7.739537] (-) TimerEvent: {}
+[7.839769] (-) TimerEvent: {}
+[7.939987] (-) TimerEvent: {}
+[8.040209] (-) TimerEvent: {}
+[8.140430] (-) TimerEvent: {}
+[8.240669] (-) TimerEvent: {}
+[8.340913] (-) TimerEvent: {}
+[8.441158] (-) TimerEvent: {}
+[8.541399] (-) TimerEvent: {}
+[8.641641] (-) TimerEvent: {}
+[8.741899] (-) TimerEvent: {}
+[8.842157] (-) TimerEvent: {}
+[8.942399] (-) TimerEvent: {}
+[9.042681] (-) TimerEvent: {}
+[9.142915] (-) TimerEvent: {}
+[9.243146] (-) TimerEvent: {}
+[9.343388] (-) TimerEvent: {}
+[9.443623] (-) TimerEvent: {}
+[9.543855] (-) TimerEvent: {}
+[9.644090] (-) TimerEvent: {}
+[9.744333] (-) TimerEvent: {}
+[9.844568] (-) TimerEvent: {}
+[9.944795] (-) TimerEvent: {}
+[10.045042] (-) TimerEvent: {}
+[10.145300] (-) TimerEvent: {}
+[10.245547] (-) TimerEvent: {}
+[10.345790] (-) TimerEvent: {}
+[10.446010] (-) TimerEvent: {}
+[10.546249] (-) TimerEvent: {}
+[10.646481] (-) TimerEvent: {}
+[10.746714] (-) TimerEvent: {}
+[10.846945] (-) TimerEvent: {}
+[10.950714] (-) TimerEvent: {}
+[11.051116] (-) TimerEvent: {}
+[11.151368] (-) TimerEvent: {}
+[11.251632] (-) TimerEvent: {}
+[11.351851] (-) TimerEvent: {}
+[11.452100] (-) TimerEvent: {}
+[11.552520] (-) TimerEvent: {}
+[11.652756] (-) TimerEvent: {}
+[11.752993] (-) TimerEvent: {}
+[11.853403] (-) TimerEvent: {}
+[11.953633] (-) TimerEvent: {}
+[12.053860] (-) TimerEvent: {}
+[12.154095] (-) TimerEvent: {}
+[12.254342] (-) TimerEvent: {}
+[12.354569] (-) TimerEvent: {}
+[12.454817] (-) TimerEvent: {}
+[12.555033] (-) TimerEvent: {}
+[12.655277] (-) TimerEvent: {}
+[12.755514] (-) TimerEvent: {}
+[12.855744] (-) TimerEvent: {}
+[12.955980] (-) TimerEvent: {}
+[13.056211] (-) TimerEvent: {}
+[13.156437] (-) TimerEvent: {}
+[13.256673] (-) TimerEvent: {}
+[13.357106] (-) TimerEvent: {}
+[13.457971] (-) TimerEvent: {}
+[13.558291] (-) TimerEvent: {}
+[13.624554] (hardware) StdoutLine: {'line': b'[100%] Linking CXX executable twist_to_ackermann\n'}
+[13.658397] (-) TimerEvent: {}
+[13.758780] (-) TimerEvent: {}
+[13.859093] (-) TimerEvent: {}
+[13.959396] (-) TimerEvent: {}
+[14.059768] (-) TimerEvent: {}
+[14.159986] (-) TimerEvent: {}
+[14.260203] (-) TimerEvent: {}
+[14.360443] (-) TimerEvent: {}
+[14.460672] (-) TimerEvent: {}
+[14.461533] (hardware) StdoutLine: {'line': b'[100%] Built target twist_to_ackermann\n'}
+[14.475394] (hardware) CommandEnded: {'returncode': 0}
+[14.476559] (hardware) JobProgress: {'identifier': 'hardware', 'progress': 'install'}
+[14.487175] (hardware) Command: {'cmd': ['/usr/bin/cmake', '--install', '/ros2_ws/build/hardware'], 'cwd': '/ros2_ws/build/hardware', 'env': OrderedDict([('HOSTNAME', 'yahav'), ('SHLVL', '0'), ('LD_LIBRARY_PATH', '/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/root'), ('OLDPWD', '/ros2_ws'), ('PYTHONUNBUFFERED', '1'), ('ROS_PYTHON_VERSION', '3'), ('ROS_DISTRO', 'humble'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'), ('DISPLAY', ''), ('LANG', 'C.UTF-8'), ('ROS_DOMAIN_ID', '0'), ('AMENT_PREFIX_PATH', '/opt/ros/humble'), ('PWD', '/ros2_ws/build/hardware'), ('LC_ALL', 'C.UTF-8'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/opt/ros/humble')]), 'shell': False}
+[14.495356] (hardware) StdoutLine: {'line': b'-- Install configuration: ""\n'}
+[14.496981] (hardware) StdoutLine: {'line': b'-- Execute custom install script\n'}
+[14.497651] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware//hardware_interface_plugins.xml\n'}
+[14.497741] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/lib/libmotor_driver.so\n'}
+[14.497806] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/lib/hardware/twist_to_ackermann\n'}
+[14.497866] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/lib/hardware/heading_pid_controller\n'}
+[14.497925] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/config/ackermann_steering_controller.yaml\n'}
+[14.500749] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/config/controller_manager.yaml\n'}
+[14.501005] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/config/joint_state_broadcaster.yaml\n'}
+[14.501106] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/config/pid_params.yaml\n'}
+[14.501196] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/config/ackermann_steering_controller.yaml\n'}
+[14.501273] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/config/controller_manager.yaml\n'}
+[14.501350] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/config/joint_state_broadcaster.yaml\n'}
+[14.501429] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/config/pid_params.yaml\n'}
+[14.501505] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/launch/launch.py\n'}
+[14.501587] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/ros2_control.xacro\n'}
+[14.501660] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/hardware_interface_plugins.xml\n'}
+[14.501731] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/ament_index/resource_index/package_run_dependencies/hardware\n'}
+[14.501803] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/ament_index/resource_index/parent_prefix_path/hardware\n'}
+[14.501882] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/environment/ament_prefix_path.sh\n'}
+[14.501958] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/environment/ament_prefix_path.dsv\n'}
+[14.502030] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/environment/path.sh\n'}
+[14.502097] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/environment/path.dsv\n'}
+[14.502169] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/local_setup.bash\n'}
+[14.502238] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/local_setup.sh\n'}
+[14.502304] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/local_setup.zsh\n'}
+[14.502371] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/local_setup.dsv\n'}
+[14.502437] (hardware) StdoutLine: {'line': b'-- Symlinking: /ros2_ws/install/hardware/share/hardware/package.dsv\n'}
+[14.510229] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/ament_index/resource_index/packages/hardware\n'}
+[14.510835] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/ament_index/resource_index/hardware_interface__pluginlib__plugin/hardware\n'}
+[14.510938] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/cmake/hardwareConfig.cmake\n'}
+[14.511006] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/cmake/hardwareConfig-version.cmake\n'}
+[14.511072] (hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/hardware/share/hardware/package.xml\n'}
+[14.513710] (hardware) CommandEnded: {'returncode': 0}
+[14.560792] (-) TimerEvent: {}
+[14.572446] (hardware) JobEnded: {'identifier': 'hardware', 'rc': 0}
+[14.574323] (-) EventReactorShutdown: {}

@@ -1,0 +1,208 @@
+[0.000000] (-) TimerEvent: {}
+[0.000239] (-) JobUnselected: {'identifier': 'ai_vision'}
+[0.000482] (-) JobUnselected: {'identifier': 'foxglove'}
+[0.000504] (-) JobUnselected: {'identifier': 'hardware'}
+[0.000522] (-) JobUnselected: {'identifier': 'icm20948_ros2'}
+[0.000539] (-) JobUnselected: {'identifier': 'localization'}
+[0.000556] (-) JobUnselected: {'identifier': 'main_brain'}
+[0.000572] (-) JobUnselected: {'identifier': 'navigation'}
+[0.000588] (-) JobUnselected: {'identifier': 'rf2o_laser_odometry'}
+[0.000605] (-) JobUnselected: {'identifier': 'robot_bringup'}
+[0.000621] (-) JobUnselected: {'identifier': 'robot_description'}
+[0.000637] (-) JobUnselected: {'identifier': 'tactical_brain'}
+[0.000653] (-) JobUnselected: {'identifier': 'telemetry_data'}
+[0.000669] (-) JobUnselected: {'identifier': 'ydlidar_ros2_driver'}
+[0.000689] (shooting) JobQueued: {'identifier': 'shooting', 'dependencies': OrderedDict()}
+[0.000710] (shooting) JobStarted: {'identifier': 'shooting'}
+[0.008085] (shooting) JobProgress: {'identifier': 'shooting', 'progress': 'cmake'}
+[0.008886] (shooting) JobProgress: {'identifier': 'shooting', 'progress': 'build'}
+[0.009744] (shooting) Command: {'cmd': ['/usr/bin/cmake', '--build', '/ros2_ws/build/shooting', '--', '-j4', '-l4'], 'cwd': '/ros2_ws/build/shooting', 'env': OrderedDict([('HOSTNAME', 'yahav'), ('GRID_N', '2000'), ('SHLVL', '0'), ('HOME', '/root'), ('MY_TEAM_IDX', '0'), ('OLDPWD', '/ros2_ws'), ('PYTHONUNBUFFERED', '1'), ('ROS_DISTRO', 'humble'), ('_', '/usr/bin/colcon'), ('PATH', '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'), ('DISPLAY', ''), ('LANG', 'C.UTF-8'), ('ROS_DOMAIN_ID', '0'), ('ROBOT_ID', '6'), ('ARENA_SIZE_METERS', '2.0'), ('PWD', '/ros2_ws/build/shooting'), ('LC_ALL', 'C.UTF-8'), ('COLCON', '1')]), 'shell': False}
+[0.066667] (shooting) StdoutLine: {'line': b'[ 50%] Building CXX object CMakeFiles/shooting_node.dir/src/shooting_node.cpp.o\n'}
+[0.102372] (-) TimerEvent: {}
+[0.202610] (-) TimerEvent: {}
+[0.302842] (-) TimerEvent: {}
+[0.403058] (-) TimerEvent: {}
+[0.503292] (-) TimerEvent: {}
+[0.603552] (-) TimerEvent: {}
+[0.703783] (-) TimerEvent: {}
+[0.804012] (-) TimerEvent: {}
+[0.904236] (-) TimerEvent: {}
+[1.004471] (-) TimerEvent: {}
+[1.104718] (-) TimerEvent: {}
+[1.204955] (-) TimerEvent: {}
+[1.305186] (-) TimerEvent: {}
+[1.405419] (-) TimerEvent: {}
+[1.505648] (-) TimerEvent: {}
+[1.605878] (-) TimerEvent: {}
+[1.706103] (-) TimerEvent: {}
+[1.806407] (-) TimerEvent: {}
+[1.906663] (-) TimerEvent: {}
+[2.006889] (-) TimerEvent: {}
+[2.107110] (-) TimerEvent: {}
+[2.207340] (-) TimerEvent: {}
+[2.307568] (-) TimerEvent: {}
+[2.407787] (-) TimerEvent: {}
+[2.508009] (-) TimerEvent: {}
+[2.608238] (-) TimerEvent: {}
+[2.708466] (-) TimerEvent: {}
+[2.808704] (-) TimerEvent: {}
+[2.908934] (-) TimerEvent: {}
+[3.009159] (-) TimerEvent: {}
+[3.109391] (-) TimerEvent: {}
+[3.209636] (-) TimerEvent: {}
+[3.309866] (-) TimerEvent: {}
+[3.410467] (-) TimerEvent: {}
+[3.510695] (-) TimerEvent: {}
+[3.610920] (-) TimerEvent: {}
+[3.711156] (-) TimerEvent: {}
+[3.811387] (-) TimerEvent: {}
+[3.911615] (-) TimerEvent: {}
+[4.011841] (-) TimerEvent: {}
+[4.112067] (-) TimerEvent: {}
+[4.212290] (-) TimerEvent: {}
+[4.312517] (-) TimerEvent: {}
+[4.412737] (-) TimerEvent: {}
+[4.512964] (-) TimerEvent: {}
+[4.613200] (-) TimerEvent: {}
+[4.713418] (-) TimerEvent: {}
+[4.813634] (-) TimerEvent: {}
+[4.913849] (-) TimerEvent: {}
+[5.014069] (-) TimerEvent: {}
+[5.114310] (-) TimerEvent: {}
+[5.214545] (-) TimerEvent: {}
+[5.314770] (-) TimerEvent: {}
+[5.415015] (-) TimerEvent: {}
+[5.515234] (-) TimerEvent: {}
+[5.615605] (-) TimerEvent: {}
+[5.716102] (-) TimerEvent: {}
+[5.816322] (-) TimerEvent: {}
+[5.916552] (-) TimerEvent: {}
+[6.016793] (-) TimerEvent: {}
+[6.117021] (-) TimerEvent: {}
+[6.217248] (-) TimerEvent: {}
+[6.317480] (-) TimerEvent: {}
+[6.417708] (-) TimerEvent: {}
+[6.517931] (-) TimerEvent: {}
+[6.618168] (-) TimerEvent: {}
+[6.718403] (-) TimerEvent: {}
+[6.818618] (-) TimerEvent: {}
+[6.918836] (-) TimerEvent: {}
+[7.019058] (-) TimerEvent: {}
+[7.119316] (-) TimerEvent: {}
+[7.219551] (-) TimerEvent: {}
+[7.319785] (-) TimerEvent: {}
+[7.420035] (-) TimerEvent: {}
+[7.520279] (-) TimerEvent: {}
+[7.620524] (-) TimerEvent: {}
+[7.720801] (-) TimerEvent: {}
+[7.821087] (-) TimerEvent: {}
+[7.921488] (-) TimerEvent: {}
+[8.022458] (-) TimerEvent: {}
+[8.122677] (-) TimerEvent: {}
+[8.222907] (-) TimerEvent: {}
+[8.323137] (-) TimerEvent: {}
+[8.423354] (-) TimerEvent: {}
+[8.523575] (-) TimerEvent: {}
+[8.623775] (-) TimerEvent: {}
+[8.724140] (-) TimerEvent: {}
+[8.824499] (-) TimerEvent: {}
+[8.924707] (-) TimerEvent: {}
+[9.024940] (-) TimerEvent: {}
+[9.125177] (-) TimerEvent: {}
+[9.225389] (-) TimerEvent: {}
+[9.325599] (-) TimerEvent: {}
+[9.425810] (-) TimerEvent: {}
+[9.526033] (-) TimerEvent: {}
+[9.626250] (-) TimerEvent: {}
+[9.726495] (-) TimerEvent: {}
+[9.826722] (-) TimerEvent: {}
+[9.926934] (-) TimerEvent: {}
+[10.027157] (-) TimerEvent: {}
+[10.127396] (-) TimerEvent: {}
+[10.227611] (-) TimerEvent: {}
+[10.327821] (-) TimerEvent: {}
+[10.428033] (-) TimerEvent: {}
+[10.528246] (-) TimerEvent: {}
+[10.628457] (-) TimerEvent: {}
+[10.728666] (-) TimerEvent: {}
+[10.828878] (-) TimerEvent: {}
+[10.929089] (-) TimerEvent: {}
+[11.029304] (-) TimerEvent: {}
+[11.129520] (-) TimerEvent: {}
+[11.229734] (-) TimerEvent: {}
+[11.329952] (-) TimerEvent: {}
+[11.430348] (-) TimerEvent: {}
+[11.530705] (-) TimerEvent: {}
+[11.631078] (-) TimerEvent: {}
+[11.731444] (-) TimerEvent: {}
+[11.831666] (-) TimerEvent: {}
+[11.931882] (-) TimerEvent: {}
+[12.032096] (-) TimerEvent: {}
+[12.132314] (-) TimerEvent: {}
+[12.232527] (-) TimerEvent: {}
+[12.332741] (-) TimerEvent: {}
+[12.432954] (-) TimerEvent: {}
+[12.533167] (-) TimerEvent: {}
+[12.633392] (-) TimerEvent: {}
+[12.733604] (-) TimerEvent: {}
+[12.833818] (-) TimerEvent: {}
+[12.934039] (-) TimerEvent: {}
+[13.034699] (-) TimerEvent: {}
+[13.135477] (-) TimerEvent: {}
+[13.235691] (-) TimerEvent: {}
+[13.335897] (-) TimerEvent: {}
+[13.436103] (-) TimerEvent: {}
+[13.536312] (-) TimerEvent: {}
+[13.636516] (-) TimerEvent: {}
+[13.736734] (-) TimerEvent: {}
+[13.836977] (-) TimerEvent: {}
+[13.937228] (-) TimerEvent: {}
+[14.037480] (-) TimerEvent: {}
+[14.137918] (-) TimerEvent: {}
+[14.238289] (-) TimerEvent: {}
+[14.338521] (-) TimerEvent: {}
+[14.438901] (-) TimerEvent: {}
+[14.539132] (-) TimerEvent: {}
+[14.639398] (-) TimerEvent: {}
+[14.739684] (-) TimerEvent: {}
+[14.843105] (-) TimerEvent: {}
+[14.943815] (-) TimerEvent: {}
+[15.031088] (shooting) StdoutLine: {'line': b'[100%] Linking CXX executable shooting_node\n'}
+[15.044133] (-) TimerEvent: {}
+[15.145379] (-) TimerEvent: {}
+[15.245876] (-) TimerEvent: {}
+[15.346282] (-) TimerEvent: {}
+[15.446728] (-) TimerEvent: {}
+[15.547176] (-) TimerEvent: {}
+[15.647384] (-) TimerEvent: {}
+[15.747611] (-) TimerEvent: {}
+[15.847852] (-) TimerEvent: {}
+[15.948066] (-) TimerEvent: {}
+[16.048294] (-) TimerEvent: {}
+[16.095433] (shooting) StdoutLine: {'line': b'[100%] Built target shooting_node\n'}
+[16.108695] (shooting) CommandEnded: {'returncode': 0}
+[16.110030] (shooting) JobProgress: {'identifier': 'shooting', 'progress': 'install'}
+[16.117134] (shooting) Command: {'cmd': ['/usr/bin/cmake', '--install', '/ros2_ws/build/shooting'], 'cwd': '/ros2_ws/build/shooting', 'env': OrderedDict([('HOSTNAME', 'yahav'), ('GRID_N', '2000'), ('SHLVL', '0'), ('HOME', '/root'), ('MY_TEAM_IDX', '0'), ('OLDPWD', '/ros2_ws'), ('PYTHONUNBUFFERED', '1'), ('ROS_DISTRO', 'humble'), ('_', '/usr/bin/colcon'), ('PATH', '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'), ('DISPLAY', ''), ('LANG', 'C.UTF-8'), ('ROS_DOMAIN_ID', '0'), ('ROBOT_ID', '6'), ('ARENA_SIZE_METERS', '2.0'), ('PWD', '/ros2_ws/build/shooting'), ('LC_ALL', 'C.UTF-8'), ('COLCON', '1')]), 'shell': False}
+[16.124470] (shooting) StdoutLine: {'line': b'-- Install configuration: ""\n'}
+[16.125342] (shooting) StdoutLine: {'line': b'-- Execute custom install script\n'}
+[16.126254] (shooting) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/shooting/lib/shooting/shooting_node\n'}
+[16.126991] (shooting) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/launch/launch.py\n'}
+[16.127807] (shooting) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/shooting/share/ament_index/resource_index/package_run_dependencies/shooting\n'}
+[16.127895] (shooting) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/shooting/share/ament_index/resource_index/parent_prefix_path/shooting\n'}
+[16.127963] (shooting) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/environment/ament_prefix_path.sh\n'}
+[16.128025] (shooting) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/environment/ament_prefix_path.dsv\n'}
+[16.128087] (shooting) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/environment/path.sh\n'}
+[16.128151] (shooting) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/environment/path.dsv\n'}
+[16.128214] (shooting) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/local_setup.bash\n'}
+[16.128273] (shooting) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/local_setup.sh\n'}
+[16.128334] (shooting) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/local_setup.zsh\n'}
+[16.128394] (shooting) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/local_setup.dsv\n'}
+[16.128453] (shooting) StdoutLine: {'line': b'-- Symlinking: /ros2_ws/install/shooting/share/shooting/package.dsv\n'}
+[16.135252] (shooting) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/shooting/share/ament_index/resource_index/packages/shooting\n'}
+[16.135924] (shooting) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/cmake/shootingConfig.cmake\n'}
+[16.136006] (shooting) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/cmake/shootingConfig-version.cmake\n'}
+[16.136065] (shooting) StdoutLine: {'line': b'-- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/package.xml\n'}
+[16.137929] (shooting) CommandEnded: {'returncode': 0}
+[16.148455] (-) TimerEvent: {}
+[16.161083] (shooting) JobEnded: {'identifier': 'shooting', 'rc': 0}
+[16.162148] (-) EventReactorShutdown: {}

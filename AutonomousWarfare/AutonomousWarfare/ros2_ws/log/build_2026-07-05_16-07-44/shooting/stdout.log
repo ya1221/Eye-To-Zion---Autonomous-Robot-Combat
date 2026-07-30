@@ -1,0 +1,21 @@
+[35m[1mConsolidate compiler generated dependencies of target shooting_node[0m
+[100%] Built target shooting_node
+-- Install configuration: ""
+-- Execute custom install script
+-- Up-to-date symlink: /ros2_ws/install/shooting/lib/shooting/shooting_node
+-- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/launch/launch.py
+-- Up-to-date symlink: /ros2_ws/install/shooting/share/ament_index/resource_index/package_run_dependencies/shooting
+-- Up-to-date symlink: /ros2_ws/install/shooting/share/ament_index/resource_index/parent_prefix_path/shooting
+-- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/environment/ament_prefix_path.sh
+-- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/environment/ament_prefix_path.dsv
+-- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/environment/path.sh
+-- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/environment/path.dsv
+-- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/local_setup.bash
+-- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/local_setup.sh
+-- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/local_setup.zsh
+-- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/local_setup.dsv
+-- Symlinking: /ros2_ws/install/shooting/share/shooting/package.dsv
+-- Up-to-date symlink: /ros2_ws/install/shooting/share/ament_index/resource_index/packages/shooting
+-- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/cmake/shootingConfig.cmake
+-- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/cmake/shootingConfig-version.cmake
+-- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/package.xml

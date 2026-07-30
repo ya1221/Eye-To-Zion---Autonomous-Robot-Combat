@@ -1,0 +1,28 @@
+[3.899s] Invoking command in '/ros2_ws/build/localization': CMAKE_PREFIX_PATH=/ros2_ws/install/ydlidar_ros2_driver:/ros2_ws/install/rf2o_laser_odometry:/ros2_ws/install/robot_bringup:/ros2_ws/install/localization:/ros2_ws/install/telemetry_data:/ros2_ws/install/shooting:/ros2_ws/install/robot_description:/ros2_ws/install/navigation:/ros2_ws/install/main_brain:/ros2_ws/install/hardware:/ros2_ws/install/foxglove:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/localization -- -j4 -l4
+[5.626s] Invoked command in '/ros2_ws/build/localization' returned '0': CMAKE_PREFIX_PATH=/ros2_ws/install/ydlidar_ros2_driver:/ros2_ws/install/rf2o_laser_odometry:/ros2_ws/install/robot_bringup:/ros2_ws/install/localization:/ros2_ws/install/telemetry_data:/ros2_ws/install/shooting:/ros2_ws/install/robot_description:/ros2_ws/install/navigation:/ros2_ws/install/main_brain:/ros2_ws/install/hardware:/ros2_ws/install/foxglove:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/localization -- -j4 -l4
+[5.627s] Invoking command in '/ros2_ws/build/localization': CMAKE_PREFIX_PATH=/ros2_ws/install/ydlidar_ros2_driver:/ros2_ws/install/rf2o_laser_odometry:/ros2_ws/install/robot_bringup:/ros2_ws/install/localization:/ros2_ws/install/telemetry_data:/ros2_ws/install/shooting:/ros2_ws/install/robot_description:/ros2_ws/install/navigation:/ros2_ws/install/main_brain:/ros2_ws/install/hardware:/ros2_ws/install/foxglove:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/localization
+[5.648s] -- Install configuration: ""
+[5.673s] -- Execute custom install script
+[5.688s] -- Up-to-date symlink: /ros2_ws/install/localization/share/localization/config/ekf.yaml
+[5.720s] -- Up-to-date symlink: /ros2_ws/install/localization/share/localization/config/ekf_global.yaml
+[5.727s] -- Up-to-date symlink: /ros2_ws/install/localization/share/localization/config/ekf_local.yaml
+[5.728s] -- Up-to-date symlink: /ros2_ws/install/localization/share/localization/config/lidar.yaml
+[5.761s] -- Up-to-date symlink: /ros2_ws/install/localization/share/localization/config/rf2o.yaml
+[5.793s] -- Up-to-date symlink: /ros2_ws/install/localization/share/localization/config/slam.yaml
+[5.794s] -- Up-to-date symlink: /ros2_ws/install/localization/share/localization/launch/launch.py
+[5.794s] -- Up-to-date symlink: /ros2_ws/install/localization/share/ament_index/resource_index/package_run_dependencies/localization
+[5.794s] -- Up-to-date symlink: /ros2_ws/install/localization/share/ament_index/resource_index/parent_prefix_path/localization
+[5.794s] -- Up-to-date symlink: /ros2_ws/install/localization/share/localization/environment/ament_prefix_path.sh
+[5.794s] -- Up-to-date symlink: /ros2_ws/install/localization/share/localization/environment/ament_prefix_path.dsv
+[5.794s] -- Up-to-date symlink: /ros2_ws/install/localization/share/localization/environment/path.sh
+[5.794s] -- Up-to-date symlink: /ros2_ws/install/localization/share/localization/environment/path.dsv
+[5.794s] -- Up-to-date symlink: /ros2_ws/install/localization/share/localization/local_setup.bash
+[5.829s] -- Up-to-date symlink: /ros2_ws/install/localization/share/localization/local_setup.sh
+[5.855s] -- Up-to-date symlink: /ros2_ws/install/localization/share/localization/local_setup.zsh
+[5.856s] -- Up-to-date symlink: /ros2_ws/install/localization/share/localization/local_setup.dsv
+[5.856s] -- Symlinking: /ros2_ws/install/localization/share/localization/package.dsv
+[5.856s] -- Up-to-date symlink: /ros2_ws/install/localization/share/ament_index/resource_index/packages/localization
+[5.856s] -- Up-to-date symlink: /ros2_ws/install/localization/share/localization/cmake/localizationConfig.cmake
+[5.856s] -- Up-to-date symlink: /ros2_ws/install/localization/share/localization/cmake/localizationConfig-version.cmake
+[5.856s] -- Up-to-date symlink: /ros2_ws/install/localization/share/localization/package.xml
+[5.857s] Invoked command in '/ros2_ws/build/localization' returned '0': CMAKE_PREFIX_PATH=/ros2_ws/install/ydlidar_ros2_driver:/ros2_ws/install/rf2o_laser_odometry:/ros2_ws/install/robot_bringup:/ros2_ws/install/localization:/ros2_ws/install/telemetry_data:/ros2_ws/install/shooting:/ros2_ws/install/robot_description:/ros2_ws/install/navigation:/ros2_ws/install/main_brain:/ros2_ws/install/hardware:/ros2_ws/install/foxglove:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/localization

@@ -1,0 +1,26 @@
+[0.026s] Invoking command in '/ros2_ws/build/shooting': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/shooting -- -j4 -l4
+[0.112s] [ 50%] Building CXX object CMakeFiles/shooting_node.dir/src/shooting_node.cpp.o
+[30.060s] [100%] Linking CXX executable shooting_node
+[31.802s] [100%] Built target shooting_node
+[31.829s] Invoked command in '/ros2_ws/build/shooting' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/shooting -- -j4 -l4
+[31.845s] Invoking command in '/ros2_ws/build/shooting': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/shooting
+[31.858s] -- Install configuration: ""
+[31.860s] -- Execute custom install script
+[31.861s] -- Up-to-date symlink: /ros2_ws/install/shooting/lib/shooting/shooting_node
+[31.863s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/launch/launch.py
+[31.863s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/ament_index/resource_index/package_run_dependencies/shooting
+[31.866s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/ament_index/resource_index/parent_prefix_path/shooting
+[31.866s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/environment/ament_prefix_path.sh
+[31.866s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/environment/ament_prefix_path.dsv
+[31.866s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/environment/path.sh
+[31.867s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/environment/path.dsv
+[31.870s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/local_setup.bash
+[31.871s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/local_setup.sh
+[31.871s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/local_setup.zsh
+[31.871s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/local_setup.dsv
+[31.871s] -- Symlinking: /ros2_ws/install/shooting/share/shooting/package.dsv
+[31.893s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/ament_index/resource_index/packages/shooting
+[31.893s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/cmake/shootingConfig.cmake
+[31.893s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/cmake/shootingConfig-version.cmake
+[31.893s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/package.xml
+[31.897s] Invoked command in '/ros2_ws/build/shooting' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/shooting

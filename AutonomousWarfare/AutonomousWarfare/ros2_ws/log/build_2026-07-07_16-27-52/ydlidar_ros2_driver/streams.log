@@ -1,0 +1,80 @@
+[0.027s] Invoking command in '/ros2_ws/build/ydlidar_ros2_driver': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/ydlidar_ros2_driver -- -j4 -l4
+[0.148s] -- Found ament_cmake: 1.3.14 (/opt/ros/humble/share/ament_cmake/cmake)
+[0.419s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[0.448s] -- Found rclcpp: 16.0.19 (/opt/ros/humble/share/rclcpp/cmake)
+[0.503s] -- Found rosidl_generator_c: 3.1.8 (/opt/ros/humble/share/rosidl_generator_c/cmake)
+[0.510s] -- Found rosidl_adapter: 3.1.8 (/opt/ros/humble/share/rosidl_adapter/cmake)
+[0.524s] -- Found rosidl_generator_cpp: 3.1.8 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)
+[0.546s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[0.572s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[0.644s] -- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)
+[0.649s] -- Found rmw_fastrtps_cpp: 6.2.10 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)
+[0.847s] -- Using RMW implementation 'rmw_fastrtps_cpp' as default
+[0.953s] -- Found sensor_msgs: 4.9.1 (/opt/ros/humble/share/sensor_msgs/cmake)
+[1.013s] -- Found visualization_msgs: 4.9.1 (/opt/ros/humble/share/visualization_msgs/cmake)
+[1.057s] -- Found std_srvs: 4.9.1 (/opt/ros/humble/share/std_srvs/cmake)
+[1.094s] -- Found ament_lint_auto: 0.12.15 (/opt/ros/humble/share/ament_lint_auto/cmake)
+[1.310s] -- Added test 'copyright' to check source files copyright and LICENSE
+[1.312s] -- Added test 'cppcheck' to perform static code analysis on C / C++ code
+[1.315s] -- Configured cppcheck include dirs: /ros2_ws/src/ydlidar_ros2_driver/src
+[1.315s] -- Configured cppcheck exclude dirs and/or files: 
+[1.318s] -- Added test 'cpplint' to check C / C++ code against the Google style
+[1.318s] -- Configured cpplint exclude dirs and/or files: 
+[1.321s] -- Added test 'flake8' to check Python code syntax and style conventions
+[1.323s] -- Added test 'lint_cmake' to check CMake code style
+[1.330s] -- Added test 'pep257' to check Python code against some of the docstring style conventions in PEP 257
+[1.334s] -- Added test 'uncrustify' to check C / C++ code style
+[1.336s] -- Configured uncrustify additional arguments: 
+[1.337s] -- Added test 'xmllint' to check XML markup files
+[1.339s] -- Configuring done
+[1.397s] -- Generating done
+[1.424s] -- Build files have been written to: /ros2_ws/build/ydlidar_ros2_driver
+[1.496s] [35m[1mConsolidate compiler generated dependencies of target ydlidar_ros2_driver_client[0m
+[1.501s] [35m[1mConsolidate compiler generated dependencies of target ydlidar_ros2_driver_node[0m
+[1.544s] [ 50%] Built target ydlidar_ros2_driver_client
+[1.550s] [ 75%] [32mBuilding CXX object CMakeFiles/ydlidar_ros2_driver_node.dir/src/ydlidar_ros2_driver_node.cpp.o[0m
+[9.642s] [100%] [32m[1mLinking CXX executable ydlidar_ros2_driver_node[0m
+[10.221s] [100%] Built target ydlidar_ros2_driver_node
+[10.232s] Invoked command in '/ros2_ws/build/ydlidar_ros2_driver' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/ydlidar_ros2_driver -- -j4 -l4
+[10.234s] Invoking command in '/ros2_ws/build/ydlidar_ros2_driver': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/ydlidar_ros2_driver
+[10.242s] -- Install configuration: ""
+[10.242s] -- Execute custom install script
+[10.245s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/lib/ydlidar_ros2_driver/ydlidar_ros2_driver_node
+[10.247s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/lib/ydlidar_ros2_driver/ydlidar_ros2_driver_client
+[10.247s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/share/ydlidar_ros2_driver/launch/ydlidar.py
+[10.247s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/share/ydlidar_ros2_driver/launch/ydlidar_launch.py
+[10.247s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/share/ydlidar_ros2_driver/launch/ydlidar_launch_view.py
+[10.247s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/share/ydlidar_ros2_driver/params/G1.yaml
+[10.247s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/share/ydlidar_ros2_driver/params/G2.yaml
+[10.247s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/share/ydlidar_ros2_driver/params/G4.yaml
+[10.247s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/share/ydlidar_ros2_driver/params/G6.yaml
+[10.247s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/share/ydlidar_ros2_driver/params/GS2.yaml
+[10.247s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/share/ydlidar_ros2_driver/params/GS5.yaml
+[10.247s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/share/ydlidar_ros2_driver/params/TEA.yaml
+[10.247s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/share/ydlidar_ros2_driver/params/TG.yaml
+[10.247s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/share/ydlidar_ros2_driver/params/Tmini-Plus-SH.yaml
+[10.247s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/share/ydlidar_ros2_driver/params/Tmini.yaml
+[10.248s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/share/ydlidar_ros2_driver/params/X2.yaml
+[10.248s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/share/ydlidar_ros2_driver/params/X3.yaml
+[10.248s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/share/ydlidar_ros2_driver/params/X4-Pro.yaml
+[10.248s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/share/ydlidar_ros2_driver/params/X4.yaml
+[10.248s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/share/ydlidar_ros2_driver/params/sdm15.yaml
+[10.248s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/share/ydlidar_ros2_driver/params/ydlidar.yaml
+[10.248s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/share/ydlidar_ros2_driver/startup/initenv.sh
+[10.248s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/share/ydlidar_ros2_driver/config/ydlidar.rviz
+[10.248s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/share/ament_index/resource_index/package_run_dependencies/ydlidar_ros2_driver
+[10.248s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/share/ament_index/resource_index/parent_prefix_path/ydlidar_ros2_driver
+[10.248s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/share/ydlidar_ros2_driver/environment/ament_prefix_path.sh
+[10.248s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/share/ydlidar_ros2_driver/environment/ament_prefix_path.dsv
+[10.248s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/share/ydlidar_ros2_driver/environment/path.sh
+[10.248s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/share/ydlidar_ros2_driver/environment/path.dsv
+[10.248s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/share/ydlidar_ros2_driver/local_setup.bash
+[10.248s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/share/ydlidar_ros2_driver/local_setup.sh
+[10.249s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/share/ydlidar_ros2_driver/local_setup.zsh
+[10.249s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/share/ydlidar_ros2_driver/local_setup.dsv
+[10.249s] -- Symlinking: /ros2_ws/install/ydlidar_ros2_driver/share/ydlidar_ros2_driver/package.dsv
+[10.256s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/share/ament_index/resource_index/packages/ydlidar_ros2_driver
+[10.256s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/share/ydlidar_ros2_driver/cmake/ydlidar_ros2_driverConfig.cmake
+[10.256s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/share/ydlidar_ros2_driver/cmake/ydlidar_ros2_driverConfig-version.cmake
+[10.256s] -- Up-to-date symlink: /ros2_ws/install/ydlidar_ros2_driver/share/ydlidar_ros2_driver/package.xml
+[10.258s] Invoked command in '/ros2_ws/build/ydlidar_ros2_driver' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/ydlidar_ros2_driver

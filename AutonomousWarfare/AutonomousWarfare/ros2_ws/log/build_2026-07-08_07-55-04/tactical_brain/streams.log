@@ -1,0 +1,18 @@
+[4.335s] Invoking command in '/ros2_ws/build/tactical_brain': PYTHONPATH=/ros2_ws/build/tactical_brain/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/ros2_ws/install/tactical_brain/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /ros2_ws/build/tactical_brain/build --no-deps symlink_data
+[5.187s] running develop
+[5.522s] running egg_info
+[5.524s] writing tactical_brain.egg-info/PKG-INFO
+[5.524s] writing dependency_links to tactical_brain.egg-info/dependency_links.txt
+[5.525s] writing entry points to tactical_brain.egg-info/entry_points.txt
+[5.525s] writing requirements to tactical_brain.egg-info/requires.txt
+[5.526s] writing top-level names to tactical_brain.egg-info/top_level.txt
+[5.531s] reading manifest file 'tactical_brain.egg-info/SOURCES.txt'
+[5.534s] writing manifest file 'tactical_brain.egg-info/SOURCES.txt'
+[5.538s] running build_ext
+[5.538s] Creating /ros2_ws/install/tactical_brain/lib/python3.10/site-packages/tactical-brain.egg-link (link to .)
+[5.543s] Installing brain_node script to /ros2_ws/install/tactical_brain/lib/tactical_brain
+[5.543s] Installing mock_pose_publisher script to /ros2_ws/install/tactical_brain/lib/tactical_brain
+[5.544s] 
+[5.545s] Installed /ros2_ws/build/tactical_brain
+[5.545s] running symlink_data
+[5.692s] Invoked command in '/ros2_ws/build/tactical_brain' returned '0': PYTHONPATH=/ros2_ws/build/tactical_brain/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/ros2_ws/install/tactical_brain/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /ros2_ws/build/tactical_brain/build --no-deps symlink_data

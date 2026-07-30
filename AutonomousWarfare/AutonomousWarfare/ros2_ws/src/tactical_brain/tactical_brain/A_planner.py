@@ -63,7 +63,7 @@ H_WEIGHT = 1.2        # משקל ההיוריסטיקה (Weighted A*) - מאוז
 # last before another gear switch is "free" - see calc_motion's
 # switching/run_length handling. Confirmed directly: without this, A*'s
 # raw step-by-step direction output sometimes alternated every step,
-# producing 1-2 point same-direction runs that Nav2BaseAction then had to
+# producing 1-2 point same-direction runs that PathExecutor then had to
 # send to FollowPath as their own degenerate segments.
 MIN_RUN_STEPS = 3
 SHORT_RUN_PENALTY = MOVE_STEP * 3.0
@@ -83,7 +83,7 @@ class Node:
         # Consecutive steps taken in the current direction. Used to
         # penalize switching gear again too soon (see MIN_RUN_STEPS in
         # calc_motion) - without this, the search could produce paths
-        # that flip direction every step, which Nav2BaseAction then has
+        # that flip direction every step, which PathExecutor then has
         # to split into degenerate 1-2 point FollowPath segments that
         # MPPI can't track sensibly.
         self.run_length = run_length
@@ -222,7 +222,7 @@ def calc_motion(node, xy_res, yaw_res, danger_dict, teammates_aura_set, current_
     # returned "failed to find a path" once obstacle_set had real walls
     # in a narrow spot, since a forward-only Ackermann turn needs more
     # room than a real car needing to reverse out of a tight spot. Kept
-    # reverse in the search; Nav2BaseAction now splits the path into
+    # reverse in the search; PathExecutor now splits the path into
     # per-direction segments instead of sending one mixed-direction path.
     directions = [1, -1] # קדימה ואחורה
 
