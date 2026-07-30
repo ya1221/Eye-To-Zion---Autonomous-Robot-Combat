@@ -1,0 +1,52 @@
+[0.053s] Invoking command in '/ros2_ws/build/rf2o_laser_odometry': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/rf2o_laser_odometry -- -j4 -l4
+[0.770s] -- Found ament_cmake: 1.3.14 (/opt/ros/humble/share/ament_cmake/cmake)
+[1.077s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[1.115s] -- Found rclcpp: 16.0.19 (/opt/ros/humble/share/rclcpp/cmake)
+[1.262s] -- Found rosidl_generator_c: 3.1.8 (/opt/ros/humble/share/rosidl_generator_c/cmake)
+[1.271s] -- Found rosidl_adapter: 3.1.8 (/opt/ros/humble/share/rosidl_adapter/cmake)
+[1.302s] -- Found rosidl_generator_cpp: 3.1.8 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)
+[1.361s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[1.446s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[1.608s] -- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)
+[1.616s] -- Found rmw_fastrtps_cpp: 6.2.10 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)
+[1.937s] -- Using RMW implementation 'rmw_fastrtps_cpp' as default
+[2.173s] -- Found geometry_msgs: 4.9.1 (/opt/ros/humble/share/geometry_msgs/cmake)
+[2.237s] -- Found tf2_geometry_msgs: 0.25.20 (/opt/ros/humble/share/tf2_geometry_msgs/cmake)
+[2.268s] -- Found eigen3_cmake_module: 0.1.1 (/opt/ros/humble/share/eigen3_cmake_module/cmake)
+[2.275s] -- Ensuring Eigen3 include directory is part of orocos-kdl CMake target
+[2.639s] -- Found sensor_msgs: 4.9.1 (/opt/ros/humble/share/sensor_msgs/cmake)
+[2.673s] -- Found nav_msgs: 4.9.1 (/opt/ros/humble/share/nav_msgs/cmake)
+[3.064s] -- Configuring done
+[3.115s] -- Generating done
+[3.125s] -- Build files have been written to: /ros2_ws/build/rf2o_laser_odometry
+[3.177s] [35m[1mConsolidate compiler generated dependencies of target rf2o_laser_odometry_node[0m
+[3.179s] [35m[1mConsolidate compiler generated dependencies of target rf2o_laser_odometry[0m
+[3.434s] [ 20%] [32mBuilding CXX object CMakeFiles/rf2o_laser_odometry.dir/src/CLaserOdometry2D.cpp.o[0m
+[3.516s] [ 40%] [32mBuilding CXX object CMakeFiles/rf2o_laser_odometry_node.dir/src/CLaserOdometry2DNode.cpp.o[0m
+[3.518s] [ 60%] [32mBuilding CXX object CMakeFiles/rf2o_laser_odometry_node.dir/src/CLaserOdometry2D.cpp.o[0m
+[116.887s] [ 80%] [32m[1mLinking CXX static library librf2o_laser_odometry.a[0m
+[117.486s] [100%] [32m[1mLinking CXX executable rf2o_laser_odometry_node[0m
+[119.665s] [100%] Built target rf2o_laser_odometry
+[121.905s] [100%] Built target rf2o_laser_odometry_node
+[121.919s] Invoked command in '/ros2_ws/build/rf2o_laser_odometry' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/rf2o_laser_odometry -- -j4 -l4
+[121.922s] Invoking command in '/ros2_ws/build/rf2o_laser_odometry': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/rf2o_laser_odometry
+[121.942s] -- Install configuration: ""
+[121.944s] -- Execute custom install script
+[121.944s] -- Up-to-date symlink: /ros2_ws/install/rf2o_laser_odometry/lib/rf2o_laser_odometry/rf2o_laser_odometry_node
+[121.944s] -- Up-to-date symlink: /ros2_ws/install/rf2o_laser_odometry/share/rf2o_laser_odometry/launch/rf2o_laser_odometry.launch.py
+[121.947s] -- Up-to-date symlink: /ros2_ws/install/rf2o_laser_odometry/share/ament_index/resource_index/package_run_dependencies/rf2o_laser_odometry
+[121.948s] -- Up-to-date symlink: /ros2_ws/install/rf2o_laser_odometry/share/ament_index/resource_index/parent_prefix_path/rf2o_laser_odometry
+[121.948s] -- Up-to-date symlink: /ros2_ws/install/rf2o_laser_odometry/share/rf2o_laser_odometry/environment/ament_prefix_path.sh
+[121.948s] -- Up-to-date symlink: /ros2_ws/install/rf2o_laser_odometry/share/rf2o_laser_odometry/environment/ament_prefix_path.dsv
+[121.948s] -- Up-to-date symlink: /ros2_ws/install/rf2o_laser_odometry/share/rf2o_laser_odometry/environment/path.sh
+[121.952s] -- Up-to-date symlink: /ros2_ws/install/rf2o_laser_odometry/share/rf2o_laser_odometry/environment/path.dsv
+[121.954s] -- Up-to-date symlink: /ros2_ws/install/rf2o_laser_odometry/share/rf2o_laser_odometry/local_setup.bash
+[121.954s] -- Up-to-date symlink: /ros2_ws/install/rf2o_laser_odometry/share/rf2o_laser_odometry/local_setup.sh
+[121.954s] -- Up-to-date symlink: /ros2_ws/install/rf2o_laser_odometry/share/rf2o_laser_odometry/local_setup.zsh
+[121.954s] -- Up-to-date symlink: /ros2_ws/install/rf2o_laser_odometry/share/rf2o_laser_odometry/local_setup.dsv
+[121.955s] -- Symlinking: /ros2_ws/install/rf2o_laser_odometry/share/rf2o_laser_odometry/package.dsv
+[121.972s] -- Up-to-date symlink: /ros2_ws/install/rf2o_laser_odometry/share/ament_index/resource_index/packages/rf2o_laser_odometry
+[121.973s] -- Up-to-date symlink: /ros2_ws/install/rf2o_laser_odometry/share/rf2o_laser_odometry/cmake/rf2o_laser_odometryConfig.cmake
+[121.973s] -- Up-to-date symlink: /ros2_ws/install/rf2o_laser_odometry/share/rf2o_laser_odometry/cmake/rf2o_laser_odometryConfig-version.cmake
+[121.973s] -- Up-to-date symlink: /ros2_ws/install/rf2o_laser_odometry/share/rf2o_laser_odometry/package.xml
+[121.980s] Invoked command in '/ros2_ws/build/rf2o_laser_odometry' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/rf2o_laser_odometry

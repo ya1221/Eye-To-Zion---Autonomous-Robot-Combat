@@ -1,0 +1,17 @@
+[2.989s] Invoking command in '/ros2_ws/build/icm20948_ros2': PYTHONPATH=/ros2_ws/build/icm20948_ros2/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/ros2_ws/install/icm20948_ros2/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /ros2_ws/build/icm20948_ros2/build --no-deps symlink_data
+[3.395s] running develop
+[3.625s] running egg_info
+[3.625s] writing icm20948_ros2.egg-info/PKG-INFO
+[3.625s] writing dependency_links to icm20948_ros2.egg-info/dependency_links.txt
+[3.626s] writing entry points to icm20948_ros2.egg-info/entry_points.txt
+[3.626s] writing requirements to icm20948_ros2.egg-info/requires.txt
+[3.626s] writing top-level names to icm20948_ros2.egg-info/top_level.txt
+[3.629s] reading manifest file 'icm20948_ros2.egg-info/SOURCES.txt'
+[3.630s] writing manifest file 'icm20948_ros2.egg-info/SOURCES.txt'
+[3.637s] running build_ext
+[3.642s] Creating /ros2_ws/install/icm20948_ros2/lib/python3.10/site-packages/icm20948-ros2.egg-link (link to .)
+[3.643s] Installing imu_node script to /ros2_ws/install/icm20948_ros2/lib/icm20948_ros2
+[3.645s] 
+[3.646s] Installed /ros2_ws/build/icm20948_ros2
+[3.646s] running symlink_data
+[3.758s] Invoked command in '/ros2_ws/build/icm20948_ros2' returned '0': PYTHONPATH=/ros2_ws/build/icm20948_ros2/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/ros2_ws/install/icm20948_ros2/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /ros2_ws/build/icm20948_ros2/build --no-deps symlink_data

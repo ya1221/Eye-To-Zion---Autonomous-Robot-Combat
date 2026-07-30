@@ -7,9 +7,14 @@ tactical_brain/A_planner.py
 tactical_brain/__init__.py
 tactical_brain/aim_controller.py
 tactical_brain/ballistics_helper.py
+tactical_brain/geometry_utils.py
+tactical_brain/localization_bridge.py
 tactical_brain/main_brain.py
 tactical_brain/mock_aruco_corrector.py
 tactical_brain/mock_pose_publisher.py
+tactical_brain/path_executor.py
+tactical_brain/shooting_control.py
+tactical_brain/team_comms.py
 tactical_brain/world_model.py
 tactical_brain.egg-info/PKG-INFO
 tactical_brain.egg-info/SOURCES.txt
