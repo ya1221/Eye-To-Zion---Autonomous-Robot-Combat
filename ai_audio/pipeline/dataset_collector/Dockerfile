@@ -9,11 +9,14 @@ RUN apt-get update && apt-get install -y \
     alsa-utils \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install --no-cache-dir sounddevice numpy
+COPY requirements.txt /tmp/requirements.txt
+RUN pip3 install --no-cache-dir -r /tmp/requirements.txt
 
 WORKDIR /app
 
 # Copy application files (overridden by volume mount in compose for live edits)
+# trigger.py here is an intentional self-contained duplicate of
+# ../../onboard/audio_processor/trigger.py -- see that file's docstring.
 COPY . /app/
 
 ENTRYPOINT ["python3", "record_impacts.py"]

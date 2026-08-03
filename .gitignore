@@ -17,3 +17,5 @@ venv/
 
 # Claude Code local settings (per-user, not shared)
 .claude
+tailscale-client/ts-state/
+tailscale-client/ts-state/

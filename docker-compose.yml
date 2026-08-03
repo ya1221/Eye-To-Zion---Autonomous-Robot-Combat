@@ -35,7 +35,7 @@ services:
         max-file: "3"
 
   audio_processor:
-    build: ./ai_audio/audio_processor
+    build: ./ai_audio/onboard/audio_processor
     container_name: audio_processor
     network_mode: host # required for ROS2 DDS discovery (same as cv_processor/ai_inference), including over Tailscale
     devices:
@@ -45,8 +45,8 @@ services:
     environment:
       - AUDIO_MODEL_DIR=/app/model
     volumes:
-      - "./ai_audio/audio_processor:/app"
-      - "./ai_audio/model:/app/model:ro"
+      - "./ai_audio/onboard/audio_processor:/app"
+      - "./ai_audio/onboard/model:/app/model:ro"
     command: bash -c "source /opt/ros/humble/setup.bash && python3 audio_processor.py"
     logging:
       driver: "json-file"
@@ -55,7 +55,7 @@ services:
         max-file: "3"
 
   dataset_collector:
-    build: ./ai_audio/dataset_collector
+    build: ./ai_audio/pipeline/dataset_collector
     container_name: dataset_collector
     user: "1000:1000" # matches host uid/gid so recorded clips aren't root-owned
     devices:
@@ -63,8 +63,8 @@ services:
     group_add:
       - audio
     volumes:
-      - "./ai_audio/dataset_collector:/app"
-      - "./ai_audio/dataset:/app/dataset"
+      - "./ai_audio/pipeline/dataset_collector:/app"
+      - "./ai_audio/pipeline/dataset:/app/dataset"
     stdin_open: true
     tty: true
     profiles:
@@ -76,14 +76,14 @@ services:
         max-file: "3"
 
   preprocessing:
-    build: ./ai_audio/preprocessing
+    build: ./ai_audio/pipeline/preprocessing
     container_name: preprocessing
     user: "1000:1000"
     environment:
       - NUMBA_CACHE_DIR=/tmp/numba_cache
     volumes:
-      - "./ai_audio/preprocessing:/app"
-      - "./ai_audio/dataset:/app/dataset"
+      - "./ai_audio/pipeline/preprocessing:/app"
+      - "./ai_audio/pipeline/dataset:/app/dataset"
     profiles:
       - tools # one-off tool, run explicitly with `docker compose run`
     logging:

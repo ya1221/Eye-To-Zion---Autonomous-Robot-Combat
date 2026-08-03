@@ -29,7 +29,6 @@ Examples:
 """
 
 import argparse
-import collections
 import datetime
 import os
 import queue
@@ -39,8 +38,14 @@ import wave
 import numpy as np
 import sounddevice as sd
 
+from trigger import TriggerCapture
+
 SAMPLE_WIDTH_BYTES = 2  # int16
 FULL_SCALE = 32768.0
+
+
+class MaxClipsReached(Exception):
+    pass
 
 
 def list_devices():
@@ -103,12 +108,18 @@ def record_trigger(args, device):
             print(f"stream status: {status}", file=sys.stderr)
         audio_q.put(indata.copy())
 
-    ring = collections.deque(maxlen=pre_roll_frames)
-    capture_buf = []
-    frames_captured = 0
-    frames_to_skip = 0
     clip_index = 0
-    state = "IDLE"  # IDLE -> CAPTURING -> COOLDOWN -> IDLE
+
+    def on_capture(frames):
+        nonlocal clip_index
+        path = make_output_path(args.out_dir, args.label, clip_index)
+        write_wav(path, args.samplerate, args.channels, frames)
+        report_clip(path, args.samplerate, frames)
+        clip_index += 1
+        if args.max_clips and clip_index >= args.max_clips:
+            raise MaxClipsReached
+
+    trigger = TriggerCapture(pre_roll_frames, post_roll_frames, cooldown_frames, threshold_amp, on_capture)
 
     print("Listening for impacts (Ctrl+C to stop)...")
     with sd.InputStream(
@@ -119,45 +130,12 @@ def record_trigger(args, device):
         blocksize=args.blocksize,
         callback=callback,
     ):
-        while True:
-            block = audio_q.get().reshape(-1, args.channels)
-
-            if state == "IDLE":
-                peak = int(np.abs(block).max()) if block.size else 0
-                if peak >= threshold_amp:
-                    capture_buf = list(ring) + [block]
-                    frames_captured = len(ring) + block.shape[0]
-                    state = "CAPTURING"
-                else:
-                    for row in block:
-                        ring.append(row.reshape(1, -1))
-
-            elif state == "CAPTURING":
-                capture_buf.append(block)
-                frames_captured += block.shape[0]
-                if frames_captured >= pre_roll_frames + post_roll_frames:
-                    frames = np.concatenate(capture_buf, axis=0)
-                    path = make_output_path(args.out_dir, args.label, clip_index)
-                    write_wav(path, args.samplerate, args.channels, frames)
-                    report_clip(path, args.samplerate, frames)
-                    clip_index += 1
-                    capture_buf = []
-
-                    if args.max_clips and clip_index >= args.max_clips:
-                        print(f"Reached --max-clips {args.max_clips}, stopping.")
-                        return
-
-                    ring.clear()
-                    frames_to_skip = cooldown_frames
-                    state = "COOLDOWN"
-
-            elif state == "COOLDOWN":
-                frames_to_skip -= block.shape[0]
-                if frames_to_skip <= 0:
-                    tail = block[frames_to_skip:] if frames_to_skip < 0 else block[block.shape[0]:]
-                    for row in tail[-pre_roll_frames:]:
-                        ring.append(row.reshape(1, -1))
-                    state = "IDLE"
+        try:
+            while True:
+                block = audio_q.get().reshape(-1, args.channels)
+                trigger.feed(block)
+        except MaxClipsReached:
+            print(f"Reached --max-clips {args.max_clips}, stopping.")
 
 
 def record_continuous(args, device):
