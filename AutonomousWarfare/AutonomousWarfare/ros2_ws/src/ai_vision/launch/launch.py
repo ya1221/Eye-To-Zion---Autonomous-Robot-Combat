@@ -1,3 +1,9 @@
+"""Bring up the whole vision pipeline (capture + inference) in one process group.
+
+This is the entry point robot_bringup includes. The per-node
+cv_processor.launch.py / ai_inference.launch.py files exist for the
+split-container deployment, where each container starts only its own node.
+"""
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
@@ -33,6 +39,14 @@ def generate_launch_description():
         executable='ai_inference_node',
         name='ai_inference',
         parameters=[LaunchConfiguration('ai_params_file')],
+        # Scoped to this process rather than the container, so sharing a
+        # container with nav2/control does not hand them a 2-thread OpenMP
+        # pool or the ultralytics offline flags.
+        additional_env={
+            'OMP_NUM_THREADS': '2',
+            'YOLO_OFFLINE': 'True',
+            'YOLOV8_NO_TELEMETRY': '1',
+        },
         output='screen',
     )
 

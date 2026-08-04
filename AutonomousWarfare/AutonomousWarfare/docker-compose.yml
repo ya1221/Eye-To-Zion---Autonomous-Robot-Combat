@@ -55,6 +55,14 @@ services:
     # Automatically restarts the robot brain if it crashes or the Pi reboots
     restart: always
 
+    # Caps container logs so a long run cannot fill the SD card. Every node in
+    # this container logs here, and ai_inference logs a line per detection.
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   telegraf:
     image: telegraf:latest
     container_name: telegraf

@@ -6,6 +6,7 @@ import cv2
 import os
 import time
 import gc
+from ament_index_python.packages import get_package_share_directory
 from rclpy.node import Node
 from rclpy.executors import ExternalShutdownException
 from rclpy._rclpy_pybind11 import RCLError
@@ -32,8 +33,10 @@ class AIInferenceNode(Node):
         self.frame_count = 0
 
         # ── Declare parameters (overridable via config YAML / CLI) ──
-        # Model
-        self.declare_parameter('model_path', 'best_ncnn_model')
+        # Model. Empty means "resolve from the installed package share dir",
+        # which works whether or not the source tree happens to be mounted.
+        # Set to an absolute path to load a model from somewhere else.
+        self.declare_parameter('model_path', '')
         self.declare_parameter('inference_imgsz', 320)
         self.declare_parameter('tracker_config', 'bytetrack.yaml')
 
@@ -74,7 +77,7 @@ class AIInferenceNode(Node):
         self.declare_parameter('annotations_topic', '/foxglove/annotations')
 
         # ── Read parameter values ──
-        self.MODEL_PATH        = self.get_parameter('model_path').value
+        self.MODEL_PATH        = self._resolve_model_path()
         self.INFERENCE_IMGSZ   = self.get_parameter('inference_imgsz').value
         self.TRACKER_CONFIG    = self.get_parameter('tracker_config').value
 
@@ -145,6 +148,27 @@ class AIInferenceNode(Node):
         self._frame_buffer = None
         self._avg_fps = 30.0
         self.get_logger().info("AI Brain Online.")
+
+    # ──────────────────────── model resolution ────────────────────
+    def _resolve_model_path(self):
+        configured = self.get_parameter('model_path').value
+        if configured:
+            path = configured
+        else:
+            path = os.path.join(
+                get_package_share_directory('ai_vision'),
+                'models', 'best_ncnn_model')
+
+        # Fail here rather than let YOLO() try to download a same-named model
+        # off the network when the path turns out not to exist on disk.
+        if not os.path.isdir(path):
+            raise RuntimeError(
+                f"NCNN model directory not found at '{path}'. "
+                "Check the model_path parameter, or rebuild the package so the "
+                "model is installed into share/ai_vision/models/."
+            )
+        self.get_logger().info(f"Loading NCNN model from {path}")
+        return path
 
     # ──────────────────────── threat scoring ──────────────────────
     def _calculate_threat_level(self, box_height, is_predicted, angular_velocity):
