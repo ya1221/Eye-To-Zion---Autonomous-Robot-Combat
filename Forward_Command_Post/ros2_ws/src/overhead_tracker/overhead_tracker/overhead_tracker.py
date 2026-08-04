@@ -29,24 +29,15 @@ class PureModuloTrackerNode(Node):
         self.CAMERA_ID = self.get_parameter('camera_id').value
         self.GRID_N = self.get_parameter('grid_n').value
         self.TARGETS_START = self.get_parameter('targets_start').value
-        # Target resolution for the ArUco/KLT pipeline. Kept independent from
-        # the camera's native capture resolution (see _open_camera_at_max_resolution)
-        # so we never re-trigger the sensor's hardware center-crop.
+        # Processing resolution, independent of the camera's native capture resolution.
         self.PROC_WIDTH = self.get_parameter('proc_width').value
         self.PROC_HEIGHT = self.get_parameter('proc_height').value
-        # On-screen window size. Independent of PROC_WIDTH/HEIGHT so the
-        # display always fits the monitor even if the processing resolution
-        # is changed (e.g. to the sensor's full native size).
+        # On-screen window size, independent of PROC_WIDTH/HEIGHT.
         self.DISPLAY_WIDTH = self.get_parameter('display_width').value
         self.DISPLAY_HEIGHT = self.get_parameter('display_height').value
         self.WINDOW_NAME = "Tactical Map"
 
-        # Capture-zone proximity radius, expressed in warped-grid pixels (the
-        # space produced by get_grid_coordinates(), which spans GRID_N x GRID_N
-        # after the perspective warp - NOT raw camera pixels). PIXELS_PER_CM is
-        # a placeholder; calibrate it by measuring how many grid pixels span a
-        # known real-world distance on your printed/marked arena, then this
-        # radius will accurately represent proximity_threshold_cm in real units.
+        # Capture-zone proximity radius, expressed in warped-grid pixels (see get_grid_coordinates).
         self.PIXELS_PER_CM = self.get_parameter('pixels_per_cm').value
         self.PROXIMITY_THRESHOLD_CM = self.get_parameter('proximity_threshold_cm').value
         self.capture_radius_pixels = self.PROXIMITY_THRESHOLD_CM * self.PIXELS_PER_CM
@@ -60,9 +51,14 @@ class PureModuloTrackerNode(Node):
         # 3. Dynamic publishers setup (Using String for JSON payloads)
         self.team_pubs = {}
         self.target_pubs = {}
+        self.zone_occupied_pubs = {}
+        self.last_zone_occupied_pub_time = {}
+        self.ZONE_OCCUPIED_PUB_INTERVAL_SEC = 0.5
         for team_idx in range(self.CNT_TEAM):
             self.team_pubs[team_idx] = self.create_publisher(String, f'teams/team_{team_idx}/positions', 10)
             self.target_pubs[team_idx] = self.create_publisher(String, f'teams/team_{team_idx}/target_position', 10)
+            self.zone_occupied_pubs[team_idx] = self.create_publisher(String, f'teams/team_{team_idx}/zone_occupied', 10)
+            self.last_zone_occupied_pub_time[team_idx] = 0.0
         
         # 4. Vision parameters
         self.aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_4X4_50)
@@ -84,18 +80,14 @@ class PureModuloTrackerNode(Node):
         self.camera_failure_count = 0
         self.MAX_CAMERA_RETRIES = 10
         
-        # 6. Camera init - open at the sensor's native max resolution so the
-        # firmware never engages its hardware center-crop, then downsample
-        # in software for processing.
+        # 6. Camera init - open at the sensor's native max resolution, downsample in software.
         self._resize_buffer = np.empty((self.PROC_HEIGHT, self.PROC_WIDTH, 3), dtype=np.uint8)
         self.cap = self._open_camera_at_max_resolution()
         if self.cap is None:
             self.get_logger().error(f"Failed to open camera with ID {self.CAMERA_ID}")
             exit()
 
-        # WINDOW_NORMAL makes the window user-resizable and lets us pin an
-        # initial size that fits the screen, independent of the frame's
-        # actual pixel dimensions (cv2.imshow scales to fit automatically).
+        # WINDOW_NORMAL makes the window user-resizable and pins an initial size.
         cv2.namedWindow(self.WINDOW_NAME, cv2.WINDOW_NORMAL)
         cv2.resizeWindow(self.WINDOW_NAME, self.DISPLAY_WIDTH, self.DISPLAY_HEIGHT)
 
@@ -103,24 +95,12 @@ class PureModuloTrackerNode(Node):
         self.get_logger().info(f"Modulo Tracker ONLINE ({self.CNT_TEAM} Teams Mode). Architecture: Modular JSON.")
 
     def _open_camera_at_max_resolution(self):
-        """Open the camera and force it to its native maximum resolution.
-
-        UVC/V4L2 drivers clamp an over-large CAP_PROP_FRAME_WIDTH/HEIGHT
-        request down to the highest mode the sensor actually supports, so
-        this works for any camera without hardcoding its true max dimensions.
-        Reading back the values after the request tells us what the hardware
-        settled on. This avoids the low-resolution modes where some hardware
-        applies a center-crop instead of a full-sensor downscale, which cuts
-        the field of view.
-        """
+        """Open the camera and force it to its native maximum resolution."""
         cap = cv2.VideoCapture(self.CAMERA_ID)
         if not cap.isOpened():
             return None
 
-        # Force MJPEG compression before negotiating resolution. Uncompressed
-        # YUYV at the sensor's full 8MP resolution far exceeds USB 2.0
-        # bandwidth, which is what was silently capping the FPS; MJPEG lets
-        # the full-resolution stream fit comfortably within USB 2.0 limits.
+        # Force MJPEG compression before negotiating resolution to stay within USB 2.0 bandwidth.
         cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
 
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, 9999)
@@ -137,13 +117,7 @@ class PureModuloTrackerNode(Node):
         return cap
 
     def _warn_if_aspect_ratio_mismatch(self, cam_width, cam_height):
-        """Warn if proc_width/proc_height don't share the camera's native aspect ratio.
-
-        A resize across mismatched aspect ratios stretches the image
-        non-uniformly, which distorts ArUco marker geometry and throws off
-        the perspective-warp calibration. This never blocks startup -
-        it just makes a silent quality regression loud.
-        """
+        """Warn if proc_width/proc_height don't share the camera's native aspect ratio."""
         if cam_width <= 0 or cam_height <= 0:
             return
 
@@ -181,9 +155,7 @@ class PureModuloTrackerNode(Node):
         self.camera_failure_count = 0
         self.frame_count += 1
 
-        # Downsample from the full-FOV capture to the processing resolution
-        # right away, reusing a preallocated buffer so no new frame-sized
-        # array is allocated on the hot path.
+        # Downsample into a preallocated buffer to avoid per-frame allocation.
         cv2.resize(
             raw_frame,
             (self.PROC_WIDTH, self.PROC_HEIGHT),
@@ -218,10 +190,7 @@ class PureModuloTrackerNode(Node):
 
         if ids is not None:
             aruco.drawDetectedMarkers(frame, corners, ids)
-            # detectMarkers returns ids as Nx1 on most backends but flat (N,)
-            # on some OpenCV/platform combos - flatten unconditionally so
-            # indexing is safe either way, then match by position against
-            # `corners` (whose per-marker structure is unaffected by this).
+            # ids can be Nx1 or flat (N,) depending on backend - flatten unconditionally.
             flat_ids = np.asarray(ids).flatten()
             for i, rid_val in enumerate(flat_ids):
                 rid = int(rid_val)
@@ -332,10 +301,7 @@ class PureModuloTrackerNode(Node):
             if self.cap is not None:
                 self.cap.release()
 
-            # Give the USB bus a moment to settle before re-enumerating the
-            # device. Reopening immediately after a drop floods the bus with
-            # back-to-back requests, which is what was triggering the
-            # errno=19 (ENODEV) disconnects.
+            # Give the USB bus a moment to settle before re-enumerating the device.
             time.sleep(0.5)
 
             self.cap = self._open_camera_at_max_resolution()
@@ -348,33 +314,38 @@ class PureModuloTrackerNode(Node):
 
     def _publish_telemetry(self, frame_teams_data, frame_targets_data):
         for team_idx in range(self.CNT_TEAM):
-            # .get() rather than indexing - the team's own target may be
-            # temporarily missing from this frame's detections (occluded
-            # marker, motion blur, etc). Every robot below is only ever
-            # compared against this same-team target, so this stays a
-            # single O(1) lookup per team rather than a cross-team scan.
+            # .get() since the team's own target may be temporarily missing from this frame.
             target = frame_targets_data.get(team_idx)
 
             # Publish Robots as JSON String
             if frame_teams_data[team_idx]:
                 robots_payload = []
+                team_zone_occupied = False
                 for robot in frame_teams_data[team_idx]:
-                    zone_occupied = False
                     if target is not None:
                         distance = math.hypot(robot["x"] - target["x"], robot["y"] - target["y"])
-                        zone_occupied = distance <= self.capture_radius_pixels
+                        if distance <= self.capture_radius_pixels:
+                            team_zone_occupied = True
 
                     robots_payload.append({
                         "id": int(robot["id"]),
                         "x": float(robot["x"]),
                         "y": float(robot["y"]),
-                        "angle": float(robot["angle"]),
-                        "zone_occupied": zone_occupied
+                        "angle": float(robot["angle"])
                     })
 
                 msg = String()
                 msg.data = json.dumps(robots_payload)
                 self.team_pubs[team_idx].publish(msg)
+
+                # Only publish when true and throttled - each publish awards the team a point.
+                if team_zone_occupied:
+                    now = time.time()
+                    if now - self.last_zone_occupied_pub_time[team_idx] >= self.ZONE_OCCUPIED_PUB_INTERVAL_SEC:
+                        self.last_zone_occupied_pub_time[team_idx] = now
+                        zone_msg = String()
+                        zone_msg.data = json.dumps(team_zone_occupied)
+                        self.zone_occupied_pubs[team_idx].publish(zone_msg)
 
             # Publish Target as JSON String
             if target is not None:
