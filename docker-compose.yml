@@ -1,49 +1,46 @@
-version: '3.8'
-
 services:
-  # 1. Communication Server (Central Pub/Sub Hub)
-  redis_server:
-    image: redis:alpine
-    container_name: redis_server
-    network_mode: host
-    restart: always
-
-  # 2. Vision Processor - Captures video stream and writes to shared memory
+  # 1. Vision Processor - decodes the UDP H.264 stream from rpicam-vid (started
+  #    on the host by start_robot.sh), writes frames into double-buffered shared
+  #    memory and republishes a JPEG preview on /camera/compressed.
   cv_processor:
-    build: ./ai_vision/cv_processor
+    build:
+      context: ./ai_vision
+      dockerfile: docker/cv_processor.Dockerfile
     container_name: cv_processor
     network_mode: host
-    ipc: host
-    devices:
-      - "/dev/video0:/dev/video0"
+    ipc: host # Critical for Shared Memory access
     volumes:
-      - "./ai_vision/cv_processor:/app"
-      - "/tmp/.X11-unix:/tmp/.X11-unix:rw"
-    environment:
-      - DISPLAY=${DISPLAY}
-    command: bash -c "source /opt/ros/humble/setup.bash && python3 cv_processor.py"
-
-  # 3. AI Inference Engine - Reads from shared memory, runs YOLO and tracking
-  ai_inference:
-    build: ./ai_vision/ai_inference
-    container_name: ai_inference
-    network_mode: host
-    ipc: host
-    volumes:
-      - "./ai_vision/ai_inference:/app"
-    command: bash -c "source /opt/ros/humble/setup.bash && python3 ai_inference.py"
+      # Source mount + colcon --symlink-install: edits take effect on restart
+      # without a rebuild.
+      - "./ai_vision:/ros2_ws/src/ai_vision"
+    command: ["ros2", "launch", "ai_vision", "cv_processor.launch.py"]
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
 
-  # 4. Redis Bridge - Router between internal ROS2 and external Redis
-  redis_bridge:
-    build: ./ai_vision/redis_bridge
-    container_name: redis_bridge
+  # 2. AI Inference Engine - reads frames from shared memory, runs YOLO/NCNN
+  #    tracking and publishes /ai/detections + /foxglove/annotations.
+  ai_inference:
+    build:
+      context: ./ai_vision
+      dockerfile: docker/ai_inference.Dockerfile
+    container_name: ai_inference
     network_mode: host
-    ipc: host
+    ipc: host # Critical for Shared Memory access
+    cpus: '2.0' # Hard limit to prevent thermal throttling (Thermal Throttling Protection)
+    environment:
+      - OMP_NUM_THREADS=2
+      - YOLO_OFFLINE=True # Prevent background downloads
+      - YOLOV8_NO_TELEMETRY=1 # Disable data collection lags
     volumes:
-      - "./ai_vision/redis_bridge:/app"
-    command: bash -c "source /opt/ros/humble/setup.bash && python3 redis_bridge.py"
+      - "./ai_vision:/ros2_ws/src/ai_vision"
+    command: ["ros2", "launch", "ai_vision", "ai_inference.launch.py"]
+    depends_on:
+      - cv_processor
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
