@@ -88,6 +88,16 @@ RUN pip3 uninstall -y opencv-python opencv-python-headless && \
     && rm -rf /var/lib/apt/lists/*
 RUN pip3 install --no-cache-dir "PyTurboJPEG<2.0"
 
+# Install dependencies for ai_audio (impact detection)
+# libportaudio2/alsa-utils: I2S mic access; build-essential/libsndfile1: librosa's STFT/mel path
+RUN apt-get update && apt-get install -y \
+    libportaudio2 \
+    alsa-utils \
+    libsndfile1 \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip3 install --no-cache-dir sounddevice librosa onnxruntime
+
 # Set the internal container workspace(root)
 WORKDIR /ros2_ws
 

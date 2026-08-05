@@ -20,7 +20,12 @@ services:
       - "/dev/video0:/dev/video0"
       - "/dev/ttyUSB0:/dev/ttyUSB0"
       - "/dev/ttyACM0:/dev/ttyACM0"
-    
+      - "/dev/snd:/dev/snd"
+
+    # Needed for ai_audio (audio_processor_node) to open the mic via ALSA
+    group_add:
+      - audio
+
     env_file:
       - .env
 
