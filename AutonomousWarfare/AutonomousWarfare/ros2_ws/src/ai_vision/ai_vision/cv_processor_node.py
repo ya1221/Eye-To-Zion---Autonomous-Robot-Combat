@@ -14,7 +14,8 @@ from rclpy._rclpy_pybind11 import RCLError
 from turbojpeg import TurboJPEG, TJPF_BGR
 
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
-os.environ["OPENCV_LOG_LEVEL"] = "FATAL"
+# OpenCV/GStreamer warnings are left at their default level on purpose: they
+# are the only diagnostic that tells you why the UDP pipeline failed to open.
 
 # Debian/Ubuntu multiarch triplets for libturbojpeg0's install location.
 # ctypes.util.find_library() is unreliable in slim containers, so we resolve
@@ -39,6 +40,7 @@ class CVProcessorNode(Node):
         self.declare_parameter('capture_fps', 30.0)
         self.declare_parameter('jpeg_quality', 75)
         self.declare_parameter('shm_buffer_count', 2)
+        self.declare_parameter('rotate_180', True)
         self.declare_parameter('metadata_topic', '/camera/metadata')
         self.declare_parameter('compressed_topic', '/camera/compressed')
         self.declare_parameter('compressed_qos_depth', 1)
@@ -47,6 +49,7 @@ class CVProcessorNode(Node):
         gst_in = self.get_parameter('gstreamer_pipeline').value
         capture_fps = self.get_parameter('capture_fps').value
         shm_buffer_count = self.get_parameter('shm_buffer_count').value
+        self.rotate_180 = self.get_parameter('rotate_180').value
         metadata_topic = self.get_parameter('metadata_topic').value
         compressed_topic = self.get_parameter('compressed_topic').value
         compressed_qos_depth = self.get_parameter('compressed_qos_depth').value
@@ -120,7 +123,12 @@ class CVProcessorNode(Node):
         if not ret:
             return
 
-        frame=cv2.rotate(frame, cv2.ROTATE_180)
+        # Camera is mounted inverted on the Pi 5 chassis. Rotating here - before
+        # the shm write and the JPEG encode - keeps the detection angles and the
+        # Foxglove overlay consistent with the operator's view. Set rotate_180
+        # to false in the YAML if the camera is ever remounted upright.
+        if self.rotate_180:
+            frame = cv2.rotate(frame, cv2.ROTATE_180)
 
         stamp = self.get_clock().now().to_msg()
 

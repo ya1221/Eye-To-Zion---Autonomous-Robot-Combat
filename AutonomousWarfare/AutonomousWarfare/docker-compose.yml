@@ -20,7 +20,12 @@ services:
       - "/dev/video0:/dev/video0"
       - "/dev/ttyUSB0:/dev/ttyUSB0"
       - "/dev/ttyACM0:/dev/ttyACM0"
-    
+      - "/dev/snd:/dev/snd"
+
+    # Needed for ai_audio (audio_processor_node) to open the mic via ALSA
+    group_add:
+      - audio
+
     env_file:
       - .env
 
@@ -54,6 +59,14 @@ services:
     
     # Automatically restarts the robot brain if it crashes or the Pi reboots
     restart: always
+
+    # Caps container logs so a long run cannot fill the SD card. Every node in
+    # this container logs here, and ai_inference logs a line per detection.
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   telegraf:
     image: telegraf:latest

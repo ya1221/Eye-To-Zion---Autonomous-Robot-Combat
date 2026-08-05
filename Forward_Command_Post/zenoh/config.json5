@@ -1,0 +1,80 @@
+{
+  // ===========================================================================
+  // Zenoh session config for this bridge host (overhead-cam PC / each Pi 5)
+  // ===========================================================================
+  mode: "peer",
+
+  // Tailscale gives every node a stable 100.x.y.z address. Listening on all
+  // interfaces is fine because Tailscale's own ACLs gate who can reach us;
+  // this bridge's allowlist below is the second layer of defense.
+  listen: {
+    endpoints: ["tcp/0.0.0.0:7447"],
+  },
+
+  // Uncomment and set peer Tailscale IPs if UDP multicast scouting doesn't
+  // traverse your VPN setup (it usually doesn't across Tailscale):
+  // connect: {
+  //   endpoints: ["tcp/100.64.0.1:7447", "tcp/100.64.0.2:7447"],
+  // },
+
+  plugins: {
+    ros2dds: {
+      // -------------------------------------------------------------------
+      // DDS domain this bridge instance attaches to on the local ROS graph.
+      // Keep this matching ROS_DOMAIN_ID on the host the bridge runs on.
+      // -------------------------------------------------------------------
+      domain: 0,
+
+      // Restrict DDS discovery itself to this host's subnet so the local
+      // RMW doesn't try to talk directly (bypassing the bridge) to other
+      // robots that happen to be reachable over Tailscale/LAN.
+      ros_automatic_discovery_range: "SUBNET",
+
+      // -------------------------------------------------------------------
+      // ALLOWLIST — "deny all by default" policy.
+      //
+      // Only `allow` is set (no `deny`): any topic/service/action whose
+      // fully-qualified name does NOT match one of these regexes is never
+      // declared to Zenoh at all, in either direction. That's what stops
+      // /scan, /map, /tf, /tf_static and raw /cmd_vel from ever leaving a
+      // robot, and stops one robot's bridge from injecting anything into
+      // another robot's local graph.
+      //
+      // Every entity kind is listed explicitly — an omitted kind (e.g.
+      // leaving out service_clients) means that whole category is 100%
+      // denied, which is what we want for anything outside teams/.
+      //
+      // Regexes are anchored with ^ so "teams/" can't match as a substring
+      // inside some unrelated interface name.
+      // -------------------------------------------------------------------
+      allow: {
+        // e.g. /teams/team_1/positions, /teams/team_1/target_position
+        publishers: ["^/teams/.*"],
+        subscribers: ["^/teams/.*"],
+
+        // Services under /teams/ only (e.g. /teams/robot_a/set_mode).
+        service_servers: ["^/teams/.*"],
+        service_clients: ["^/teams/.*"],
+
+        // Actions under /teams/ only (e.g. /teams/robot_a/navigate_to_pose).
+        action_servers: ["^/teams/.*"],
+        action_clients: ["^/teams/.*"],
+      },
+
+      // -------------------------------------------------------------------
+      // Explicitly NOT setting `deny` — with a populated `allow`, deny-all
+      // is already the default for everything not matching /teams/.*.
+      // -------------------------------------------------------------------
+
+      // Safety valve: cap publish rate of anything crossing the bridge
+      // under /teams/, so a misbehaving node can't saturate the Tailscale
+      // link. Tune per-topic as needed.
+      pub_max_frequencies: ["^/teams/.*=40"],
+
+      // Avoid unbounded query backlog across a lossy VPN hop.
+      queries_timeout: {
+        default: 5.0,
+      },
+    },
+  },
+}

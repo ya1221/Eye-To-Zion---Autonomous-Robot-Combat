@@ -1,7 +1,9 @@
 ai_inference:
   ros__parameters:
     # ── Model ──
-    model_path: /ros2_ws/src/ai_vision/models/best_ncnn_model
+    # Empty = resolve from the installed share/ai_vision/models/ directory.
+    # Only set an absolute path here to point at a model outside the package.
+    model_path: ''
     inference_imgsz: 320
     tracker_config: bytetrack.yaml
 

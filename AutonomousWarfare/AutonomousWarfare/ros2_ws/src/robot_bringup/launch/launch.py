@@ -59,6 +59,12 @@ def generate_launch_description():
         ),
     )
 
+    ai_audio_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([FindPackageShare('ai_audio'), 'launch', 'launch.py'])
+        ),
+    )
+
     tactical_brain_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution([FindPackageShare('tactical_brain'), 'launch', 'main.launch.py'])
@@ -81,6 +87,7 @@ def generate_launch_description():
         imu_launch,
         shooting_launch,
         ai_vision_launch,
+        ai_audio_launch,
         sensor_fusion_launch,
         # tactical_brain_launch,
         LogInfo(msg='========== All Subsystems Launched =========='),

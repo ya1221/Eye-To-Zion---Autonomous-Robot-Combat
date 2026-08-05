@@ -1,0 +1,28 @@
+services:
+  overhead_tracker:
+    build: .
+    container_name: overhead_tracker
+    network_mode: host
+    environment:
+      - DISPLAY=${DISPLAY}
+      - QT_LOGGING_RULES=qt.qpa.fonts.warning=false
+    command: ros2 launch overhead_tracker tracker_launch.py
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - /dev:/dev
+    group_add:
+      - video
+    device_cgroup_rules:
+      - 'c 81:* rmw'
+    restart: always
+
+  zenoh_bridge:
+    image: eclipse/zenoh-bridge-ros2dds:latest
+    container_name: zenoh_bridge
+    network_mode: host
+    restart: always
+    environment:
+      - ROS_DISTRO=humble
+    volumes:
+      - ./zenoh/config.json5:/config.json5:ro
+    command: ["-c", "/config.json5"]
