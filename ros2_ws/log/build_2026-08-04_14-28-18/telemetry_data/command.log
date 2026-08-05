@@ -1,0 +1,2 @@
+Invoking command in '/ros2_ws/build/telemetry_data': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /ros2_ws/src/telemetry_data -DCMAKE_INSTALL_PREFIX=/ros2_ws/install/telemetry_data
+Invoked command in '/ros2_ws/build/telemetry_data' returned '1': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /ros2_ws/src/telemetry_data -DCMAKE_INSTALL_PREFIX=/ros2_ws/install/telemetry_data

@@ -1,0 +1,210 @@
+[0.000000] (-) TimerEvent: {}
+[0.000425] (telemetry_data) JobQueued: {'identifier': 'telemetry_data', 'dependencies': OrderedDict()}
+[0.000542] (telemetry_data) JobStarted: {'identifier': 'telemetry_data'}
+[0.022637] (telemetry_data) JobProgress: {'identifier': 'telemetry_data', 'progress': 'cmake'}
+[0.028803] (telemetry_data) Command: {'cmd': ['/usr/bin/cmake', '/ros2_ws/src/telemetry_data', '-DCMAKE_INSTALL_PREFIX=/ros2_ws/install/telemetry_data'], 'cwd': '/ros2_ws/build/telemetry_data', 'env': OrderedDict([('HOSTNAME', 'itay3711-VivoBook-ASUSLaptop-X515EA-X1500EA'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/root'), ('PYTHONUNBUFFERED', '1'), ('ROS_PYTHON_VERSION', '3'), ('COLCON_PREFIX_PATH', '/ros2_ws/install'), ('ROS_DISTRO', 'humble'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('TERM', 'xterm'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'), ('LANG', 'C.UTF-8'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('ROS_DOMAIN_ID', '0'), ('AMENT_PREFIX_PATH', '/opt/ros/humble'), ('PWD', '/ros2_ws/build/telemetry_data'), ('LC_ALL', 'C.UTF-8'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/opt/ros/humble')]), 'shell': False}
+[0.099877] (-) TimerEvent: {}
+[0.101590] (telemetry_data) StdoutLine: {'line': b'-- Found ament_cmake: 1.3.14 (/opt/ros/humble/share/ament_cmake/cmake)\n'}
+[0.199983] (-) TimerEvent: {}
+[0.300282] (-) TimerEvent: {}
+[0.307062] (telemetry_data) StdoutLine: {'line': b'-- Found rclcpp: 16.0.19 (/opt/ros/humble/share/rclcpp/cmake)\n'}
+[0.366809] (telemetry_data) StdoutLine: {'line': b'-- Found rosidl_generator_c: 3.1.9 (/opt/ros/humble/share/rosidl_generator_c/cmake)\n'}
+[0.373242] (telemetry_data) StdoutLine: {'line': b'-- Found rosidl_adapter: 3.1.9 (/opt/ros/humble/share/rosidl_adapter/cmake)\n'}
+[0.390250] (telemetry_data) StdoutLine: {'line': b'-- Found rosidl_generator_cpp: 3.1.9 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)\n'}
+[0.400335] (-) TimerEvent: {}
+[0.413337] (telemetry_data) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c\n'}
+[0.439665] (telemetry_data) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp\n'}
+[0.500444] (-) TimerEvent: {}
+[0.516219] (telemetry_data) StdoutLine: {'line': b'-- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)\n'}
+[0.521699] (telemetry_data) StdoutLine: {'line': b'-- Found rmw_fastrtps_cpp: 6.2.10 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)\n'}
+[0.600548] (-) TimerEvent: {}
+[0.613251] (telemetry_data) StdoutLine: {'line': b"-- Using RMW implementation 'rmw_fastrtps_cpp' as default\n"}
+[0.700663] (-) TimerEvent: {}
+[0.735308] (telemetry_data) StdoutLine: {'line': b'-- Found Boost: /usr/lib/x86_64-linux-gnu/cmake/Boost-1.74.0/BoostConfig.cmake (found version "1.74.0")  \n'}
+[0.743753] (telemetry_data) StdoutLine: {'line': b'-- Found ament_lint_auto: 0.12.15 (/opt/ros/humble/share/ament_lint_auto/cmake)\n'}
+[0.800794] (-) TimerEvent: {}
+[0.830392] (telemetry_data) StdoutLine: {'line': b"-- Added test 'cppcheck' to perform static code analysis on C / C++ code\n"}
+[0.830533] (telemetry_data) StdoutLine: {'line': b'-- Configured cppcheck include dirs: $<BUILD_INTERFACE:/ros2_ws/src/telemetry_data/include>\n'}
+[0.830594] (telemetry_data) StdoutLine: {'line': b'-- Configured cppcheck exclude dirs and/or files: \n'}
+[0.831487] (telemetry_data) StdoutLine: {'line': b"-- Added test 'flake8' to check Python code syntax and style conventions\n"}
+[0.832667] (telemetry_data) StdoutLine: {'line': b"-- Added test 'lint_cmake' to check CMake code style\n"}
+[0.833843] (telemetry_data) StdoutLine: {'line': b"-- Added test 'pep257' to check Python code against some of the docstring style conventions in PEP 257\n"}
+[0.835281] (telemetry_data) StdoutLine: {'line': b"-- Added test 'uncrustify' to check C / C++ code style\n"}
+[0.835340] (telemetry_data) StdoutLine: {'line': b'-- Configured uncrustify additional arguments: \n'}
+[0.836268] (telemetry_data) StdoutLine: {'line': b"-- Added test 'xmllint' to check XML markup files\n"}
+[0.838600] (telemetry_data) StdoutLine: {'line': b'-- Configuring done\n'}
+[0.866244] (telemetry_data) StdoutLine: {'line': b'-- Generating done\n'}
+[0.869975] (telemetry_data) StdoutLine: {'line': b'-- Build files have been written to: /ros2_ws/build/telemetry_data\n'}
+[0.879376] (telemetry_data) CommandEnded: {'returncode': 0}
+[0.879804] (telemetry_data) JobProgress: {'identifier': 'telemetry_data', 'progress': 'build'}
+[0.880406] (telemetry_data) Command: {'cmd': ['/usr/bin/cmake', '--build', '/ros2_ws/build/telemetry_data', '--', '-j8', '-l8'], 'cwd': '/ros2_ws/build/telemetry_data', 'env': OrderedDict([('HOSTNAME', 'itay3711-VivoBook-ASUSLaptop-X515EA-X1500EA'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/root'), ('PYTHONUNBUFFERED', '1'), ('ROS_PYTHON_VERSION', '3'), ('COLCON_PREFIX_PATH', '/ros2_ws/install'), ('ROS_DISTRO', 'humble'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('TERM', 'xterm'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'), ('LANG', 'C.UTF-8'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('ROS_DOMAIN_ID', '0'), ('AMENT_PREFIX_PATH', '/opt/ros/humble'), ('PWD', '/ros2_ws/build/telemetry_data'), ('LC_ALL', 'C.UTF-8'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/opt/ros/humble')]), 'shell': False}
+[0.900930] (-) TimerEvent: {}
+[0.937283] (telemetry_data) StdoutLine: {'line': b'[ 66%] \x1b[32mBuilding CXX object CMakeFiles/telegraf_bridge.dir/src/telegraf_bridge.cpp.o\x1b[0m\n'}
+[0.937517] (telemetry_data) StdoutLine: {'line': b'[ 66%] \x1b[32mBuilding CXX object CMakeFiles/telegraf_bridge.dir/src/telemetry_sender.cpp.o\x1b[0m\n'}
+[1.001033] (-) TimerEvent: {}
+[1.101348] (-) TimerEvent: {}
+[1.205366] (-) TimerEvent: {}
+[1.305613] (-) TimerEvent: {}
+[1.405895] (-) TimerEvent: {}
+[1.506163] (-) TimerEvent: {}
+[1.606406] (-) TimerEvent: {}
+[1.706751] (-) TimerEvent: {}
+[1.807020] (-) TimerEvent: {}
+[1.907342] (-) TimerEvent: {}
+[2.007663] (-) TimerEvent: {}
+[2.107937] (-) TimerEvent: {}
+[2.208207] (-) TimerEvent: {}
+[2.308466] (-) TimerEvent: {}
+[2.408734] (-) TimerEvent: {}
+[2.508985] (-) TimerEvent: {}
+[2.609323] (-) TimerEvent: {}
+[2.709576] (-) TimerEvent: {}
+[2.809816] (-) TimerEvent: {}
+[2.910096] (-) TimerEvent: {}
+[3.010379] (-) TimerEvent: {}
+[3.110698] (-) TimerEvent: {}
+[3.210984] (-) TimerEvent: {}
+[3.311274] (-) TimerEvent: {}
+[3.411576] (-) TimerEvent: {}
+[3.511881] (-) TimerEvent: {}
+[3.612357] (-) TimerEvent: {}
+[3.712641] (-) TimerEvent: {}
+[3.812940] (-) TimerEvent: {}
+[3.913239] (-) TimerEvent: {}
+[4.013539] (-) TimerEvent: {}
+[4.113849] (-) TimerEvent: {}
+[4.214190] (-) TimerEvent: {}
+[4.314463] (-) TimerEvent: {}
+[4.317135] (telemetry_data) StderrLine: {'line': b'In file included from \x1b[01m\x1b[K/ros2_ws/src/telemetry_data/src/telegraf_bridge.cpp:1\x1b[m\x1b[K:\n'}
+[4.317274] (telemetry_data) StderrLine: {'line': b'\x1b[01m\x1b[K/ros2_ws/src/telemetry_data/include/telemetry_data/telegraf_bridge.hpp:4:10:\x1b[m\x1b[K \x1b[01;31m\x1b[Kfatal error: \x1b[m\x1b[Knav_msgs/msg/odometry.hpp: No such file or directory\n'}
+[4.317323] (telemetry_data) StderrLine: {'line': b'    4 | #include \x1b[01;31m\x1b[K<nav_msgs/msg/odometry.hpp>\x1b[m\x1b[K\n'}
+[4.317364] (telemetry_data) StderrLine: {'line': b'      |          \x1b[01;31m\x1b[K^~~~~~~~~~~~~~~~~~~~~~~~~~~\x1b[m\x1b[K\n'}
+[4.317402] (telemetry_data) StderrLine: {'line': b'compilation terminated.\n'}
+[4.323831] (telemetry_data) StderrLine: {'line': b'gmake[2]: *** [CMakeFiles/telegraf_bridge.dir/build.make:76: CMakeFiles/telegraf_bridge.dir/src/telegraf_bridge.cpp.o] Error 1\n'}
+[4.323948] (telemetry_data) StderrLine: {'line': b'gmake[2]: *** Waiting for unfinished jobs....\n'}
+[4.414578] (-) TimerEvent: {}
+[4.514855] (-) TimerEvent: {}
+[4.615145] (-) TimerEvent: {}
+[4.715416] (-) TimerEvent: {}
+[4.815688] (-) TimerEvent: {}
+[4.915944] (-) TimerEvent: {}
+[5.016243] (-) TimerEvent: {}
+[5.116480] (-) TimerEvent: {}
+[5.216748] (-) TimerEvent: {}
+[5.317016] (-) TimerEvent: {}
+[5.417237] (-) TimerEvent: {}
+[5.517473] (-) TimerEvent: {}
+[5.617748] (-) TimerEvent: {}
+[5.718017] (-) TimerEvent: {}
+[5.818286] (-) TimerEvent: {}
+[5.918565] (-) TimerEvent: {}
+[6.018834] (-) TimerEvent: {}
+[6.119093] (-) TimerEvent: {}
+[6.219377] (-) TimerEvent: {}
+[6.319632] (-) TimerEvent: {}
+[6.419910] (-) TimerEvent: {}
+[6.520272] (-) TimerEvent: {}
+[6.620540] (-) TimerEvent: {}
+[6.720814] (-) TimerEvent: {}
+[6.821166] (-) TimerEvent: {}
+[6.921425] (-) TimerEvent: {}
+[7.021706] (-) TimerEvent: {}
+[7.121995] (-) TimerEvent: {}
+[7.222327] (-) TimerEvent: {}
+[7.322693] (-) TimerEvent: {}
+[7.423008] (-) TimerEvent: {}
+[7.523274] (-) TimerEvent: {}
+[7.623518] (-) TimerEvent: {}
+[7.723794] (-) TimerEvent: {}
+[7.824181] (-) TimerEvent: {}
+[7.924432] (-) TimerEvent: {}
+[8.024679] (-) TimerEvent: {}
+[8.538234] (-) TimerEvent: {}
+[8.638775] (-) TimerEvent: {}
+[8.739091] (-) TimerEvent: {}
+[8.839563] (-) TimerEvent: {}
+[8.939990] (-) TimerEvent: {}
+[9.040249] (-) TimerEvent: {}
+[9.140621] (-) TimerEvent: {}
+[9.240973] (-) TimerEvent: {}
+[9.341479] (-) TimerEvent: {}
+[9.441929] (-) TimerEvent: {}
+[9.542412] (-) TimerEvent: {}
+[9.642925] (-) TimerEvent: {}
+[9.743297] (-) TimerEvent: {}
+[9.843768] (-) TimerEvent: {}
+[9.944243] (-) TimerEvent: {}
+[10.044731] (-) TimerEvent: {}
+[10.145230] (-) TimerEvent: {}
+[10.245713] (-) TimerEvent: {}
+[10.346202] (-) TimerEvent: {}
+[10.446659] (-) TimerEvent: {}
+[10.547195] (-) TimerEvent: {}
+[10.647788] (-) TimerEvent: {}
+[10.748351] (-) TimerEvent: {}
+[10.848856] (-) TimerEvent: {}
+[10.949260] (-) TimerEvent: {}
+[11.049742] (-) TimerEvent: {}
+[11.150298] (-) TimerEvent: {}
+[11.250812] (-) TimerEvent: {}
+[11.351363] (-) TimerEvent: {}
+[11.451913] (-) TimerEvent: {}
+[11.552504] (-) TimerEvent: {}
+[11.653077] (-) TimerEvent: {}
+[11.753615] (-) TimerEvent: {}
+[11.854183] (-) TimerEvent: {}
+[11.954722] (-) TimerEvent: {}
+[12.055250] (-) TimerEvent: {}
+[12.155698] (-) TimerEvent: {}
+[12.256178] (-) TimerEvent: {}
+[13.136241] (-) TimerEvent: {}
+[13.236766] (-) TimerEvent: {}
+[13.956860] (-) TimerEvent: {}
+[14.057372] (-) TimerEvent: {}
+[14.157880] (-) TimerEvent: {}
+[14.258413] (-) TimerEvent: {}
+[14.358934] (-) TimerEvent: {}
+[14.459454] (-) TimerEvent: {}
+[14.559965] (-) TimerEvent: {}
+[15.655755] (-) TimerEvent: {}
+[15.756236] (-) TimerEvent: {}
+[15.856691] (-) TimerEvent: {}
+[15.957150] (-) TimerEvent: {}
+[16.057604] (-) TimerEvent: {}
+[16.158098] (-) TimerEvent: {}
+[16.258571] (-) TimerEvent: {}
+[16.359021] (-) TimerEvent: {}
+[16.459502] (-) TimerEvent: {}
+[16.559950] (-) TimerEvent: {}
+[16.660408] (-) TimerEvent: {}
+[16.760878] (-) TimerEvent: {}
+[16.861341] (-) TimerEvent: {}
+[16.961785] (-) TimerEvent: {}
+[17.062231] (-) TimerEvent: {}
+[17.162622] (-) TimerEvent: {}
+[18.081724] (-) TimerEvent: {}
+[18.182161] (-) TimerEvent: {}
+[18.282412] (-) TimerEvent: {}
+[18.382696] (-) TimerEvent: {}
+[18.482973] (-) TimerEvent: {}
+[18.583287] (-) TimerEvent: {}
+[18.683741] (-) TimerEvent: {}
+[18.784171] (-) TimerEvent: {}
+[18.884427] (-) TimerEvent: {}
+[18.984758] (-) TimerEvent: {}
+[19.085252] (-) TimerEvent: {}
+[19.185666] (-) TimerEvent: {}
+[19.285947] (-) TimerEvent: {}
+[19.386357] (-) TimerEvent: {}
+[19.486794] (-) TimerEvent: {}
+[19.587107] (-) TimerEvent: {}
+[19.687558] (-) TimerEvent: {}
+[19.788037] (-) TimerEvent: {}
+[19.888365] (-) TimerEvent: {}
+[19.933105] (telemetry_data) StderrLine: {'line': b'gmake[1]: *** [CMakeFiles/Makefile2:137: CMakeFiles/telegraf_bridge.dir/all] Error 2\n'}
+[19.933341] (telemetry_data) StderrLine: {'line': b'gmake: *** [Makefile:146: all] Error 2\n'}
+[19.934933] (telemetry_data) CommandEnded: {'returncode': 2}
+[19.988436] (-) TimerEvent: {}
+[20.088690] (-) TimerEvent: {}
+[20.099747] (telemetry_data) JobEnded: {'identifier': 'telemetry_data', 'rc': 2}
+[20.110339] (-) EventReactorShutdown: {}

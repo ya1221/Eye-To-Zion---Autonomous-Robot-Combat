@@ -1,0 +1,42 @@
+[0.007s] Invoking command in '/ros2_ws/build/telemetry_data': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /ros2_ws/src/telemetry_data -DCMAKE_INSTALL_PREFIX=/ros2_ws/install/telemetry_data
+[0.059s] -- The C compiler identification is GNU 11.4.0
+[0.105s] -- The CXX compiler identification is GNU 11.4.0
+[0.112s] -- Detecting C compiler ABI info
+[0.170s] -- Detecting C compiler ABI info - done
+[0.175s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.175s] -- Detecting C compile features
+[0.176s] -- Detecting C compile features - done
+[0.178s] -- Detecting CXX compiler ABI info
+[0.240s] -- Detecting CXX compiler ABI info - done
+[0.246s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.246s] -- Detecting CXX compile features
+[0.246s] -- Detecting CXX compile features - done
+[0.248s] -- Found ament_cmake: 1.3.14 (/opt/ros/humble/share/ament_cmake/cmake)
+[0.342s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+[0.405s] -- Found rclcpp: 16.0.19 (/opt/ros/humble/share/rclcpp/cmake)
+[0.431s] -- Found rosidl_generator_c: 3.1.9 (/opt/ros/humble/share/rosidl_generator_c/cmake)
+[0.435s] -- Found rosidl_adapter: 3.1.9 (/opt/ros/humble/share/rosidl_adapter/cmake)
+[0.442s] -- Found rosidl_generator_cpp: 3.1.9 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)
+[0.450s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[0.463s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[0.499s] -- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)
+[0.500s] -- Found rmw_fastrtps_cpp: 6.2.10 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)
+[0.561s] -- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version "3.0.2")  
+[0.574s] -- Found FastRTPS: /opt/ros/humble/include  
+[0.595s] -- Using RMW implementation 'rmw_fastrtps_cpp' as default
+[0.601s] -- Looking for pthread.h
+[0.689s] -- Looking for pthread.h - found
+[0.689s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+[0.752s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+[0.753s] -- Found Threads: TRUE  
+[0.826s] [31mCMake Error at /usr/share/cmake-3.22/Modules/FindPackageHandleStandardArgs.cmake:230 (message):
+[0.826s]   Could NOT find Boost (missing: Boost_INCLUDE_DIR)
+[0.826s] Call Stack (most recent call first):
+[0.826s]   /usr/share/cmake-3.22/Modules/FindPackageHandleStandardArgs.cmake:594 (_FPHSA_FAILURE_MESSAGE)
+[0.826s]   /usr/share/cmake-3.22/Modules/FindBoost.cmake:2360 (find_package_handle_standard_args)
+[0.826s]   CMakeLists.txt:12 (find_package)
+[0.826s] 
+[0.826s] [0m
+[0.826s] -- Configuring incomplete, errors occurred!
+[0.826s] See also "/ros2_ws/build/telemetry_data/CMakeFiles/CMakeOutput.log".
+[0.833s] Invoked command in '/ros2_ws/build/telemetry_data' returned '1': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /ros2_ws/src/telemetry_data -DCMAKE_INSTALL_PREFIX=/ros2_ws/install/telemetry_data

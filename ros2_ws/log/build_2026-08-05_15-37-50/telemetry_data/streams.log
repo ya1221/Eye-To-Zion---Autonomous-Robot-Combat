@@ -1,0 +1,28 @@
+[0.010s] Invoking command in '/ros2_ws/build/telemetry_data': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/telemetry_data -- -j8 -l8
+[0.061s] [35m[1mConsolidate compiler generated dependencies of target telegraf_bridge[0m
+[0.087s] [ 33%] [32mBuilding CXX object CMakeFiles/telegraf_bridge.dir/src/telegraf_bridge.cpp.o[0m
+[9.462s] [ 66%] [32m[1mLinking CXX executable telegraf_bridge[0m
+[10.016s] [100%] Built target telegraf_bridge
+[10.026s] Invoked command in '/ros2_ws/build/telemetry_data' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/telemetry_data -- -j8 -l8
+[10.034s] Invoking command in '/ros2_ws/build/telemetry_data': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/telemetry_data
+[10.049s] -- Install configuration: ""
+[10.051s] -- Installing: /ros2_ws/install/telemetry_data/lib/telemetry_data/telegraf_bridge
+[10.056s] -- Set runtime path of "/ros2_ws/install/telemetry_data/lib/telemetry_data/telegraf_bridge" to ""
+[10.056s] -- Installing: /ros2_ws/install/telemetry_data/share/telemetry_data/launch
+[10.056s] -- Installing: /ros2_ws/install/telemetry_data/share/telemetry_data/launch/launch.py
+[10.057s] -- Installing: /ros2_ws/install/telemetry_data/share/ament_index/resource_index/package_run_dependencies/telemetry_data
+[10.057s] -- Installing: /ros2_ws/install/telemetry_data/share/ament_index/resource_index/parent_prefix_path/telemetry_data
+[10.057s] -- Installing: /ros2_ws/install/telemetry_data/share/telemetry_data/environment/ament_prefix_path.sh
+[10.058s] -- Installing: /ros2_ws/install/telemetry_data/share/telemetry_data/environment/ament_prefix_path.dsv
+[10.058s] -- Installing: /ros2_ws/install/telemetry_data/share/telemetry_data/environment/path.sh
+[10.059s] -- Installing: /ros2_ws/install/telemetry_data/share/telemetry_data/environment/path.dsv
+[10.059s] -- Installing: /ros2_ws/install/telemetry_data/share/telemetry_data/local_setup.bash
+[10.059s] -- Installing: /ros2_ws/install/telemetry_data/share/telemetry_data/local_setup.sh
+[10.060s] -- Installing: /ros2_ws/install/telemetry_data/share/telemetry_data/local_setup.zsh
+[10.060s] -- Installing: /ros2_ws/install/telemetry_data/share/telemetry_data/local_setup.dsv
+[10.060s] -- Installing: /ros2_ws/install/telemetry_data/share/telemetry_data/package.dsv
+[10.060s] -- Installing: /ros2_ws/install/telemetry_data/share/ament_index/resource_index/packages/telemetry_data
+[10.060s] -- Installing: /ros2_ws/install/telemetry_data/share/telemetry_data/cmake/telemetry_dataConfig.cmake
+[10.061s] -- Installing: /ros2_ws/install/telemetry_data/share/telemetry_data/cmake/telemetry_dataConfig-version.cmake
+[10.061s] -- Installing: /ros2_ws/install/telemetry_data/share/telemetry_data/package.xml
+[10.064s] Invoked command in '/ros2_ws/build/telemetry_data' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/telemetry_data

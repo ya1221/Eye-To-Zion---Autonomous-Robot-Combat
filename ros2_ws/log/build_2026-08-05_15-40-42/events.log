@@ -1,0 +1,177 @@
+[0.000000] (-) TimerEvent: {}
+[0.000911] (telemetry_data) JobQueued: {'identifier': 'telemetry_data', 'dependencies': OrderedDict()}
+[0.001106] (telemetry_data) JobStarted: {'identifier': 'telemetry_data'}
+[0.099856] (-) TimerEvent: {}
+[0.200355] (-) TimerEvent: {}
+[0.300811] (-) TimerEvent: {}
+[0.401271] (-) TimerEvent: {}
+[0.501716] (-) TimerEvent: {}
+[0.602054] (-) TimerEvent: {}
+[0.702542] (-) TimerEvent: {}
+[0.802983] (-) TimerEvent: {}
+[0.903436] (-) TimerEvent: {}
+[1.003903] (-) TimerEvent: {}
+[1.104374] (-) TimerEvent: {}
+[1.204791] (-) TimerEvent: {}
+[1.305225] (-) TimerEvent: {}
+[1.405674] (-) TimerEvent: {}
+[1.506125] (-) TimerEvent: {}
+[1.606548] (-) TimerEvent: {}
+[1.706974] (-) TimerEvent: {}
+[1.807423] (-) TimerEvent: {}
+[1.907896] (-) TimerEvent: {}
+[2.008369] (-) TimerEvent: {}
+[2.108848] (-) TimerEvent: {}
+[2.209337] (-) TimerEvent: {}
+[2.309796] (-) TimerEvent: {}
+[2.410253] (-) TimerEvent: {}
+[2.510700] (-) TimerEvent: {}
+[2.611154] (-) TimerEvent: {}
+[3.132021] (-) TimerEvent: {}
+[3.232481] (-) TimerEvent: {}
+[3.332951] (-) TimerEvent: {}
+[3.433475] (-) TimerEvent: {}
+[3.533904] (-) TimerEvent: {}
+[3.634387] (-) TimerEvent: {}
+[3.734857] (-) TimerEvent: {}
+[3.835331] (-) TimerEvent: {}
+[3.935793] (-) TimerEvent: {}
+[4.036224] (-) TimerEvent: {}
+[4.136658] (-) TimerEvent: {}
+[4.237154] (-) TimerEvent: {}
+[4.238126] (telemetry_data) JobProgress: {'identifier': 'telemetry_data', 'progress': 'cmake'}
+[4.337286] (-) TimerEvent: {}
+[4.437796] (-) TimerEvent: {}
+[4.538318] (-) TimerEvent: {}
+[4.638844] (-) TimerEvent: {}
+[4.739373] (-) TimerEvent: {}
+[5.235551] (telemetry_data) JobProgress: {'identifier': 'telemetry_data', 'progress': 'build'}
+[5.235661] (-) TimerEvent: {}
+[5.235861] (telemetry_data) Command: {'cmd': ['/usr/bin/cmake', '--build', '/ros2_ws/build/telemetry_data', '--', '-j8', '-l8'], 'cwd': '/ros2_ws/build/telemetry_data', 'env': OrderedDict([('HOSTNAME', 'itay3711-VivoBook-ASUSLaptop-X515EA-X1500EA'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/root'), ('PYTHONUNBUFFERED', '1'), ('ROS_PYTHON_VERSION', '3'), ('COLCON_PREFIX_PATH', '/ros2_ws/install'), ('ROS_DISTRO', 'humble'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('TERM', 'xterm'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'), ('LANG', 'C.UTF-8'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('ROS_DOMAIN_ID', '0'), ('AMENT_PREFIX_PATH', '/ros2_ws/install/telemetry_data:/opt/ros/humble'), ('DEBIAN_FRONTEND', 'noninteractive'), ('PWD', '/ros2_ws/build/telemetry_data'), ('LC_ALL', 'C.UTF-8'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/ros2_ws/install/telemetry_data:/opt/ros/humble')]), 'shell': False}
+[5.288055] (telemetry_data) StdoutLine: {'line': b'[100%] Built target telegraf_bridge\n'}
+[5.299589] (telemetry_data) CommandEnded: {'returncode': 0}
+[5.300201] (telemetry_data) JobProgress: {'identifier': 'telemetry_data', 'progress': 'install'}
+[5.307827] (telemetry_data) Command: {'cmd': ['/usr/bin/cmake', '--install', '/ros2_ws/build/telemetry_data'], 'cwd': '/ros2_ws/build/telemetry_data', 'env': OrderedDict([('HOSTNAME', 'itay3711-VivoBook-ASUSLaptop-X515EA-X1500EA'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/root'), ('PYTHONUNBUFFERED', '1'), ('ROS_PYTHON_VERSION', '3'), ('COLCON_PREFIX_PATH', '/ros2_ws/install'), ('ROS_DISTRO', 'humble'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('TERM', 'xterm'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'), ('LANG', 'C.UTF-8'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('ROS_DOMAIN_ID', '0'), ('AMENT_PREFIX_PATH', '/ros2_ws/install/telemetry_data:/opt/ros/humble'), ('DEBIAN_FRONTEND', 'noninteractive'), ('PWD', '/ros2_ws/build/telemetry_data'), ('LC_ALL', 'C.UTF-8'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/ros2_ws/install/telemetry_data:/opt/ros/humble')]), 'shell': False}
+[5.315403] (telemetry_data) StdoutLine: {'line': b'-- Install configuration: ""\n'}
+[5.315710] (telemetry_data) StdoutLine: {'line': b'-- Up-to-date: /ros2_ws/install/telemetry_data/lib/telemetry_data/telegraf_bridge\n'}
+[5.315858] (telemetry_data) StdoutLine: {'line': b'-- Up-to-date: /ros2_ws/install/telemetry_data/share/telemetry_data/launch\n'}
+[5.315978] (telemetry_data) StdoutLine: {'line': b'-- Installing: /ros2_ws/install/telemetry_data/share/telemetry_data/launch/launch.py\n'}
+[5.316514] (telemetry_data) StdoutLine: {'line': b'-- Up-to-date: /ros2_ws/install/telemetry_data/share/ament_index/resource_index/package_run_dependencies/telemetry_data\n'}
+[5.316688] (telemetry_data) StdoutLine: {'line': b'-- Up-to-date: /ros2_ws/install/telemetry_data/share/ament_index/resource_index/parent_prefix_path/telemetry_data\n'}
+[5.316823] (telemetry_data) StdoutLine: {'line': b'-- Up-to-date: /ros2_ws/install/telemetry_data/share/telemetry_data/environment/ament_prefix_path.sh\n'}
+[5.316960] (telemetry_data) StdoutLine: {'line': b'-- Up-to-date: /ros2_ws/install/telemetry_data/share/telemetry_data/environment/ament_prefix_path.dsv\n'}
+[5.317085] (telemetry_data) StdoutLine: {'line': b'-- Up-to-date: /ros2_ws/install/telemetry_data/share/telemetry_data/environment/path.sh\n'}
+[5.317292] (telemetry_data) StdoutLine: {'line': b'-- Up-to-date: /ros2_ws/install/telemetry_data/share/telemetry_data/environment/path.dsv\n'}
+[5.317400] (telemetry_data) StdoutLine: {'line': b'-- Up-to-date: /ros2_ws/install/telemetry_data/share/telemetry_data/local_setup.bash\n'}
+[5.317469] (telemetry_data) StdoutLine: {'line': b'-- Up-to-date: /ros2_ws/install/telemetry_data/share/telemetry_data/local_setup.sh\n'}
+[5.317535] (telemetry_data) StdoutLine: {'line': b'-- Up-to-date: /ros2_ws/install/telemetry_data/share/telemetry_data/local_setup.zsh\n'}
+[5.317633] (telemetry_data) StdoutLine: {'line': b'-- Up-to-date: /ros2_ws/install/telemetry_data/share/telemetry_data/local_setup.dsv\n'}
+[5.317727] (telemetry_data) StdoutLine: {'line': b'-- Installing: /ros2_ws/install/telemetry_data/share/telemetry_data/package.dsv\n'}
+[5.317789] (telemetry_data) StdoutLine: {'line': b'-- Up-to-date: /ros2_ws/install/telemetry_data/share/ament_index/resource_index/packages/telemetry_data\n'}
+[5.317848] (telemetry_data) StdoutLine: {'line': b'-- Up-to-date: /ros2_ws/install/telemetry_data/share/telemetry_data/cmake/telemetry_dataConfig.cmake\n'}
+[5.317908] (telemetry_data) StdoutLine: {'line': b'-- Up-to-date: /ros2_ws/install/telemetry_data/share/telemetry_data/cmake/telemetry_dataConfig-version.cmake\n'}
+[5.317962] (telemetry_data) StdoutLine: {'line': b'-- Up-to-date: /ros2_ws/install/telemetry_data/share/telemetry_data/package.xml\n'}
+[5.335789] (-) TimerEvent: {}
+[5.436201] (-) TimerEvent: {}
+[5.536656] (-) TimerEvent: {}
+[5.637165] (-) TimerEvent: {}
+[5.737615] (-) TimerEvent: {}
+[5.814603] (telemetry_data) CommandEnded: {'returncode': 0}
+[5.837798] (-) TimerEvent: {}
+[5.938324] (-) TimerEvent: {}
+[6.038792] (-) TimerEvent: {}
+[6.139347] (-) TimerEvent: {}
+[6.239948] (-) TimerEvent: {}
+[6.340431] (-) TimerEvent: {}
+[6.441036] (-) TimerEvent: {}
+[6.541666] (-) TimerEvent: {}
+[6.642163] (-) TimerEvent: {}
+[6.742771] (-) TimerEvent: {}
+[6.843390] (-) TimerEvent: {}
+[6.944002] (-) TimerEvent: {}
+[7.044563] (-) TimerEvent: {}
+[7.144989] (-) TimerEvent: {}
+[7.245453] (-) TimerEvent: {}
+[7.345991] (-) TimerEvent: {}
+[7.446466] (-) TimerEvent: {}
+[7.546988] (-) TimerEvent: {}
+[7.647594] (-) TimerEvent: {}
+[7.748109] (-) TimerEvent: {}
+[7.848589] (-) TimerEvent: {}
+[7.949179] (-) TimerEvent: {}
+[8.049693] (-) TimerEvent: {}
+[8.150198] (-) TimerEvent: {}
+[8.250673] (-) TimerEvent: {}
+[8.772976] (-) TimerEvent: {}
+[8.873551] (-) TimerEvent: {}
+[8.974002] (-) TimerEvent: {}
+[9.074330] (-) TimerEvent: {}
+[9.174777] (-) TimerEvent: {}
+[9.275295] (-) TimerEvent: {}
+[9.375803] (-) TimerEvent: {}
+[9.476257] (-) TimerEvent: {}
+[9.576765] (-) TimerEvent: {}
+[9.677218] (-) TimerEvent: {}
+[9.777684] (-) TimerEvent: {}
+[9.878173] (-) TimerEvent: {}
+[9.978722] (-) TimerEvent: {}
+[10.079190] (-) TimerEvent: {}
+[10.179624] (-) TimerEvent: {}
+[10.280088] (-) TimerEvent: {}
+[10.380632] (-) TimerEvent: {}
+[10.481426] (-) TimerEvent: {}
+[10.582057] (-) TimerEvent: {}
+[10.682544] (-) TimerEvent: {}
+[10.783011] (-) TimerEvent: {}
+[10.883508] (-) TimerEvent: {}
+[10.983968] (-) TimerEvent: {}
+[11.084396] (-) TimerEvent: {}
+[11.184826] (-) TimerEvent: {}
+[11.285227] (-) TimerEvent: {}
+[11.385756] (-) TimerEvent: {}
+[11.486319] (-) TimerEvent: {}
+[11.586858] (-) TimerEvent: {}
+[11.687374] (-) TimerEvent: {}
+[11.787834] (-) TimerEvent: {}
+[11.888473] (-) TimerEvent: {}
+[11.989076] (-) TimerEvent: {}
+[12.089559] (-) TimerEvent: {}
+[12.190159] (-) TimerEvent: {}
+[12.290764] (-) TimerEvent: {}
+[12.391379] (-) TimerEvent: {}
+[12.491835] (-) TimerEvent: {}
+[12.592445] (-) TimerEvent: {}
+[12.693021] (-) TimerEvent: {}
+[12.793692] (-) TimerEvent: {}
+[12.894283] (-) TimerEvent: {}
+[12.994951] (-) TimerEvent: {}
+[13.095473] (-) TimerEvent: {}
+[13.196033] (-) TimerEvent: {}
+[13.296558] (-) TimerEvent: {}
+[13.397167] (-) TimerEvent: {}
+[14.504685] (-) TimerEvent: {}
+[14.605109] (-) TimerEvent: {}
+[14.705469] (-) TimerEvent: {}
+[14.805939] (-) TimerEvent: {}
+[14.906516] (-) TimerEvent: {}
+[15.007064] (-) TimerEvent: {}
+[15.107541] (-) TimerEvent: {}
+[15.208011] (-) TimerEvent: {}
+[15.308465] (-) TimerEvent: {}
+[15.408931] (-) TimerEvent: {}
+[15.509418] (-) TimerEvent: {}
+[15.609990] (-) TimerEvent: {}
+[15.710547] (-) TimerEvent: {}
+[15.810912] (-) TimerEvent: {}
+[15.913193] (-) TimerEvent: {}
+[16.013593] (-) TimerEvent: {}
+[16.114137] (-) TimerEvent: {}
+[16.214529] (-) TimerEvent: {}
+[16.314888] (-) TimerEvent: {}
+[16.415372] (-) TimerEvent: {}
+[16.515756] (-) TimerEvent: {}
+[16.616249] (-) TimerEvent: {}
+[16.716609] (-) TimerEvent: {}
+[16.816957] (-) TimerEvent: {}
+[16.819220] (telemetry_data) JobEnded: {'identifier': 'telemetry_data', 'rc': 0}
+[16.833846] (-) EventReactorShutdown: {}
