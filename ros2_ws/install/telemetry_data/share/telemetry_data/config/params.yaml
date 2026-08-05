@@ -1,3 +1,0 @@
-telegraf_bridge:
-  ros__parameters:
-    num_teams: 2

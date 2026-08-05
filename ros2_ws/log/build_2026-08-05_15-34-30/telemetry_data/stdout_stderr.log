@@ -1,8 +1,0 @@
-[ 33%] [32mBuilding CXX object CMakeFiles/telegraf_bridge.dir/src/telegraf_bridge.cpp.o[0m
-[01m[K/ros2_ws/src/telemetry_data/src/telegraf_bridge.cpp:[m[K In constructor ‘[01m[KTelegrafBridge::TelegrafBridge()[m[K’:
-[01m[K/ros2_ws/src/telemetry_data/src/telegraf_bridge.cpp:19:40:[m[K [01;31m[Kerror: [m[K‘[01m[Kteam_health_callback[m[K’ is not a member of ‘[01m[KTelegrafBridge[m[K’
-   19 |             std::bind(&TelegrafBridge::[01;31m[Kteam_health_callback[m[K, this, std::placeholders::_1, i));
-      |                                        [01;31m[K^~~~~~~~~~~~~~~~~~~~[m[K
-gmake[2]: *** [CMakeFiles/telegraf_bridge.dir/build.make:76: CMakeFiles/telegraf_bridge.dir/src/telegraf_bridge.cpp.o] Error 1
-gmake[1]: *** [CMakeFiles/Makefile2:137: CMakeFiles/telegraf_bridge.dir/all] Error 2
-gmake: *** [Makefile:146: all] Error 2

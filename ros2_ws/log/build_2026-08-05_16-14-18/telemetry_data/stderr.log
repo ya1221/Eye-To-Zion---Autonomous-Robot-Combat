@@ -1,7 +1,0 @@
-[01m[K/ros2_ws/src/telemetry_data/src/telemetry_sender.cpp:[m[K In lambda function:
-[01m[K/ros2_ws/src/telemetry_data/src/telemetry_sender.cpp:46:63:[m[K [01;31m[Kerror: [m[K‘[01m[Kbytes_sent[m[K’ was not declared in this scope
-   46 |                     std::cerr << "[TelemetrySender] Sent " << [01;31m[Kbytes_sent[m[K << " bytes: " << line_protocol << "\n";
-      |                                                               [01;31m[K^~~~~~~~~~[m[K
-gmake[2]: *** [CMakeFiles/telegraf_bridge.dir/build.make:90: CMakeFiles/telegraf_bridge.dir/src/telemetry_sender.cpp.o] Error 1
-gmake[1]: *** [CMakeFiles/Makefile2:137: CMakeFiles/telegraf_bridge.dir/all] Error 2
-gmake: *** [Makefile:146: all] Error 2

@@ -1,2 +1,0 @@
-Invoking command in '/ros2_ws/build/telemetry_data': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/telemetry_data -- -j8 -l8
-Invoked command in '/ros2_ws/build/telemetry_data' returned '2': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/telemetry_data -- -j8 -l8
