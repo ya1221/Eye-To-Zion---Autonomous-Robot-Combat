@@ -1,0 +1,95 @@
+name: visualization-system
+services:
+  influxdb:
+    build:
+      context: .
+      dockerfile: influxDB.Dockerfile
+    container_name: influxdb3-core
+    environment:
+      - INFLUXDB3_OBJECT_STORE=file
+      - INFLUXDB3_DB_DIR=/var/lib/influxdb3/data
+      - INFLUXDB3_NODE_IDENTIFIER_PREFIX=node0
+      - INFLUXDB3_AUTH_TOKEN=apiv3_rf3is-glYXXvddTlNCT8Yen711BFDx5nb0o_a68lWoLb13-q530Cs1QVIuvUBU9IfhCe43qaud8LlAKgx4hZFQ
+    volumes:
+      - influx3_data:/var/lib/influxdb3/data
+    network_mode: host  # Routes all traffic through the Tailscale container
+
+  grafana:
+    image: grafana/grafana-oss
+    container_name: grafana
+    network_mode: host
+    environment:
+      - GF_DEFAULT_APP_MODE=development
+      - GF_PANELS_DISABLE_SANITIZE_HTML=true   # allows <style> and <script> tags
+      - GF_SECURITY_ALLOW_EMBEDDING=true        # allows embedded content
+      - GF_INSTALL_PLUGINS=marcusolsson-dynamictext-panel
+    volumes:
+      - grafana-storage:/var/lib/grafana
+
+
+
+
+  zenoh-bridge:
+    image: eclipse/zenoh-bridge-ros2dds:latest
+    container_name: zenoh-bridge
+    network_mode: host
+    ipc: host
+    environment:
+      - ROS_DOMAIN_ID=0
+      - ROS_DISTRO=humble
+    volumes:
+      - ./zenoh_config.json5:/zenoh_config.json5:ro
+    restart: always
+    command: ["-l", "tcp/0.0.0.0:7447", "-c", "/zenoh_config.json5", "-e", "tcp/ROBOT_IP:7447"]
+
+  ros2_core:
+    build:
+      context: .
+      dockerfile: ros2.Dockerfile
+    container_name: ros2_humble
+    network_mode: host
+    ipc: host
+    environment:
+      - ROS_DOMAIN_ID=0
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./ros2_ws:/ros2_ws
+      - telegraf-sock:/tmp/sockets
+    command: >
+      bash -c "ros2 launch foxglove_bridge foxglove_bridge_launch.xml port:=8765"
+    stdin_open: true
+    tty: true
+    restart: always
+
+  telegraf:
+    image: telegraf:latest
+    container_name: telegraf
+    network_mode: host
+    user: root
+    entrypoint: ["/usr/bin/telegraf"]
+    command: ["--config", "/etc/telegraf/telegraf.conf"]
+    volumes:
+      - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      - /sys:/host/sys:ro
+      - /proc:/host/proc:ro
+      - telegraf-sock:/tmp/sockets
+    environment:
+      - HOST_SYS=/host/sys
+      - HOST_PROC=/host/proc
+    restart: unless-stopped
+    
+ 
+  # ── Foxglove Studio — web UI served on http://localhost:8080.
+  #    Open your browser there, choose 'Foxglove WebSocket', and connect to
+  #    ws://localhost:8765 to see the robot's topics rendered live.
+  foxglove-studio:
+    image: ghcr.io/lichtblick-suite/lichtblick:latest
+    container_name: foxglove-studio
+    network_mode: host
+    restart: always
+
+
+volumes:
+  influx3_data:
+  grafana-storage:
+  telegraf-sock:

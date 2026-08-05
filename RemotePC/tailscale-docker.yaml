@@ -1,0 +1,21 @@
+name: tailscale-network
+
+services:
+  tailscale:
+      image: tailscale/tailscale:latest
+      container_name: tailscale-sidecar
+      hostname: remote_pc  # The name that will show up in your Tailnet
+      network_mode: host
+      environment:
+        # - TS_AUTHKEY=tskey-auth-kdBWocpz7B21CNTRL-mF1Ub2RoBa1FkqDLVsbCa1pXaQaTaVVuM  # Replace with your auth key
+        - TS_AUTHKEY=tskey-auth-kDQuVvyKZA11CNTRL-e7hZfXzZzfbvewGFs7pNgbdpEQzeNxMc
+        - TS_STATE_DIR=/var/lib/tailscale
+        - TS_USERSPACE=false  # Use kernel networking for direct peer-to-peer
+        - TS_ACCEPT_DNS=false
+      volumes:
+        - ./tailscale-state:/var/lib/tailscale  # Persists login state across restarts
+        - /dev/net/tun:/dev/net/tun  # Required for kernel mode networking
+      cap_add:
+        - NET_ADMIN  # Allows container to configure network interfaces
+        - NET_RAW    # Allows deep packet handling and ping functionality
+      restart: unless-stopped
