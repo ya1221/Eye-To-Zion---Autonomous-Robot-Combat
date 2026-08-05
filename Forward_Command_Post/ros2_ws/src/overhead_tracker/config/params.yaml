@@ -1,0 +1,12 @@
+overhead_tracker_node:
+  ros__parameters:
+    cnt_team: 2
+    camera_id: 2
+    grid_n: 2000
+    targets_start: 4
+    proc_width: 1280
+    proc_height: 960
+    display_width: 1280
+    display_height: 960
+    pixels_per_cm: 2.0
+    proximity_threshold_cm: 20.0
