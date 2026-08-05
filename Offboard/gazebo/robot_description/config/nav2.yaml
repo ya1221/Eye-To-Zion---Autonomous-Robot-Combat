@@ -1,0 +1,654 @@
+#############################################
+#              BT NAVIGATOR
+#############################################
+bt_navigator:
+  ros__parameters:
+    use_sim_time: True
+    global_frame: map
+    robot_base_frame: base_link
+    odom_topic: /odometry/filtered
+    bt_loop_duration: 10
+    default_server_timeout: 20
+    wait_for_service_timeout: 1000
+    default_bt_xml_filename: "/opt/ros/humble/share/nav2_bt_navigator/behavior_trees/navigate_to_pose_w_replanning_and_recovery.xml"
+    default_nav_through_poses_bt_xml: "/opt/ros/humble/share/nav2_bt_navigator/behavior_trees/navigate_to_pose_w_replanning_and_recovery.xml"
+
+    plugin_lib_names:
+      - nav2_compute_path_to_pose_action_bt_node
+      - nav2_compute_path_through_poses_action_bt_node
+      - nav2_smooth_path_action_bt_node
+      - nav2_follow_path_action_bt_node
+      - nav2_wait_action_bt_node
+      - nav2_spin_action_bt_node
+      - nav2_assisted_teleop_action_bt_node
+      - nav2_back_up_action_bt_node
+      - nav2_drive_on_heading_bt_node
+      - nav2_clear_costmap_service_bt_node
+      - nav2_is_stuck_condition_bt_node
+      - nav2_goal_reached_condition_bt_node
+      - nav2_goal_updated_condition_bt_node
+      - nav2_globally_updated_goal_condition_bt_node
+      - nav2_is_path_valid_condition_bt_node
+      - nav2_initial_pose_received_condition_bt_node
+      - nav2_reinitialize_global_localization_service_bt_node
+      - nav2_rate_controller_bt_node
+      - nav2_distance_controller_bt_node
+      - nav2_speed_controller_bt_node
+      - nav2_truncate_path_action_bt_node
+      - nav2_truncate_path_local_action_bt_node
+      - nav2_goal_updater_node_bt_node
+      - nav2_recovery_node_bt_node
+      - nav2_pipeline_sequence_bt_node
+      - nav2_round_robin_node_bt_node
+      - nav2_transform_available_condition_bt_node
+      - nav2_time_expired_condition_bt_node
+      - nav2_path_expiring_timer_condition
+      - nav2_distance_traveled_condition_bt_node
+      - nav2_single_trigger_bt_node
+      - nav2_goal_updated_controller_bt_node
+      - nav2_is_battery_low_condition_bt_node
+      - nav2_navigate_through_poses_action_bt_node
+      - nav2_navigate_to_pose_action_bt_node
+      - nav2_remove_passed_goals_action_bt_node
+      - nav2_planner_selector_bt_node
+      - nav2_controller_selector_bt_node
+      - nav2_goal_checker_selector_bt_node
+      - nav2_controller_cancel_bt_node
+      - nav2_path_longer_on_approach_bt_node
+      - nav2_wait_cancel_bt_node
+      - nav2_spin_cancel_bt_node
+      - nav2_back_up_cancel_bt_node
+      - nav2_assisted_teleop_cancel_bt_node
+      - nav2_drive_on_heading_cancel_bt_node
+      - nav2_is_battery_charging_condition_bt_node
+
+bt_navigator_navigate_to_pose_rclcpp_node:
+  ros__parameters:
+    use_sim_time: True
+
+bt_navigator_navigate_through_poses_rclcpp_node:
+  ros__parameters:
+    use_sim_time: True
+
+
+#############################################
+#              PLANNER SERVER (SMAC)
+#############################################
+# planner_server:
+#   ros__parameters:
+#     use_sim_time: True
+#     expected_planner_frequency: 20.0
+#     planner_plugins: ["GridBased"]
+
+#     GridBased:
+#       plugin: "nav2_smac_planner/SmacPlannerHybrid"
+#       tolerance: 0.2
+#       allow_unknown: true
+#       max_planning_time: 3.0
+#       motion_model_for_search: "REEDS_SHEPP" 
+#       minimum_turning_radius: 0.3
+#       reverse_penalty: 0.0
+#       change_penalty: 2.0
+#       non_straight_penalty: 1.3
+
+planner_server:
+  ros__parameters:
+    use_sim_time: True
+    planner_plugins: ["GridBased"]
+
+    GridBased:
+      plugin: "nav2_smac_planner/SmacPlannerHybrid" # In Iron and older versions, "/" was used instead of "::"
+      downsample_costmap: false           # whether or not to downsample the map
+      downsampling_factor: 1              # multiplier for the resolution of the costmap layer (e.g. 2 on a 5cm costmap would be 10cm)
+      tolerance: 0.25                     # dist-to-goal heuristic cost (distance) for valid tolerance endpoints if exact goal cannot be found.
+      allow_unknown: true                 # allow traveling in unknown space
+      max_iterations: 1000000             # maximum total iterations to search for before failing (in case unreachable), set to -1 to disable
+      max_on_approach_iterations: 1000    # Maximum number of iterations after within tolerances to continue to try to find exact solution
+      max_planning_time: 5.0              # max time in s for planner to plan, smooth
+      motion_model_for_search: "REEDS_SHEPP"    # Hybrid-A* Dubin, Redds-Shepp
+      angle_quantization_bins: 72         # Number of angle bins for search
+      analytic_expansion_ratio: 3.5       # The ratio to attempt analytic expansions during search for final approach.
+      analytic_expansion_max_length: 3.0  # For Hybrid/Lattice nodes: The maximum length of the analytic expansion to be considered valid to prevent unsafe shortcutting
+      analytic_expansion_max_cost: 200.0  # The maximum single cost for any part of an analytic expansion to contain and be valid, except when necessary on approach to goal
+      analytic_expansion_max_cost_override: false  #  Whether or not to override the maximum cost setting if within critical distance to goal (ie probably required)
+      minimum_turning_radius: 0.35        # minimum turning radius in m of path / vehicle
+      reverse_penalty: 0.5                # Penalty to apply if motion is reversing, must be => 1
+      change_penalty: 0.0                 # Penalty to apply if motion is changing directions (L to R), must be >= 0
+      non_straight_penalty: 1.2           # Penalty to apply if motion is non-straight, must be => 1
+      cost_penalty: 2.0                   # Penalty to apply to higher cost areas when adding into the obstacle map dynamic programming distance expansion heuristic. This drives the robot more towards the center of passages. A value between 1.3 - 3.5 is reasonable.
+      retrospective_penalty: 0.015
+      lookup_table_size: 20.0             # Size of the dubin/reeds-sheep distance window to cache, in meters.
+      cache_obstacle_heuristic: false     # Cache the obstacle map dynamic programming distance expansion heuristic between subsequent replannings of the same goal location. Dramatically speeds up replanning performance (40x) if costmap is largely static.
+      debug_visualizations: false         # For Hybrid nodes: Whether to publish expansions on the /expansions topic as an array of poses (the orientation has no meaning) and the path's footprints on the /planned_footprints topic. WARNING: heavy to compute and to display, for debug only as it degrades the performance.
+      use_quadratic_cost_penalty: False
+      downsample_obstacle_heuristic: True
+      allow_primitive_interpolation: False
+      coarse_search_resolution: 4         # Number of bins to skip when doing a coarse search for the path. Only used for all_direction goal heading mode.
+      goal_heading_mode: "DEFAULT"        # DEFAULT, BIDIRECTIONAL, ALL_DIRECTION
+      smooth_path: True                   # If true, does a simple and quick smoothing post-processing to the path
+
+      smoother:
+        max_iterations: 1000
+        w_smooth: 0.3
+        w_data: 0.2
+        tolerance: 1.0e-10
+        do_refinement: true
+        refinement_num: 2
+
+
+#############################################
+#           CONTROLLER SERVER (MPPI)
+#############################################
+controller_server:
+  ros__parameters:
+    use_sim_time : True
+    controller_frequency: 20.0
+    # Diagnostic: log per-cycle MPPI/critic detail while debugging why
+    # tactical_brain's own FollowPath goals produce zero velocity.
+    verbose: true
+    # Was unset, defaulting to /odom which has zero publishers (the real
+    # odometry source is ackermann_steering_controller/odometry) - matches
+    # the odom_topic convention already used by bt_navigator/velocity_smoother.
+    odom_topic: /odometry/filtered
+    # Was implicit nav2 defaults (10s/0.5m). MPPI's heading-correction
+    # maneuver for tactical_brain's short paths is slow (low-speed
+    # rotate+creep), consistently taking longer than the 10s default,
+    # so the goal kept getting aborted as "Failed to make progress"
+    # before it could finish. Diagnostic: loosened to confirm whether
+    # given enough time, it actually converges.
+    progress_checker_plugin: "progress_checker"
+    progress_checker:
+      plugin: "nav2_controller::SimpleProgressChecker"
+      required_movement_radius: 0.2
+      movement_time_allowance: 60.0
+    # Was SimpleGoalChecker at xy 0.25/yaw 0.4 - way looser than the
+    # stated sub-5cm final-positioning requirement, and SimpleGoalChecker
+    # has no velocity check, so it can latch "reached" while still
+    # cruising through the tolerance disk rather than actually stopped
+    # there. Switched to StoppedGoalChecker (requires position+yaw
+    # tolerance AND near-zero velocity simultaneously) with xy tightened
+    # to 0.05m. Only meaningful now that A_planner snaps the path's final
+    # waypoint to the exact goal coordinate (see calc_hybrid_a_star) -
+    # tightening this alone, against a target that could still be up to
+    # 0.3m off the real goal, would just converge precisely on the wrong
+    # point.
+    # Tightening this one globally made EVERY segment of a multi-segment
+    # path - not just the truly final one - require 5cm+stopped to
+    # complete, including intermediate legs that were never meant to be
+    # precise. That turned ordinary mid-path transitions into 50+ second
+    # stalls (confirmed directly) since an intermediate target is an
+    # arbitrary A* waypoint, not somewhere the robot is meant to actually
+    # stop. Added a second, loose checker for intermediate segments;
+    # Nav2BaseAction picks "goal_checker" (tight) only for a segment's
+    # final leg via goal_checker_id, "loose_goal_checker" otherwise.
+    # Switched from StoppedGoalChecker to SimpleGoalChecker (no velocity
+    # requirement): Gazebo ODE friction constraints (mu2=0.2/0.5) limit
+    # reverse+steer efficiency to ~37% and MPPI continuously commands
+    # non-zero velocity on final approach, so the robot never satisfies
+    # StoppedGoalChecker's trans_stopped_velocity<0.05 condition even
+    # when within 0.15m of the goal. Robot stalls 0.2m from goal for
+    # 60+s before progress checker fires. SimpleGoalChecker just checks
+    # XY position, so the instant the robot passes within 0.20m of the
+    # final waypoint, the segment is declared done.
+    goal_checker_plugins: ["goal_checker", "loose_goal_checker"]
+    goal_checker:
+      plugin: "nav2_controller::SimpleGoalChecker"
+      xy_goal_tolerance: 0.25
+      yaw_goal_tolerance: 0.4
+      stateful: true
+    loose_goal_checker:
+      plugin: "nav2_controller::SimpleGoalChecker"
+      xy_goal_tolerance: 0.40
+      yaw_goal_tolerance: 0.4
+      stateful: true
+    # FollowPathReverse added (2026-06-28): PreferForwardCritic's
+    # threshold_to_consider 0.5 means it activates during exactly the
+    # final approach of ANY segment, including reverse ones - actively
+    # pushing toward forward motion while the segment still needs to
+    # reverse to finish. Confirmed directly: reverse-direction segments
+    # stalled 44s and 85s before completing/aborting, while forward
+    # segments on the same paths completed in seconds. Nav2BaseAction
+    # selects this plugin via controller_id for reverse segments; it's
+    # identical to FollowPath except PreferForwardCritic is disabled.
+    controller_plugins: ["FollowPath", "FollowPathReverse"]
+    FollowPath:
+      plugin: "nav2_mppi_controller::MPPIController"
+      time_steps: 36
+      model_dt: 0.05
+      # Was 1000. etz_simulation measured at 1007% CPU on a 12-core host
+      # with controller_server logging "Control loop missed its desired
+      # rate of 20.0000Hz" right before an outright "Optimizer fail to
+      # compute path" crash - lowered to reduce MPPI's per-cycle compute
+      # cost so the 20Hz loop has a realistic chance of holding under the
+      # software-rendered-Gazebo + full nav2 stack sharing one container.
+      batch_size: 500
+      vx_std: 0.2
+      vy_std: 0.0
+      wz_std: 0.4
+      vx_max: 1.0
+      vx_min: -0.5
+      vy_max: 0.0
+      wz_max: 1.9
+      ax_max: 3.0
+      ax_min: -3.0
+      ay_min: -3.0
+      ay_max: 3.0
+      az_max: 3.5
+      iteration_count: 1
+      temperature: 0.3
+      gamma: 0.015
+      motion_model: "Ackermann"
+      visualize: false
+      reset_period: 1.0
+      # Was false. Three independent runs of the same trivial straight
+      # path produced near-identical peak heading deviation (13.1, 13.6,
+      # 14.4 degrees) and near-identical overshoot/wedge locations -
+      # suspiciously repeatable for what's supposed to be a stochastic
+      # sampling-based optimizer. With this off, MPPI reuses the same
+      # Gaussian control-perturbation noise sequence every optimization
+      # cycle instead of redrawing it, turning what should be exploration
+      # into a fixed, repeated bias. Enabling regeneration so it actually
+      # explores/corrects cycle to cycle.
+      regenerate_noises: true
+      TrajectoryVisualizer:
+        trajectory_step: 5
+        time_step: 3
+      TrajectoryValidator:
+        plugin: "mppi::DefaultOptimalTrajectoryValidator"
+        collision_lookahead_time: 2.0
+        consider_footprint: true
+      AckermannConstraints:
+        # 0.24 looked safe using the simple bicycle-model steering angle,
+        # but ackermann_steering_controller computes separate left/right
+        # angles (steering_odometry.cpp's ACKERMANN_CONFIG branch); for
+        # this chassis (wheelbase=0.235, front_track=0.23) the INNER
+        # wheel's angle at r=0.24 is ~1.09 rad, past the 0.819 rad joint
+        # limit, so steering binds and the vehicle can't actually roll.
+        # 0.4 keeps the inner wheel under ~0.69 rad, safely within limits.
+        min_turning_r: 0.4
+      critics: ["ConstraintCritic", "CostCritic", "GoalCritic", "GoalAngleCritic", "PathAlignCritic", "PathFollowCritic", "PathAngleCritic", "PreferForwardCritic", "VelocityDeadbandCritic"]
+      ConstraintCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 4.0
+      # GoalCritic/GoalAngleCritic/PreferForwardCritic/PathFollowCritic
+      # below are nav2's stock MPPI defaults. Previous values deviated
+      # from defaults in several places simultaneously (GoalAngleCritic
+      # 15.0 vs default 3.0, PreferForwardCritic 1.0 vs default 5.0,
+      # PathFollowCritic 12.0 vs default 5.0, GoalCritic 10.0 vs default
+      # 5.0) - reverting all of them at once instead of guessing which
+      # combination of incremental tweaks was compounding the
+      # heading-over-progress bias that produced near-zero net movement.
+      # Isolated via elimination (2026-06-28): PathFollowCritic alone
+      # reproduces the full wz bump (peak +0.40 rad/s on /cmd_vel_nav for
+      # a path requiring zero turning); GoalCritic alone does not.
+      # PathAlignCritic doesn't matter either way. Re-enabled here since
+      # it's not the cause - GoalCritic still provides goal-seeking
+      # behavior without PathFollowCritic's bug (see below).
+      GoalCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 5.0
+        threshold_to_consider: 1.4
+      # Tested disabled (along with PathAngleCritic, on FollowPathReverse)
+      # as a diagnostic, 2026-06-28: didn't fix the reverse-segment stall.
+      # Restored to enabled here.
+      GoalAngleCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 3.0
+        threshold_to_consider: 0.5
+      PreferForwardCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 5.0
+        threshold_to_consider: 0.5
+      # ObstaclesCritic:
+      #   enabled: true
+      #   cost_power: 1
+      #   repulsion_weight: 1.5
+      #   critical_weight: 20.0
+      #   consider_footprint: false
+      #   collision_cost: 10000.0
+      #   collision_margin_distance: 0.1
+      #   near_goal_distance: 0.5
+      #   inflation_radius: 0.55 # (only in Humble)
+      #   cost_scaling_factor: 10.0 # (only in Humble)
+      CostCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 3.81
+        critical_cost: 300.0
+        consider_footprint: false
+        collision_cost: 1000000.0
+        near_goal_distance: 1.0
+        trajectory_point_step: 2
+        inflation_radius: 0.22
+        cost_scaling_factor: 6.0
+      # Tested disabled as a diagnostic (2026-06-28): wz bump on
+      # /cmd_vel_nav was unchanged (still peaks ~+0.40 rad/s at the same
+      # point in execution) - ruled out as the source. Restored to enabled.
+      PathAlignCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 14.0
+        max_path_occupancy_ratio: 0.05
+        trajectory_point_step: 4
+        threshold_to_consider: 0.5
+        offset_from_furthest: 20
+        use_path_orientations: false
+      # Disabled (2026-06-28): confirmed via elimination + /cmd_vel_nav
+      # logging this is the specific critic producing the persistent
+      # ~14deg heading bias / overshoot on every straight-path test this
+      # session. Its score() (fetched from the matching nav2 1.1.20/humble
+      # source) penalizes each candidate rollout by the distance from its
+      # *predicted endpoint 1.8s out* (36 steps * model_dt 0.05) to a path
+      # point offset_from_furthest indices ahead of current progress - a
+      # pure positional distance, no orientation term, so the bias isn't a
+      # visible bug in this critic's formula; it's some interaction with
+      # the Ackermann motion model/sampling underneath that would need
+      # profiling the compiled optimizer to pin further. GoalCritic alone
+      # still provides goal-seeking behavior without this critic.
+      PathFollowCritic:
+        enabled: false
+        cost_power: 1
+        cost_weight: 5.0
+        offset_from_furthest: 5
+        threshold_to_consider: 1.4
+      PathAngleCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 2.0
+        offset_from_furthest: 4
+        threshold_to_consider: 0.5
+        max_angle_to_furthest: 1.0
+        mode: 0
+      # Enabled (2026-06-28) to try improving final settling precision:
+      # robot was settling ~9.6cm from goal with a slow (~1cm/s) residual
+      # creep rather than a clean stop. This critic penalizes any nonzero
+      # speed BELOW the deadband (max(deadband - |v|, 0)) - it discourages
+      # exactly that "creeping slowly forever" behavior, pushing the
+      # optimizer toward committing to either a real stop (v=0) or
+      # actually moving, instead of dawdling in a low-speed dead zone.
+      VelocityDeadbandCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 35.0
+        deadband_velocities: [0.05, 0.05, 0.05]
+      # TwirlingCritic:
+      #   enabled: true
+      #   twirling_cost_power: 1
+      #   twirling_cost_weight: 10.0
+
+    # Identical to FollowPath above except PreferForwardCritic is
+    # disabled - see the controller_plugins comment for why.
+    FollowPathReverse:
+      plugin: "nav2_mppi_controller::MPPIController"
+      time_steps: 36
+      model_dt: 0.05
+      batch_size: 500
+      vx_std: 0.2
+      vy_std: 0.0
+      wz_std: 0.4
+      vx_max: 1.0
+      vx_min: -0.5
+      vy_max: 0.0
+      wz_max: 1.9
+      ax_max: 3.0
+      ax_min: -3.0
+      ay_min: -3.0
+      ay_max: 3.0
+      az_max: 3.5
+      iteration_count: 1
+      temperature: 0.3
+      gamma: 0.015
+      # Tested swapped to "DiffDrive" as a structural diagnostic
+      # (2026-06-28): reverse-segment stall persisted with the SAME
+      # signature (slow monotonic yaw drift, near-zero net translation) -
+      # rules out the Ackermann rollout math specifically. Reverted - the
+      # real chassis can't strafe/pivot like DiffDrive assumes anyway, so
+      # it was only ever valid as a one-off diagnostic.
+      motion_model: "Ackermann"
+      visualize: false
+      reset_period: 1.0
+      regenerate_noises: true
+      TrajectoryVisualizer:
+        trajectory_step: 5
+        time_step: 3
+      TrajectoryValidator:
+        plugin: "mppi::DefaultOptimalTrajectoryValidator"
+        collision_lookahead_time: 2.0
+        consider_footprint: true
+      AckermannConstraints:
+        min_turning_r: 0.4
+      critics: ["ConstraintCritic", "CostCritic", "GoalCritic", "GoalAngleCritic", "PathAlignCritic", "PathFollowCritic", "PathAngleCritic", "PreferForwardCritic", "VelocityDeadbandCritic"]
+      ConstraintCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 4.0
+      # Tried disabling GoalCritic/GoalAngleCritic/PathAlignCritic/
+      # PathFollowCritic/PathAngleCritic/VelocityDeadbandCritic here too
+      # (binary-search elimination, 2026-06-28, down to bare
+      # ConstraintCritic+CostCritic) chasing the reverse-segment stall -
+      # didn't help, restored to match FollowPath. See
+      # etz_crux_investigation memory for the full elimination trail.
+      GoalCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 5.0
+        threshold_to_consider: 1.4
+      GoalAngleCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 3.0
+        threshold_to_consider: 0.5
+      # The one intentional difference from FollowPath - disabled for
+      # reverse segments (didn't turn out to explain the stall, but no
+      # reason to revert this part - it's still a reasonable choice).
+      PreferForwardCritic:
+        enabled: false
+        cost_power: 1
+        cost_weight: 5.0
+        threshold_to_consider: 0.5
+      # Also tried disabled, down to bare ConstraintCritic only - stall
+      # persisted (2026-06-28). Conclusively ruled out the entire critic
+      # layer; root cause found via open-loop /cmd_vel test instead, see
+      # etz_crux_investigation memory. Restored to match FollowPath.
+      CostCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 3.81
+        critical_cost: 300.0
+        consider_footprint: false
+        collision_cost: 1000000.0
+        near_goal_distance: 1.0
+        trajectory_point_step: 2
+        inflation_radius: 0.22
+        cost_scaling_factor: 6.0
+      PathAlignCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 14.0
+        max_path_occupancy_ratio: 0.05
+        trajectory_point_step: 4
+        threshold_to_consider: 0.5
+        offset_from_furthest: 20
+        use_path_orientations: false
+      PathFollowCritic:
+        enabled: false
+        cost_power: 1
+        cost_weight: 5.0
+        offset_from_furthest: 5
+        threshold_to_consider: 1.4
+      PathAngleCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 2.0
+        offset_from_furthest: 4
+        threshold_to_consider: 0.5
+        max_angle_to_furthest: 1.0
+        mode: 0
+      VelocityDeadbandCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 35.0
+        deadband_velocities: [0.05, 0.05, 0.05]
+
+#############################################
+#               SMOOTHER SERVER
+#############################################
+smoother_server:
+  ros__parameters:
+    use_sim_time: True
+    smoother_plugins: ["Simple"]
+    Simple:
+      plugin: "nav2_smoother::SimpleSmoother"
+      tolerance: 0.1
+      w_smooth: 0.3
+      w_data: 0.2
+      do_refinement: false
+
+
+#############################################
+#               COSTMAPS
+#############################################
+global_costmap:
+  global_costmap:
+    ros__parameters:
+      use_sim_time: true
+      global_frame: map
+      robot_base_frame: base_link
+      rolling_window: true
+      width: 20
+      height: 20
+      resolution: 0.05
+      footprint: "[ [0.18, 0.13], [0.18, -0.13], [-0.18, -0.13], [-0.18, 0.13] ]"
+      plugins: ["static_layer", "inflation_layer"]
+
+      static_layer:
+        plugin: "nav2_costmap_2d::StaticLayer"
+        footprint_clearing_enabled: true
+        restore_cleared_footprint: true 
+
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        footprint_clearing_enabled: true
+        inflation_radius: 0.22  
+        cost_scaling_factor: 6.0
+
+      update_frequency: 30.0
+      publish_frequency: 30.0
+
+
+local_costmap:
+  local_costmap:
+    ros__parameters:
+      use_sim_time: true
+      global_frame: odom
+      robot_base_frame: base_link
+      rolling_window: true
+      width: 5
+      height: 5
+      resolution: 0.05
+      footprint: "[ [0.18, 0.13], [0.18, -0.13], [-0.18, -0.13], [-0.18, 0.13] ]"
+
+      plugins: ["obstacle_layer", "inflation_layer"]
+
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        footprint_clearing_enabled: true
+        observation_sources: "scan"
+        scan:
+          topic: /scan
+          data_type: "LaserScan"
+          clearing: true
+          marking: true
+          max_obstacle_height: 2.0
+
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        footprint_clearing_enabled: true
+        inflation_radius: 0.22
+        cost_scaling_factor: 6.0
+
+      update_frequency: 30.0
+      publish_frequency: 30.0
+
+
+#############################################
+#            BEHAVIOR SERVER
+#############################################
+behavior_server:
+  ros__parameters:
+    use_sim_time: true
+    cycle_frequency: 10.0
+    global_frame: odom
+    robot_base_frame: base_link
+    transform_tolerance: 0.1
+    behavior_plugins: ["spin", "backup", "wait"]
+    spin:
+      plugin: "nav2_behaviors/Spin"
+    backup:
+      plugin: "nav2_behaviors/BackUp"
+      target_z: -0.30
+      speed: 0.30
+    wait:
+      plugin: "nav2_behaviors/Wait"
+
+
+#############################################
+#          VELOCITY SMOOTHER
+#############################################
+velocity_smoother:
+  ros__parameters:
+    use_sim_time: true
+    smoothing_frequency: 20.0
+    scale_velocities: true
+    feedback: "OPEN_LOOP"
+    odom_topic: "/odometry/filtered"
+    max_velocity: [2.0, 2.0, 3.5]
+    max_accel: [2.5, 2.0, 4.0]
+    max_decel: [-2.5, -2.0, -4.0]
+
+
+#############################################
+#         ROBOT STATE PUBLISHER
+#############################################
+robot_state_publisher:
+  ros__parameters:
+    use_sim_time: True
+
+
+#############################################
+#         WAYPOINT FOLLOWER
+#############################################
+waypoint_follower:
+  ros__parameters:
+    use_sim_time: True
+    loop_rate: 20
+    stop_on_failure: false
+    waypoint_task_executor_plugin: "wait_at_waypoint"
+    wait_at_waypoint:
+      plugin: "nav2_waypoint_follower::WaitAtWaypoint"
+      enabled: True
+      waypoint_pause_duration: 200
+
+
+#############################################
+#       LIFECYCLE MANAGER
+#############################################
+lifecycle_manager_navigation:
+  ros__parameters:
+    use_sim_time: true
+    autostart: true
+    node_names:
+      # - slam_toolbox
+      - planner_server
+      - controller_server
+      - behavior_server
+      - smoother_server
+      - bt_navigator
+      # - global_costmap
+      # - local_costmap
+      - velocity_smoother
+      - waypoint_follower

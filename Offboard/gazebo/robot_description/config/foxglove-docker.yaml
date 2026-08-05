@@ -1,0 +1,16 @@
+version: '3.9'
+
+services:
+  foxglove-bridge:
+    image: us-central1-docker.pkg.dev/foxglove-images/images/foxglove_bridge:ros-humble-v3.2.4
+    container_name: foxglove_bridge
+    network_mode: host
+    ipc: host
+    pid: host
+    restart: unless-stopped
+    environment:
+      - FASTRTPS_DEFAULT_PROFILES_FILE=/fastdds_localhost.xml
+    volumes:
+      - ./fastdds_localhost.xml:/fastdds_localhost.xml:ro
+    command: 
+      - "topic_whitelist:=['/tf', '/tf_static', '/map', '/robot_description']"
