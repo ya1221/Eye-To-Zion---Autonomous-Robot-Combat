@@ -1,1 +1,4 @@
 core.*
+AutonomousWarfare/AutonomousWarfare/ros2_ws/build/
+AutonomousWarfare/AutonomousWarfare/ros2_ws/install/
+AutonomousWarfare/AutonomousWarfare/ros2_ws/log/

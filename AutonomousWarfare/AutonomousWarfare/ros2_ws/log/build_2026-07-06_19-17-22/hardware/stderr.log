@@ -1,7 +1,0 @@
-[01m[K/ros2_ws/src/hardware/src/twist_to_ackermann.cpp:[m[K In constructor ‘[01m[KTwistToAckermann::TwistToAckermann()[m[K’:
-[01m[K/ros2_ws/src/hardware/src/twist_to_ackermann.cpp:9:60:[m[K [01;31m[Kerror: [m[K‘[01m[Kdefault_steering_angle_offset_[m[K’ was not declared in this scope
-    9 |   this->declare_parameter<double>("steering_angle_offset", [01;31m[Kdefault_steering_angle_offset_[m[K);
-      |                                                            [01;31m[K^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
-gmake[2]: *** [CMakeFiles/twist_to_ackermann.dir/build.make:76: CMakeFiles/twist_to_ackermann.dir/src/twist_to_ackermann.cpp.o] Error 1
-gmake[1]: *** [CMakeFiles/Makefile2:167: CMakeFiles/twist_to_ackermann.dir/all] Error 2
-gmake: *** [Makefile:146: all] Error 2

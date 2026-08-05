@@ -1,4 +1,0 @@
-Invoking command in '/ros2_ws/build/shooting': /usr/bin/cmake --build /ros2_ws/build/shooting -- -j4 -l4
-Invoked command in '/ros2_ws/build/shooting' returned '0': /usr/bin/cmake --build /ros2_ws/build/shooting -- -j4 -l4
-Invoking command in '/ros2_ws/build/shooting': /usr/bin/cmake --install /ros2_ws/build/shooting
-Invoked command in '/ros2_ws/build/shooting' returned '0': /usr/bin/cmake --install /ros2_ws/build/shooting

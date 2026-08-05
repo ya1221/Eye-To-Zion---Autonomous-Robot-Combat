@@ -1,1 +1,0 @@
-/ros2_ws/src/icm20948-ros2/launch/icm20948.launch.py

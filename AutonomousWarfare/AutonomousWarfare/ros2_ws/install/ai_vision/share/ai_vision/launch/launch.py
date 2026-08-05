@@ -1,1 +1,0 @@
-/ros2_ws/build/ai_vision/launch/launch.py

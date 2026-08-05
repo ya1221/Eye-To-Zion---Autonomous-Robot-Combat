@@ -1,3 +1,0 @@
-[console_scripts]
-imu_node = icm20948_ros2.imu:main
-

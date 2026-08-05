@@ -1,1 +1,0 @@
-/ros2_ws/src/shooting/launch/launch.py

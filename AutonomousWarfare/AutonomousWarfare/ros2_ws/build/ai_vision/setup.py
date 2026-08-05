@@ -1,1 +1,0 @@
-/ros2_ws/src/ai_vision/setup.py

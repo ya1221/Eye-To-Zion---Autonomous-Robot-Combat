@@ -1,4 +1,0 @@
-[console_scripts]
-ai_inference_node = ai_vision.ai_inference_node:main
-cv_processor_node = ai_vision.cv_processor_node:main
-
