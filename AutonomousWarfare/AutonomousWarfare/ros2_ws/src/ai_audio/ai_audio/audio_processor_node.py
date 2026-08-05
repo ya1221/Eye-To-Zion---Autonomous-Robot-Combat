@@ -13,8 +13,9 @@ from rclpy.node import Node
 from rclpy.executors import ExternalShutdownException
 from rclpy._rclpy_pybind11 import RCLError
 from std_msgs.msg import String
+from ament_index_python.packages import get_package_share_directory
 
-from trigger import TriggerCapture
+from .trigger import TriggerCapture
 
 FULL_SCALE = 32768.0
 
@@ -70,8 +71,8 @@ class AudioProcessorNode(Node):
         self.TOPIC = '/audio/impact_alert'
         self.POLL_INTERVAL = 0.02  # seconds between queue-drain ticks
 
-        model_dir = os.environ.get('AUDIO_MODEL_DIR', 'model')
-        self._load_model(model_dir)
+        self.declare_parameter('model_dir', '')
+        self._load_model(self._resolve_model_dir())
 
         self.publisher_ = self.create_publisher(String, self.TOPIC, 10)
 
@@ -103,8 +104,24 @@ class AudioProcessorNode(Node):
 
         self.timer = self.create_timer(self.POLL_INTERVAL, self._process_queue)
 
+    # ──────────────────────── model resolution ────────────────────
+    def _resolve_model_dir(self):
+        configured = self.get_parameter('model_dir').value
+        if configured:
+            return configured
+        env = os.environ.get('AUDIO_MODEL_DIR')
+        if env:
+            return env
+        return os.path.join(get_package_share_directory('ai_audio'), 'models')
+
     def _load_model(self, model_dir):
         onnx_path = os.path.join(model_dir, 'impact_cnn.onnx')
+        if not os.path.isfile(onnx_path):
+            raise RuntimeError(
+                f"Impact model not found at '{onnx_path}'. Check the model_dir "
+                "parameter/AUDIO_MODEL_DIR, or rebuild the package so the model "
+                "is installed into share/ai_audio/models/."
+            )
         with open(os.path.join(model_dir, 'labels.json')) as f:
             label_to_idx = json.load(f)
         with open(os.path.join(model_dir, 'feature_stats.json')) as f:

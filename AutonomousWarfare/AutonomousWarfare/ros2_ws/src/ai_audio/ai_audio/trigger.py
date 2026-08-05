@@ -1,13 +1,4 @@
-"""IDLE -> CAPTURING -> COOLDOWN impact-trigger state machine.
-
-This file is intentionally duplicated at
-../../pipeline/dataset_collector/trigger.py. onboard/ must build and run as
-a fully self-contained directory independent of pipeline/ (and vice versa),
-so there is no shared build context or cross-directory import between them
--- see docker-compose.yml. If you tune the trigger logic here (threshold
-behavior, pre/post-roll handling, cooldown), mirror the change in the other
-copy, or training-time capture and live-time capture will silently diverge.
-"""
+"""IDLE -> CAPTURING -> COOLDOWN impact-trigger state machine."""
 
 import collections
 
