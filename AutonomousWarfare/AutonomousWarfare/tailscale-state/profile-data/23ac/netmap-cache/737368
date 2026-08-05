@@ -1,1 +1,0 @@
-{"SSHPolicy":{"rules":[{"principals":[{"nodeIP":"100.89.255.114"},{"nodeIP":"fd7a:115c:a1e0::763a:ff72"}],"sshUsers":{"*":"=","0":"","root":"root"},"action":{"holdAndDelegate":"https://unused/machine/ssh/action/$SRC_NODE_ID/to/$DST_NODE_ID?local_user=$LOCAL_USER"}}]}}
