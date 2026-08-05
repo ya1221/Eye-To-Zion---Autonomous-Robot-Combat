@@ -22,6 +22,7 @@ services:
       - GF_DEFAULT_APP_MODE=development
       - GF_PANELS_DISABLE_SANITIZE_HTML=true   # allows <style> and <script> tags
       - GF_SECURITY_ALLOW_EMBEDDING=true        # allows embedded content
+      - GF_INSTALL_PLUGINS=marcusolsson-dynamictext-panel
     volumes:
       - grafana-storage:/var/lib/grafana
 
