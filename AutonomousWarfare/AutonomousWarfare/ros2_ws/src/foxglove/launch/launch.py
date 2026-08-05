@@ -15,7 +15,8 @@ def generate_launch_description():
             ),
             # Pass the list of topics you want to whitelist here
             launch_arguments={
-                'topic_whitelist': "['/robot_description', '/map', '/tf', '/plan']"
+                'topic_whitelist': "['/robot_description', '/map', '/tf', '/plan']",
+                'capabilities': "['clientPublish','connectionGraph','parametersSubscribe']",
             }.items()
         )
     ])

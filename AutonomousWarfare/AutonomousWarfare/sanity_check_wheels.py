@@ -21,9 +21,9 @@ try:
     # time.sleep(3)
 
     print("Moving servo to -45°...")
-    servo.angle = 75.0
-    robot.forward(1.0)
-    time.sleep(3)
+    servo.angle = 0.0
+    robot.forward(0.3)
+    time.sleep(15)
 
     # print("Centering servo...")
     # servo.angle = 0

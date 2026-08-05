@@ -1106,12 +1106,7 @@ class TacticalBrainNode(Node):
         # am_i_in_danger below.
         self.blackboard.am_i_fighting = attack_preconditions_met
 
-        # Example enhanced log line:
-        self.ros_node.get_logger().info(
-            f"Shooting Control | dist: {self.blackboard.dist_to_closest_enemy:.2f}m | heading_err: {self.blackboard.current_heading_error}° "
-            f"| allow_angle: {threshold:.1f}° | frames: {self._consecutive_frames}/2 "
-            f"| should_fire: {should_fire} | mode: {mode}"
-        )
+
 
         if not attack_preconditions_met:
             self.shooting_control.reset()

@@ -20,7 +20,7 @@
   plugins: {
     ros2dds: {
       allow: {
-        publishers: ["^/teams/team_@@MY_TEAM_IDX@@/.*$"],
+        publishers: ["^/teams/team_@@MY_TEAM_IDX@@/.*$", "^/scan$", "^/map$", "^/robot_description$", "^/tf$", "^/tf_static$", "^/plan$"],
         subscribers: ["^/teams/team_@@MY_TEAM_IDX@@/.*$"],
       },
     },

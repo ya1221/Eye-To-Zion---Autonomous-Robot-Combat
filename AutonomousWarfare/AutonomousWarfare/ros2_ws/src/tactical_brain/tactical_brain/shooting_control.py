@@ -29,8 +29,16 @@ class ShootingControl:
         if), then manages mode/firing/fire_once."""
         should_fire = self.trigger_controller.evaluate(distance_m, heading_error_deg)
 
+        threshold = ballistics_helper.allowable_angle_deg(distance_m) if distance_m is not None else 0.0
+        frames = self.trigger_controller._consecutive_frames
+        heading_err_str = f"{heading_error_deg:.1f}" if heading_error_deg is not None else "None"
+        dist_str = f"{distance_m:.2f}" if distance_m is not None else "None"
+
         self.ros_node.get_logger().info(
-            f"Shooting Control Debug | should_fire: {should_fire}, mode: {mode}")
+            f"Shooting Control | dist: {dist_str}m | heading_err: {heading_err_str}° "
+            f"| allow_angle: {threshold:.1f}° | frames: {frames}/{ballistics_helper.REQUIRED_CONSECUTIVE_FRAMES} "
+            f"| should_fire: {should_fire} | mode: {mode}"
+        )
 
         # Publish the current mode every tick so shooting_node stays in sync
         self.shooting_mode_pub.publish(String(data=mode))

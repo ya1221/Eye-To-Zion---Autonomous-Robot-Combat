@@ -1,0 +1,26 @@
+[0.014s] Invoking command in '/ros2_ws/build/shooting': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/shooting -- -j4 -l4
+[0.119s] [ 50%] [32mBuilding CXX object CMakeFiles/shooting_node.dir/src/shooting_node.cpp.o[0m
+[17.172s] [100%] [32m[1mLinking CXX executable shooting_node[0m
+[18.313s] [100%] Built target shooting_node
+[18.324s] Invoked command in '/ros2_ws/build/shooting' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/shooting -- -j4 -l4
+[18.328s] Invoking command in '/ros2_ws/build/shooting': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/shooting
+[18.337s] -- Install configuration: ""
+[18.338s] -- Execute custom install script
+[18.339s] -- Up-to-date symlink: /ros2_ws/install/shooting/lib/shooting/shooting_node
+[18.340s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/launch/launch.py
+[18.340s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/ament_index/resource_index/package_run_dependencies/shooting
+[18.340s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/ament_index/resource_index/parent_prefix_path/shooting
+[18.340s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/environment/ament_prefix_path.sh
+[18.340s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/environment/ament_prefix_path.dsv
+[18.341s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/environment/path.sh
+[18.341s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/environment/path.dsv
+[18.341s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/local_setup.bash
+[18.341s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/local_setup.sh
+[18.341s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/local_setup.zsh
+[18.341s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/local_setup.dsv
+[18.341s] -- Symlinking: /ros2_ws/install/shooting/share/shooting/package.dsv
+[18.350s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/ament_index/resource_index/packages/shooting
+[18.350s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/cmake/shootingConfig.cmake
+[18.351s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/cmake/shootingConfig-version.cmake
+[18.351s] -- Up-to-date symlink: /ros2_ws/install/shooting/share/shooting/package.xml
+[18.352s] Invoked command in '/ros2_ws/build/shooting' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/shooting

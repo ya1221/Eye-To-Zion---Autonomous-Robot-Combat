@@ -1,0 +1,25 @@
+In file included from [01m[K/opt/ros/humble/include/rclcpp/rclcpp/logging.hpp:24[m[K,
+                 from [01m[K/opt/ros/humble/include/rclcpp/rclcpp/client.hpp:40[m[K,
+                 from [01m[K/opt/ros/humble/include/rclcpp/rclcpp/callback_group.hpp:24[m[K,
+                 from [01m[K/opt/ros/humble/include/rclcpp/rclcpp/any_executable.hpp:20[m[K,
+                 from [01m[K/opt/ros/humble/include/rclcpp/rclcpp/memory_strategy.hpp:25[m[K,
+                 from [01m[K/opt/ros/humble/include/rclcpp/rclcpp/memory_strategies.hpp:18[m[K,
+                 from [01m[K/opt/ros/humble/include/rclcpp/rclcpp/executor_options.hpp:20[m[K,
+                 from [01m[K/opt/ros/humble/include/rclcpp/rclcpp/executor.hpp:37[m[K,
+                 from [01m[K/opt/ros/humble/include/rclcpp/rclcpp/executors/multi_threaded_executor.hpp:25[m[K,
+                 from [01m[K/opt/ros/humble/include/rclcpp/rclcpp/executors.hpp:21[m[K,
+                 from [01m[K/opt/ros/humble/include/rclcpp/rclcpp/rclcpp.hpp:155[m[K,
+                 from [01m[K/ros2_ws/src/hardware/include/hardware/motor_driver.hpp:9[m[K,
+                 from [01m[K/ros2_ws/src/hardware/src/motor_driver.cpp:1[m[K:
+[01m[K/ros2_ws/src/hardware/src/motor_driver.cpp:[m[K In member function ‘[01m[Kvirtual hardware_interface::return_type motor_driver::MotorDriver::write(const rclcpp::Time&, const rclcpp::Duration&)[m[K’:
+[01m[K/ros2_ws/src/hardware/src/motor_driver.cpp:528:57:[m[K [01;35m[Kwarning: [m[Kformat ‘[01m[K%d[m[K’ expects argument of type ‘[01m[Kint[m[K’, but argument 6 has type ‘[01m[Kstd::vector<motor_driver::MotorDriver::ServoTarget>::size_type[m[K’ {aka ‘[01m[Klong unsigned int[m[K’} [[01;35m[K-Wformat=[m[K]
+  528 |         RCLCPP_WARN(rclcpp::get_logger("motor_driver"), [01;35m[K"Steering serial: fd is invalid (%d) or active servos is empty (%d)"[m[K, this->serial_fd_, [32m[Kthis->active_servos_.size()[m[K);
+      |                                                         [01;35m[K^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K                    [32m[K~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+      |                                                                                                                                                                          [32m[K|[m[K
+      |                                                                                                                                                                          [32m[Kstd::vector<motor_driver::MotorDriver::ServoTarget>::size_type {aka long unsigned int}[m[K
+[01m[K/ros2_ws/src/hardware/src/motor_driver.cpp:528:122:[m[K [01;36m[Knote: [m[Kformat string is defined here
+  528 | LCPP_WARN(rclcpp::get_logger("motor_driver"), "Steering serial: fd is invalid (%d) or active servos is empty ([01;36m[K%d[m[K)", this->serial_fd_, this->active_servos_.size());
+      |                                                                                                               [01;36m[K~^[m[K
+      |                                                                                                                [01;36m[K|[m[K
+      |                                                                                                                [01;36m[Kint[m[K
+      |                                                                                                               [32m[K%ld[m[K

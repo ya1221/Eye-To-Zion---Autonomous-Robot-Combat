@@ -82,6 +82,6 @@ def generate_launch_description():
         shooting_launch,
         ai_vision_launch,
         sensor_fusion_launch,
-        tactical_brain_launch,
+        # tactical_brain_launch,
         LogInfo(msg='========== All Subsystems Launched =========='),
     ])

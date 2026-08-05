@@ -1,0 +1,22 @@
+[0.051s] Invoking command in '/ros2_ws/build/foxglove': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/foxglove -- -j4 -l4
+[0.346s] Invoked command in '/ros2_ws/build/foxglove' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/foxglove -- -j4 -l4
+[0.361s] Invoking command in '/ros2_ws/build/foxglove': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/foxglove
+[0.374s] -- Install configuration: ""
+[0.387s] -- Execute custom install script
+[0.389s] -- Up-to-date symlink: /ros2_ws/install/foxglove/share/foxglove/launch/launch.py
+[0.389s] -- Up-to-date symlink: /ros2_ws/install/foxglove/share/ament_index/resource_index/package_run_dependencies/foxglove
+[0.391s] -- Up-to-date symlink: /ros2_ws/install/foxglove/share/ament_index/resource_index/parent_prefix_path/foxglove
+[0.391s] -- Up-to-date symlink: /ros2_ws/install/foxglove/share/foxglove/environment/ament_prefix_path.sh
+[0.392s] -- Up-to-date symlink: /ros2_ws/install/foxglove/share/foxglove/environment/ament_prefix_path.dsv
+[0.392s] -- Up-to-date symlink: /ros2_ws/install/foxglove/share/foxglove/environment/path.sh
+[0.394s] -- Up-to-date symlink: /ros2_ws/install/foxglove/share/foxglove/environment/path.dsv
+[0.394s] -- Up-to-date symlink: /ros2_ws/install/foxglove/share/foxglove/local_setup.bash
+[0.394s] -- Up-to-date symlink: /ros2_ws/install/foxglove/share/foxglove/local_setup.sh
+[0.394s] -- Up-to-date symlink: /ros2_ws/install/foxglove/share/foxglove/local_setup.zsh
+[0.394s] -- Up-to-date symlink: /ros2_ws/install/foxglove/share/foxglove/local_setup.dsv
+[0.394s] -- Symlinking: /ros2_ws/install/foxglove/share/foxglove/package.dsv
+[0.410s] -- Up-to-date symlink: /ros2_ws/install/foxglove/share/ament_index/resource_index/packages/foxglove
+[0.411s] -- Up-to-date symlink: /ros2_ws/install/foxglove/share/foxglove/cmake/foxgloveConfig.cmake
+[0.411s] -- Up-to-date symlink: /ros2_ws/install/foxglove/share/foxglove/cmake/foxgloveConfig-version.cmake
+[0.411s] -- Up-to-date symlink: /ros2_ws/install/foxglove/share/foxglove/package.xml
+[0.414s] Invoked command in '/ros2_ws/build/foxglove' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/foxglove

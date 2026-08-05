@@ -524,6 +524,8 @@ hardware_interface::return_type MotorDriver::write(const rclcpp::Time &, const r
 
         RCLCPP_INFO_THROTTLE(rclcpp::get_logger("motor_driver"), this->steady_clock_, 1000,
             "Steering serial: %.*s", cmd_len - 1, cmd_buf);  // -1 to strip the \n for logging
+    }else{
+        RCLCPP_WARN(rclcpp::get_logger("motor_driver"), "Steering serial: fd is invalid (%d) or active servos is empty (%ld)", this->serial_fd_, this->active_servos_.size());
     }
 
     // === Shooting Flag (via Arduino serial UART — send only on state change) ===
@@ -537,6 +539,8 @@ hardware_interface::return_type MotorDriver::write(const rclcpp::Time &, const r
             RCLCPP_INFO(rclcpp::get_logger("motor_driver"),
                 "Shooting flag sent to Arduino: %s", current ? "F1 (ACTIVE)" : "F0 (OFF)");
         }
+    }else{
+        RCLCPP_WARN(rclcpp::get_logger("motor_driver"), "Shooting flag: fd is invalid (%d)", this->serial_fd_);
     }
     
     return hardware_interface::return_type::OK;

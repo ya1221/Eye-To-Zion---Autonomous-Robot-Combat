@@ -3,12 +3,25 @@ from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch_ros.actions import Node
 
-from launch.actions import IncludeLaunchDescription
+from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
     pkg_share = get_package_share_directory('localization')
-    ydlidar_config_path = os.path.join(pkg_share, 'config', 'lidar.yaml')
+    
+    lidar_config_arg = DeclareLaunchArgument(
+        'lidar_config_file',
+        default_value='D6_lidar.yaml',
+        description='Name of the lidar config file in the config directory (e.g., D6_lidar.yaml or lidar.yaml)'
+    )
+    
+    lidar_config_path = PathJoinSubstitution([
+        FindPackageShare('localization'),
+        'config',
+        LaunchConfiguration('lidar_config_file')
+    ])
     slam_config_path = os.path.join(pkg_share, 'config', 'slam.yaml')
     ekf_local_config = os.path.join(pkg_share, 'config', 'ekf_local.yaml')
     ekf_global_config = os.path.join(pkg_share, 'config', 'ekf_global.yaml')
@@ -20,7 +33,7 @@ def generate_launch_description():
         name='ydlidar_ros2_driver_node',
         output='screen',
         emulate_tty=True,
-        parameters=[ydlidar_config_path, {'use_sim_time': False}]  
+        parameters=[lidar_config_path, {'use_sim_time': False}]  
     )
 
     # ldlidar_launch = IncludeLaunchDescription(
@@ -81,6 +94,7 @@ def generate_launch_description():
     # )
 
     return LaunchDescription([
+        lidar_config_arg,
         ydlidar_node,
         # ldlidar_launch,
         slam_toolbox_node,

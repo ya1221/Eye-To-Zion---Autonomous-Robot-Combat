@@ -55,6 +55,7 @@ void ShootingNode::mode_callback(const std_msgs::msg::String::SharedPtr msg) {
         set_parameter(rclcpp::Parameter("fire_rate_hz", DEFAULT_FIRE_RATE_HZ));
         internal_rate_reset_ = false;
         single_shot_pending_ = false;
+        firing_ = false;
         
         // Ensure we stop any auto shooting when switching to single mode
         if (current_cmd_state_) {
@@ -111,6 +112,7 @@ void ShootingNode::fire_once_callback(
     single_shot_pending_ = true;
     response->success = true;
     response->message = "Single shot queued";
+    RCLCPP_INFO(get_logger(), "Single shot queued");
 }
 
 void ShootingNode::single_tick() {
