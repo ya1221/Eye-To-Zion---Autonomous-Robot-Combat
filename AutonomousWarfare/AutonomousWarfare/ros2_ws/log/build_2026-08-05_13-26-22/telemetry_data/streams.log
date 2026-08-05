@@ -1,0 +1,27 @@
+[0.020s] Invoking command in '/ros2_ws/build/telemetry_data': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/telemetry_data -- -j4 -l4
+[0.092s] [35m[1mConsolidate compiler generated dependencies of target telegraf_bridge[0m
+[0.135s] [ 33%] [32mBuilding CXX object CMakeFiles/telegraf_bridge.dir/src/telegraf_bridge.cpp.o[0m
+[15.771s] [ 66%] [32m[1mLinking CXX executable telegraf_bridge[0m
+[16.880s] [100%] Built target telegraf_bridge
+[16.893s] Invoked command in '/ros2_ws/build/telemetry_data' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/telemetry_data -- -j4 -l4
+[16.894s] Invoking command in '/ros2_ws/build/telemetry_data': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/telemetry_data
+[16.901s] -- Install configuration: ""
+[16.902s] -- Execute custom install script
+[16.902s] -- Up-to-date symlink: /ros2_ws/install/telemetry_data/lib/telemetry_data/telegraf_bridge
+[16.902s] -- Up-to-date symlink: /ros2_ws/install/telemetry_data/share/telemetry_data/launch/launch.py
+[16.905s] -- Up-to-date symlink: /ros2_ws/install/telemetry_data/share/ament_index/resource_index/package_run_dependencies/telemetry_data
+[16.905s] -- Up-to-date symlink: /ros2_ws/install/telemetry_data/share/ament_index/resource_index/parent_prefix_path/telemetry_data
+[16.905s] -- Up-to-date symlink: /ros2_ws/install/telemetry_data/share/telemetry_data/environment/ament_prefix_path.sh
+[16.905s] -- Up-to-date symlink: /ros2_ws/install/telemetry_data/share/telemetry_data/environment/ament_prefix_path.dsv
+[16.905s] -- Up-to-date symlink: /ros2_ws/install/telemetry_data/share/telemetry_data/environment/path.sh
+[16.905s] -- Up-to-date symlink: /ros2_ws/install/telemetry_data/share/telemetry_data/environment/path.dsv
+[16.905s] -- Up-to-date symlink: /ros2_ws/install/telemetry_data/share/telemetry_data/local_setup.bash
+[16.905s] -- Up-to-date symlink: /ros2_ws/install/telemetry_data/share/telemetry_data/local_setup.sh
+[16.905s] -- Up-to-date symlink: /ros2_ws/install/telemetry_data/share/telemetry_data/local_setup.zsh
+[16.905s] -- Up-to-date symlink: /ros2_ws/install/telemetry_data/share/telemetry_data/local_setup.dsv
+[16.906s] -- Symlinking: /ros2_ws/install/telemetry_data/share/telemetry_data/package.dsv
+[16.913s] -- Up-to-date symlink: /ros2_ws/install/telemetry_data/share/ament_index/resource_index/packages/telemetry_data
+[16.913s] -- Up-to-date symlink: /ros2_ws/install/telemetry_data/share/telemetry_data/cmake/telemetry_dataConfig.cmake
+[16.914s] -- Up-to-date symlink: /ros2_ws/install/telemetry_data/share/telemetry_data/cmake/telemetry_dataConfig-version.cmake
+[16.914s] -- Up-to-date symlink: /ros2_ws/install/telemetry_data/share/telemetry_data/package.xml
+[16.918s] Invoked command in '/ros2_ws/build/telemetry_data' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/telemetry_data

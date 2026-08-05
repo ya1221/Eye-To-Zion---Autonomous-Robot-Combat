@@ -1,0 +1,21 @@
+[0.363s] Invoking command in '/ros2_ws/build/main_brain': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/main_brain -- -j4 -l4
+[0.421s] Invoked command in '/ros2_ws/build/main_brain' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/main_brain -- -j4 -l4
+[0.436s] Invoking command in '/ros2_ws/build/main_brain': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/main_brain
+[0.445s] -- Install configuration: ""
+[0.447s] -- Execute custom install script
+[0.449s] -- Up-to-date symlink: /ros2_ws/install/main_brain/share/ament_index/resource_index/package_run_dependencies/main_brain
+[0.450s] -- Up-to-date symlink: /ros2_ws/install/main_brain/share/ament_index/resource_index/parent_prefix_path/main_brain
+[0.450s] -- Up-to-date symlink: /ros2_ws/install/main_brain/share/main_brain/environment/ament_prefix_path.sh
+[0.450s] -- Up-to-date symlink: /ros2_ws/install/main_brain/share/main_brain/environment/ament_prefix_path.dsv
+[0.450s] -- Up-to-date symlink: /ros2_ws/install/main_brain/share/main_brain/environment/path.sh
+[0.450s] -- Up-to-date symlink: /ros2_ws/install/main_brain/share/main_brain/environment/path.dsv
+[0.450s] -- Up-to-date symlink: /ros2_ws/install/main_brain/share/main_brain/local_setup.bash
+[0.450s] -- Up-to-date symlink: /ros2_ws/install/main_brain/share/main_brain/local_setup.sh
+[0.450s] -- Up-to-date symlink: /ros2_ws/install/main_brain/share/main_brain/local_setup.zsh
+[0.450s] -- Up-to-date symlink: /ros2_ws/install/main_brain/share/main_brain/local_setup.dsv
+[0.451s] -- Symlinking: /ros2_ws/install/main_brain/share/main_brain/package.dsv
+[0.460s] -- Up-to-date symlink: /ros2_ws/install/main_brain/share/ament_index/resource_index/packages/main_brain
+[0.461s] -- Up-to-date symlink: /ros2_ws/install/main_brain/share/main_brain/cmake/main_brainConfig.cmake
+[0.462s] -- Up-to-date symlink: /ros2_ws/install/main_brain/share/main_brain/cmake/main_brainConfig-version.cmake
+[0.462s] -- Up-to-date symlink: /ros2_ws/install/main_brain/share/main_brain/package.xml
+[0.496s] Invoked command in '/ros2_ws/build/main_brain' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/main_brain

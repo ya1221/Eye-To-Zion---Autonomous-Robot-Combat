@@ -1,0 +1,73 @@
+[0.022s] Invoking command in '/ros2_ws/build/robot_stats': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake /ros2_ws/src/robot_stats -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/ros2_ws/install/robot_stats
+[0.909s] -- The C compiler identification is GNU 11.4.0
+[1.574s] -- The CXX compiler identification is GNU 11.4.0
+[1.632s] -- Detecting C compiler ABI info
+[1.780s] -- Detecting C compiler ABI info - done
+[1.791s] -- Check for working C compiler: /usr/bin/cc - skipped
+[1.794s] -- Detecting C compile features
+[1.796s] -- Detecting C compile features - done
+[1.808s] -- Detecting CXX compiler ABI info
+[1.992s] -- Detecting CXX compiler ABI info - done
+[2.009s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[2.010s] -- Detecting CXX compile features
+[2.013s] -- Detecting CXX compile features - done
+[2.028s] -- Found ament_cmake: 1.3.14 (/opt/ros/humble/share/ament_cmake/cmake)
+[2.437s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+[2.594s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[2.716s] -- Found rclcpp: 16.0.19 (/opt/ros/humble/share/rclcpp/cmake)
+[2.892s] -- Found rosidl_generator_c: 3.1.8 (/opt/ros/humble/share/rosidl_generator_c/cmake)
+[2.907s] -- Found rosidl_adapter: 3.1.8 (/opt/ros/humble/share/rosidl_adapter/cmake)
+[2.970s] -- Found rosidl_generator_cpp: 3.1.8 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)
+[3.034s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[3.056s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[3.197s] -- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)
+[3.208s] -- Found rmw_fastrtps_cpp: 6.2.10 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)
+[3.461s] -- Found OpenSSL: /usr/lib/aarch64-linux-gnu/libcrypto.so (found version "3.0.2")  
+[3.518s] -- Found FastRTPS: /opt/ros/humble/include  
+[3.601s] -- Using RMW implementation 'rmw_fastrtps_cpp' as default
+[3.642s] -- Looking for pthread.h
+[3.795s] -- Looking for pthread.h - found
+[3.796s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+[3.941s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+[3.944s] -- Found Threads: TRUE  
+[4.104s] -- Found ament_lint_auto: 0.12.15 (/opt/ros/humble/share/ament_lint_auto/cmake)
+[4.346s] -- Added test 'cppcheck' to perform static code analysis on C / C++ code
+[4.346s] -- Configured cppcheck include dirs: $<BUILD_INTERFACE:/ros2_ws/src/robot_stats/include>
+[4.346s] -- Configured cppcheck exclude dirs and/or files: 
+[4.350s] -- Added test 'flake8' to check Python code syntax and style conventions
+[4.352s] -- Added test 'lint_cmake' to check CMake code style
+[4.355s] -- Added test 'pep257' to check Python code against some of the docstring style conventions in PEP 257
+[4.358s] -- Added test 'uncrustify' to check C / C++ code style
+[4.360s] -- Configured uncrustify additional arguments: 
+[4.361s] -- Added test 'xmllint' to check XML markup files
+[4.366s] -- Configuring done
+[4.382s] -- Generating done
+[4.385s] -- Build files have been written to: /ros2_ws/build/robot_stats
+[4.408s] Invoked command in '/ros2_ws/build/robot_stats' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake /ros2_ws/src/robot_stats -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/ros2_ws/install/robot_stats
+[4.414s] Invoking command in '/ros2_ws/build/robot_stats': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/robot_stats -- -j4 -l4
+[4.482s] [ 50%] [32mBuilding CXX object CMakeFiles/robot_stats_node.dir/src/robot_stats.cpp.o[0m
+[31.019s] [100%] [32m[1mLinking CXX executable robot_stats_node[0m
+[32.422s] [100%] Built target robot_stats_node
+[32.435s] Invoked command in '/ros2_ws/build/robot_stats' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/robot_stats -- -j4 -l4
+[32.437s] Invoking command in '/ros2_ws/build/robot_stats': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/robot_stats
+[32.444s] -- Install configuration: ""
+[32.445s] -- Execute custom install script
+[32.445s] -- Symlinking: /ros2_ws/install/robot_stats/lib/robot_stats/robot_stats_node
+[32.455s] -- Symlinking: /ros2_ws/install/robot_stats/share/robot_stats/launch/launch.py
+[32.464s] -- Symlinking: /ros2_ws/install/robot_stats/share/robot_stats/config/robot_stats_params.yaml
+[32.472s] -- Symlinking: /ros2_ws/install/robot_stats/share/ament_index/resource_index/package_run_dependencies/robot_stats
+[32.482s] -- Symlinking: /ros2_ws/install/robot_stats/share/ament_index/resource_index/parent_prefix_path/robot_stats
+[32.491s] -- Symlinking: /ros2_ws/install/robot_stats/share/robot_stats/environment/ament_prefix_path.sh
+[32.500s] -- Symlinking: /ros2_ws/install/robot_stats/share/robot_stats/environment/ament_prefix_path.dsv
+[32.509s] -- Symlinking: /ros2_ws/install/robot_stats/share/robot_stats/environment/path.sh
+[32.517s] -- Symlinking: /ros2_ws/install/robot_stats/share/robot_stats/environment/path.dsv
+[32.527s] -- Symlinking: /ros2_ws/install/robot_stats/share/robot_stats/local_setup.bash
+[32.537s] -- Symlinking: /ros2_ws/install/robot_stats/share/robot_stats/local_setup.sh
+[32.546s] -- Symlinking: /ros2_ws/install/robot_stats/share/robot_stats/local_setup.zsh
+[32.555s] -- Symlinking: /ros2_ws/install/robot_stats/share/robot_stats/local_setup.dsv
+[32.564s] -- Symlinking: /ros2_ws/install/robot_stats/share/robot_stats/package.dsv
+[32.574s] -- Symlinking: /ros2_ws/install/robot_stats/share/ament_index/resource_index/packages/robot_stats
+[32.586s] -- Symlinking: /ros2_ws/install/robot_stats/share/robot_stats/cmake/robot_statsConfig.cmake
+[32.595s] -- Symlinking: /ros2_ws/install/robot_stats/share/robot_stats/cmake/robot_statsConfig-version.cmake
+[32.603s] -- Symlinking: /ros2_ws/install/robot_stats/share/robot_stats/package.xml
+[32.614s] Invoked command in '/ros2_ws/build/robot_stats' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/robot_stats

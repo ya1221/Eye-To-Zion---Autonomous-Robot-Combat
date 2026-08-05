@@ -1,0 +1,26 @@
+[0.016s] Invoking command in '/ros2_ws/build/robot_stats': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/robot_stats -- -j4 -l4
+[0.084s] [35m[1mConsolidate compiler generated dependencies of target robot_stats_node[0m
+[0.118s] [100%] Built target robot_stats_node
+[0.509s] Invoked command in '/ros2_ws/build/robot_stats' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --build /ros2_ws/build/robot_stats -- -j4 -l4
+[0.511s] Invoking command in '/ros2_ws/build/robot_stats': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/robot_stats
+[0.526s] -- Install configuration: ""
+[0.527s] -- Execute custom install script
+[0.528s] -- Up-to-date symlink: /ros2_ws/install/robot_stats/lib/robot_stats/robot_stats_node
+[0.529s] -- Up-to-date symlink: /ros2_ws/install/robot_stats/share/robot_stats/launch/launch.py
+[0.530s] -- Up-to-date symlink: /ros2_ws/install/robot_stats/share/robot_stats/config/robot_stats_params.yaml
+[0.530s] -- Up-to-date symlink: /ros2_ws/install/robot_stats/share/ament_index/resource_index/package_run_dependencies/robot_stats
+[0.531s] -- Up-to-date symlink: /ros2_ws/install/robot_stats/share/ament_index/resource_index/parent_prefix_path/robot_stats
+[0.531s] -- Up-to-date symlink: /ros2_ws/install/robot_stats/share/robot_stats/environment/ament_prefix_path.sh
+[0.533s] -- Up-to-date symlink: /ros2_ws/install/robot_stats/share/robot_stats/environment/ament_prefix_path.dsv
+[0.533s] -- Up-to-date symlink: /ros2_ws/install/robot_stats/share/robot_stats/environment/path.sh
+[0.534s] -- Up-to-date symlink: /ros2_ws/install/robot_stats/share/robot_stats/environment/path.dsv
+[0.534s] -- Up-to-date symlink: /ros2_ws/install/robot_stats/share/robot_stats/local_setup.bash
+[0.534s] -- Up-to-date symlink: /ros2_ws/install/robot_stats/share/robot_stats/local_setup.sh
+[0.535s] -- Up-to-date symlink: /ros2_ws/install/robot_stats/share/robot_stats/local_setup.zsh
+[0.535s] -- Up-to-date symlink: /ros2_ws/install/robot_stats/share/robot_stats/local_setup.dsv
+[0.537s] -- Symlinking: /ros2_ws/install/robot_stats/share/robot_stats/package.dsv
+[0.557s] -- Up-to-date symlink: /ros2_ws/install/robot_stats/share/ament_index/resource_index/packages/robot_stats
+[0.558s] -- Up-to-date symlink: /ros2_ws/install/robot_stats/share/robot_stats/cmake/robot_statsConfig.cmake
+[0.558s] -- Up-to-date symlink: /ros2_ws/install/robot_stats/share/robot_stats/cmake/robot_statsConfig-version.cmake
+[0.558s] -- Up-to-date symlink: /ros2_ws/install/robot_stats/share/robot_stats/package.xml
+[0.565s] Invoked command in '/ros2_ws/build/robot_stats' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/ros2_ws/install/tactical_brain:/ros2_ws/install/sensor_fusion_pkg:/ros2_ws/install/icm20948_ros2:/ros2_ws/install/ai_vision:/opt/ros/humble /usr/bin/cmake --install /ros2_ws/build/robot_stats

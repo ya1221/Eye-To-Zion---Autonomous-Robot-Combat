@@ -1,0 +1,10 @@
+/ros2_ws/build/robot_stats/CMakeFiles/uninstall.dir
+/ros2_ws/build/robot_stats/CMakeFiles/robot_stats_uninstall.dir
+/ros2_ws/build/robot_stats/CMakeFiles/robot_stats_node.dir
+/ros2_ws/build/robot_stats/CMakeFiles/test.dir
+/ros2_ws/build/robot_stats/CMakeFiles/edit_cache.dir
+/ros2_ws/build/robot_stats/CMakeFiles/rebuild_cache.dir
+/ros2_ws/build/robot_stats/CMakeFiles/list_install_components.dir
+/ros2_ws/build/robot_stats/CMakeFiles/install.dir
+/ros2_ws/build/robot_stats/CMakeFiles/install/local.dir
+/ros2_ws/build/robot_stats/CMakeFiles/install/strip.dir
