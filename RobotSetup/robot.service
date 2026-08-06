@@ -1,0 +1,19 @@
+[Unit]
+Description=Eye-To-Zion Robot Service
+After=network.target pigpiod.service
+Wants=pigpiod.service
+
+[Service]
+Type=simple
+User=yahav
+WorkingDirectory=/home/yahav/Eye-To-Zion---Autonomous-Robot-Combat-RPI/AutonomousWarfare/AutonomousWarfare
+# Execute start_system.sh to launch the camera and docker-compose
+ExecStart=/bin/bash -c "./start_system.sh"
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+Environment="PYTHONUNBUFFERED=1"
+
+[Install]
+WantedBy=multi-user.target
