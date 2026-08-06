@@ -84,6 +84,17 @@ def main():
         print_result("Pi Camera Module", False, "libcamera-apps not installed")
         all_passed = False
 
+    # 5. Check Audio
+    print("\n--- Checking Audio ---")
+    try:
+        res = subprocess.run(['arecord', '-l'], capture_output=True, text=True)
+        mic_ok = "card" in res.stdout.lower() and "no soundcards found" not in res.stdout.lower()
+        if not print_result("ICS-43434 I2S Mic (ALSA)", mic_ok, "" if mic_ok else "(No capture soundcard found)"):
+            all_passed = False
+    except FileNotFoundError:
+        if not print_result("ICS-43434 I2S Mic (ALSA)", False, "(alsa-utils 'arecord' not installed)"):
+            all_passed = False
+
     print("\n========================================")
     if all_passed:
         print("\033[92mALL CRITICAL CHECKS PASSED!\033[0m")
