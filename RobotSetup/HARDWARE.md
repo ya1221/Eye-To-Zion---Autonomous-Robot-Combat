@@ -12,7 +12,7 @@
 | Standard Servo Motor | MG995 / SG90 | 1 | $5 - $10 | Steering mechanism servo (connected to Arduino). |
 | Micro Servo Motor | SG90 | 1 | $3 - $5 | Shooting flag mechanism servo (connected to Arduino). |
 | Raspberry Pi Camera Module 3 | Pi Camera | 1 | $25 - $35 | Requires MIPI CSI cable compatible with Pi 5 (smaller connector). |
-| USB Microphone / I2S Mic | Audio Input | 1 | $10 - $20 | For impact detection/audio classification. |
+| ICS-43434 I2S Microphone | Audio Input | 1 | $5 - $15 | I2S MEMS microphone for impact detection/audio classification. |
 | LiPo Battery (7.4V or 11.1V) | 2S/3S LiPo | 1 | $15 - $30 | To power the L298N and motors. |
 | Jumper Wires (Dupont) | M-M, M-F, F-F | 1 set | $5 - $10 | For connecting modules. |
 

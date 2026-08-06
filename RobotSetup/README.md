@@ -10,7 +10,7 @@ See [HARDWARE.md](HARDWARE.md) for the full Bill of Materials.
 - Arduino Uno/Nano (Steering/Flag Controller)
 - L298N Motor Driver + 2x DC Motors
 - YDLidar + ICM20948 IMU
-- Pi Camera + USB Microphone
+- Pi Camera + ICS-43434 I2S Microphone
 
 ## Quick Start
 

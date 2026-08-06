@@ -21,6 +21,13 @@
 | - Lidar Comms & Power   | USB      | USB Port            | `/dev/ttyUSB0`  | USB Cable                              | 5V via USB      |
 | **Pi Camera**           |          |                     |                 |                                        |                 |
 | - Camera Module         | MIPI CSI | CSI Port            | CSI             | Ribbon Cable                           | N/A             |
+| **ICS-43434 I2S Mic**   |          |                     |                 |                                        |                 |
+| - 3V3 (VCC)             | Power    | Pin 1 or 17         | 3.3V Power      | Red                                    | 3.3V            |
+| - GND                   | Power    | Pin 9 or 39         | GND             | Black                                  | GND             |
+| - SCK (BCLK)            | I2S      | Pin 12              | GPIO 18 (PCM_C) | Green (Suggestion)                     | 3.3V            |
+| - WS (LRCLK)            | I2S      | Pin 35              | GPIO 19 (PCM_FS)| Yellow (Suggestion)                    | 3.3V            |
+| - SD (Data Out)         | I2S      | Pin 38              | GPIO 20 (PCM_DI)| Blue (Suggestion)                      | 3.3V            |
+| - L/R (Channel Select)  | Power    | Pin 9 or 39 (GND)   | GND (Left Ch)   | Tie to Ground for Left channel         | GND             |
 
 ## Power Supply Notes
 *   **Raspberry Pi 5**: Requires a 5V/5A USB-C power supply for full performance.
@@ -48,12 +55,18 @@
                           | ICM20948 IMU |      |      |
                           +--------------+      |      |
                                                 |      |
-                                 USB -----------+      |
-                                 |                     |
-                          +------v-------+             |
-                          |  Arduino Uno |             |
-                          | (Steering)   |             |
-                          +--------------+             |
+                    I2S (BCLK/WS/SD) -----------+      |
+                                  |              |      |
+                           +------v-------+      |      |
+                           |  ICS-43434   |      |      |
+                           +--------------+      |      |
+                                                 |      |
+                                  USB -----------+      |
+                                  |                     |
+                           +------v-------+             |
+                           |  Arduino Uno |             |
+                           | (Steering)   |             |
+                           +--------------+             |
                                                        |
                                  USB ------------------+
                                  |
