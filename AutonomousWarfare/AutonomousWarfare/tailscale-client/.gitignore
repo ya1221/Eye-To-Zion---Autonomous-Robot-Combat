@@ -1,7 +1,0 @@
-# Auth key lives here - must never be committed (a hardcoded key on the rpi
-# branch leaked this way once already).
-.env
-
-# Live per-machine node identity and private keys, plus rotating logs.
-# Committing this makes two machines fight over one identity.
-ts-state/

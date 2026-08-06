@@ -1,0 +1,167 @@
+<?xml version="1.0"?>
+<robot name="wheels" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- ====================== -->
+    <!-- ===== Properties ===== -->
+    <!-- ====================== -->
+
+    <xacro:property name="front_wheel_radius"   value="0.04"/>
+    <xacro:property name="front_wheel_width"    value="0.04"/>
+    <xacro:property name="front_wheel_mass"      value="0.3"/>
+
+    <xacro:property name="rear_wheel_radius"    value="0.05"/>
+    <xacro:property name="rear_wheel_width"    value="0.015"/>
+    <xacro:property name="rear_wheel_mass"       value="0.1"/>
+
+    <!-- Ackermann geometry (must match controllers.yaml) -->
+    <!-- <xacro:property name="wheelbase"            value="0.245"/>   front-to-rear axle distance -->
+    <xacro:property name="front_track_width"    value="0.23"/>   <!-- left-to-right wheel distance -->
+    <xacro:property name="rear_track_width"     value="0.08"/> 
+    <xacro:property name="front_wheel_z"        value="-0.1425"/> <!-- wheel centre below base_link -->
+    <xacro:property name="rear_wheel_z"         value="-0.1325"/>
+
+    <!-- Cylinder inertia (wheel rolls on Y axis) -->
+    <xacro:property name="front_wheel_ixy" value="${(1/12) * front_wheel_mass * (3 * front_wheel_radius**2 + front_wheel_width**2)}"/>
+    <xacro:property name="front_wheel_izz" value="${(1/2)  * front_wheel_mass * front_wheel_radius**2}"/>
+
+    <xacro:property name="rear_wheel_ixy" value="${(1/12) * rear_wheel_mass * (3 * rear_wheel_radius**2 + rear_wheel_width**2)}"/>
+    <xacro:property name="rear_wheel_izz" value="${(1/2)  * rear_wheel_mass * rear_wheel_radius**2}"/>
+
+    <!-- Steering knuckle inertia (tiny virtual link) -->
+    <xacro:property name="steer_mass"    value="0.05"/>
+    <xacro:property name="steer_inertia" value="0.0001"/>
+
+    <!-- ==================== -->
+    <!-- ===== Macros ===== -->
+    <!-- ==================== -->
+
+    <!-- Virtual steering knuckle link (Ackermann pivot) -->
+    <xacro:macro name="steering_link" params="name">
+        <link name="${name}">
+            <visual>
+                <origin xyz="0 0 0"/>
+                <geometry><cylinder radius="0.01" length="0.001"/></geometry>
+            </visual>
+            <inertial>
+                <origin xyz="0 0 0"/>
+                <mass value="${steer_mass}"/>
+                <inertia ixx="${steer_inertia}" ixy="0" ixz="0"
+                         iyy="${steer_inertia}" iyz="0"
+                         izz="${steer_inertia}"/>
+            </inertial>
+        </link>
+    </xacro:macro>
+
+    <!-- Wheel link (cylinder rotated 90° so it rolls on Y axis) -->
+    <xacro:macro name="front_wheel_link" params="name">
+        <link name="${name}">
+            <visual>
+                <origin xyz="0 0 0" rpy="1.5707963 0 0"/>
+                <geometry><cylinder radius="${front_wheel_radius}" length="${front_wheel_width}"/></geometry>
+            </visual>
+            <collision>
+                <origin xyz="0 0 0" rpy="1.5707963 0 0"/>
+                <geometry><cylinder radius="${front_wheel_radius}" length="${front_wheel_width}"/></geometry>
+            </collision>
+            <inertial>
+                <origin xyz="0 0 0"/>
+                <mass value="${front_wheel_mass}"/>
+                <inertia ixx="${front_wheel_ixy}" ixy="0" ixz="0"
+                         iyy="${front_wheel_ixy}" iyz="0"
+                         izz="${front_wheel_izz}"/>
+            </inertial>
+        </link>
+    </xacro:macro>
+
+    <xacro:macro name="rear_wheel_link" params="name">
+        <link name="${name}">
+            <visual>
+                <origin xyz="0 0 0" rpy="1.5707963 0 0"/>
+                <geometry><cylinder radius="${rear_wheel_radius}" length="${rear_wheel_width}"/></geometry>
+            </visual>
+            <collision>
+                <origin xyz="0 0 0" rpy="1.5707963 0 0"/>
+                <geometry><cylinder radius="${rear_wheel_radius}" length="${rear_wheel_width}"/></geometry>
+            </collision>
+            <inertial>
+                <origin xyz="0 0 0"/>
+                <mass value="${rear_wheel_mass}"/>
+                <inertia ixx="${rear_wheel_ixy}" ixy="0" ixz="0"
+                         iyy="${rear_wheel_ixy}" iyz="0"
+                         izz="${rear_wheel_izz}"/>
+            </inertial>
+        </link>
+    </xacro:macro>
+
+    <!-- ================== -->
+    <!-- ===== Links ===== -->
+    <!-- ================== -->
+
+    <!-- Front steering knuckles (Ackermann: FRONT only) -->
+    <xacro:steering_link name="front_left_steering_link"/>
+    <xacro:steering_link name="front_right_steering_link"/>
+
+    <!-- All four wheels via macro -->
+    <xacro:front_wheel_link name="front_left_wheel_link"/>
+    <xacro:front_wheel_link name="front_right_wheel_link"/>
+    <xacro:rear_wheel_link name="rear_left_wheel_link"/>
+    <xacro:rear_wheel_link name="rear_right_wheel_link"/>
+
+    <!-- ================== -->
+    <!-- ===== Joints ===== -->
+    <!-- ================== -->
+
+    <!-- Front steering joints (revolute: Ackermann, front-only) -->
+    <joint name="front_left_steering_joint" type="revolute">
+        <parent link="base_link"/>
+        <child link="front_left_steering_link"/>
+        <origin xyz="0.09 ${front_track_width/2} ${front_wheel_z}"/>
+        <axis xyz="0 0 1"/>
+        <limit lower="-1.1" upper="1.1" effort="30.0" velocity="30.0"/>
+        <dynamics damping="0.2" friction="0.0"/>
+    </joint>
+
+    <joint name="front_right_steering_joint" type="revolute">
+        <parent link="base_link"/>
+        <child link="front_right_steering_link"/>
+        <origin xyz="0.09 ${-front_track_width/2} ${front_wheel_z}"/>
+        <axis xyz="0 0 1"/>
+        <limit lower="-1.1" upper="1.1" effort="30.0" velocity="30.0"/>
+        <dynamics damping="0.2" friction="0.0"/>
+    </joint>
+
+    <!-- Front wheel joints (continuous: driven, child of steering knuckle) -->
+    <joint name="front_left_wheel_joint" type="continuous">
+        <parent link="front_left_steering_link"/>
+        <child link="front_left_wheel_link"/>
+        <origin xyz="0 0 0"/>
+        <axis xyz="0 1 0"/>
+        <dynamics damping="0.01" friction="0.0"/>
+    </joint>
+
+    <joint name="front_right_wheel_joint" type="continuous">
+        <parent link="front_right_steering_link"/>
+        <child link="front_right_wheel_link"/>
+        <origin xyz="0 0 0"/>
+        <axis xyz="0 1 0"/>
+        <dynamics damping="0.01" friction="0.0"/>
+    </joint>
+
+    <!-- Rear wheel joints (continuous: connect directly to base_link, no steering) -->
+    <joint name="rear_left_wheel_joint" type="continuous">
+        <parent link="base_link"/>
+        <child link="rear_left_wheel_link"/>
+        <origin xyz="-0.145 ${rear_track_width/2} ${rear_wheel_z}"/>
+        <axis xyz="0 1 0"/>
+        <dynamics damping="0.01" friction="0.0"/>
+    </joint>
+
+    <joint name="rear_right_wheel_joint" type="continuous">
+        <parent link="base_link"/>
+        <child link="rear_right_wheel_link"/>
+        <origin xyz="-0.145 ${-rear_track_width/2} ${rear_wheel_z}"/>
+        <axis xyz="0 1 0"/>
+        <dynamics damping="0.01" friction="0.0"/>
+    </joint>
+
+</robot>

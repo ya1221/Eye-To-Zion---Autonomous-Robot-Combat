@@ -1,0 +1,19 @@
+description: Ultralytics YOLO26n model trained on /kaggle/working/Eye-To-Zion---Detection-Robots-4/data.yaml
+author: Ultralytics
+date: '2026-05-14T17:35:14.265829'
+version: 8.4.33
+license: AGPL-3.0 License (https://ultralytics.com/license)
+docs: https://docs.ultralytics.com
+stride: 32
+task: detect
+batch: 1
+imgsz:
+- 320
+- 320
+names:
+  0: Robot
+args:
+  batch: 1
+  half: false
+channels: 3
+end2end: false
