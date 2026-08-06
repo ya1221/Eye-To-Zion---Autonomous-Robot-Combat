@@ -28,10 +28,10 @@ sudo reboot
 ```
 
 ### 3. Run
-The setup script creates a virtual environment and a systemd service (`robot.service`). 
-To run manually:
+The setup script configures the host dependencies and hardware interfaces. 
+To run the robot manually via Docker:
 ```bash
-source venv/bin/activate
+cd AutonomousWarfare
 ./start_system.sh
 ```
 (Or it will start automatically on boot if you enabled `robot.service` via systemd.)
