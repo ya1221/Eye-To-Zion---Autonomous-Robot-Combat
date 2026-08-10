@@ -32,10 +32,7 @@ class AIInferenceNode(Node):
         gc.disable()
         self.frame_count = 0
 
-        # ── Declare parameters (overridable via config YAML / CLI) ──
-        # Model. Empty means "resolve from the installed package share dir",
-        # which works whether or not the source tree happens to be mounted.
-        # Set to an absolute path to load a model from somewhere else.
+        # Declare parameters (overridable via config YAML / CLI) 
         self.declare_parameter('model_path', '')
         self.declare_parameter('inference_imgsz', 320)
         self.declare_parameter('tracker_config', 'bytetrack.yaml')
@@ -76,7 +73,7 @@ class AIInferenceNode(Node):
         self.declare_parameter('detections_topic', '/ai/detections')
         self.declare_parameter('annotations_topic', '/foxglove/annotations')
 
-        # ── Read parameter values ──
+        # Read parameter values 
         self.MODEL_PATH        = self._resolve_model_path()
         self.INFERENCE_IMGSZ   = self.get_parameter('inference_imgsz').value
         self.TRACKER_CONFIG    = self.get_parameter('tracker_config').value
@@ -110,10 +107,10 @@ class AIInferenceNode(Node):
         detections_topic  = self.get_parameter('detections_topic').value
         annotations_topic = self.get_parameter('annotations_topic').value
 
-        # ── Load YOLO model ──
+        # Load YOLO model 
         self.model = YOLO(self.MODEL_PATH, task='detect')
 
-        # ── ROS 2 pub / sub ──
+        # ROS 2 pub / sub 
         qos_profile = QoSProfile(
             reliability=ReliabilityPolicy.BEST_EFFORT,
             history=HistoryPolicy.KEEP_LAST,
@@ -149,7 +146,7 @@ class AIInferenceNode(Node):
         self._avg_fps = 30.0
         self.get_logger().info("AI Brain Online.")
 
-    # ──────────────────────── model resolution ────────────────────
+    # model resolution 
     def _resolve_model_path(self):
         configured = self.get_parameter('model_path').value
         if configured:
@@ -170,7 +167,7 @@ class AIInferenceNode(Node):
         self.get_logger().info(f"Loading NCNN model from {path}")
         return path
 
-    # ──────────────────────── threat scoring ──────────────────────
+    # threat scoring 
     def _calculate_threat_level(self, box_height, is_predicted, angular_velocity):
         score = 0
         height_ratio = box_height / self.IMG_HEIGHT
@@ -195,7 +192,7 @@ class AIInferenceNode(Node):
             return "MEDIUM"
         return "LOW"
 
-    # ──────────────────────── FPS diagnostics ────────────────────
+    # FPS diagnostics 
     def _update_fps(self):
         self.processed_msgs += 1
         current_time = time.time()
@@ -214,7 +211,7 @@ class AIInferenceNode(Node):
             self.processed_msgs = 0
         return current_time
 
-    # ──────────────────────── shared-memory read ─────────────────
+    # shared-memory read 
     def _get_frame(self, data):
         buf_idx = data.get('buf_idx', 0)
         shm_name = data['shm_name']
@@ -227,7 +224,7 @@ class AIInferenceNode(Node):
         np.copyto(self._frame_buffer, shm_view)
         return self._frame_buffer
 
-    # ──────────────────────── detection pipeline ─────────────────
+    # detection pipeline
     def _process_visual_detections(self, results, current_time):
         visual_detections = []
         current_visible_ids = set()
@@ -320,7 +317,7 @@ class AIInferenceNode(Node):
 
         return all_detections, lost_ids
 
-    # ──────────────────────── Foxglove annotations ───────────────
+    # Foxglove annotations
     def _angle_to_pixel(self, angle_degrees):
         theta = math.radians(angle_degrees)
         ray = np.array([[math.sin(theta), 0.0, math.cos(theta)]], dtype=np.float64)
@@ -378,7 +375,7 @@ class AIInferenceNode(Node):
 
         self.annotations_publisher_.publish(annotations)
 
-    # ──────────────────────── main callback ──────────────────────
+    # main callback 
     def metadata_callback(self, msg):
         if not rclpy.ok():
             return
@@ -435,7 +432,7 @@ class AIInferenceNode(Node):
             gc.collect()
             self.frame_count = 0
 
-    # ──────────────────────── cleanup ────────────────────────────
+    # cleanup 
     def cleanup(self):
         for shm in self.shms.values():
             try:

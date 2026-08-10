@@ -1,38 +1,6 @@
 #!/usr/bin/env python3
 
-"""Convert raw impact/background WAVs into fixed-size log-mel (or MFCC)
-feature arrays the stage-3 CNN can train on directly.
-
-By default each WAV is split into non-overlapping --window-length windows,
-so a short "hit" clip (~1s) yields one window and a longer "background" clip
-(e.g. 5s) yields several. Every window is converted straight from its raw
-int16 samples (divided by a fixed 32768 scale, not per-clip peak-normalized)
-so relative loudness between a light tap and a damaging hit is preserved in
-the feature values, not flattened out.
-
-For long continuous recordings that contain multiple scattered impact events
-(instead of one pre-isolated event per file), pass the label via
---event-detect-labels: files longer than --event-detect-min-duration then get
-windows centered on each detected peak (same pre/post-roll idea as stage 1's
-trigger mode, just run offline over an existing file) instead of blind fixed
-slicing, which would otherwise miss events or dilute them into mostly-silence
-windows. Short files for that label are unaffected -- they still go through
-the plain fixed-hop path, so existing pre-isolated clips process identically
-to before.
-
-Every window's --in-dir-relative start time and duration are recorded in the
-manifest (start_sec, duration_sec) so stage 3 can split long recordings by
-contiguous time block instead of by whole file -- see kaggle_train.ipynb's
-time_block_split for why that matters when a label has only a few, long
-source files.
-
-Output: one .npy per window under --out-dir/<label>/, plus a manifest.csv
-mapping every window back to its source WAV.
-
-Example:
-  python3 make_features.py --in-dir dataset/raw --out-dir dataset/processed
-  python3 make_features.py --event-detect-labels hit background_self_fire
-"""
+"""Convert raw WAVs into fixed-size log-mel (or MFCC) .npy windows under --out-dir/<label>/, plus a manifest.csv."""
 
 import argparse
 import csv
@@ -56,9 +24,7 @@ def read_wav_mono16(path):
 
 
 def iter_windows(samples, sr, window_length, hop_seconds):
-    """Fixed-hop slicing. Yields (window, start_sample) pairs. Right for
-    ambient/background material where there's no discrete event to find --
-    any alignment is as good as any other."""
+    """Fixed-hop slicing for material with no discrete event. Yields (window, start_sample) pairs."""
     target = int(window_length * sr)
     hop = int(hop_seconds * sr)
     if len(samples) < target:
@@ -72,12 +38,7 @@ def iter_windows(samples, sr, window_length, hop_seconds):
 
 
 def detect_events(samples, threshold, refractory_frames):
-    """Greedy peak-picking over samples already known to be normalized to
-    [-1, 1] (see read_wav_mono16): every index crossing --event-threshold
-    starts an event, then the next refractory_frames are skipped so a hit's
-    own decay/ringing isn't counted as a second event -- same idea as stage
-    1's trigger-mode cooldown, just applied after the fact over a whole file
-    instead of live during recording."""
+    """Greedy peak-picking over [-1, 1] samples; refractory_frames stops a hit's decay counting twice."""
     candidates = np.flatnonzero(np.abs(samples) >= threshold)
     events = []
     last = -refractory_frames
@@ -89,8 +50,7 @@ def detect_events(samples, threshold, refractory_frames):
 
 
 def iter_event_windows(samples, sr, window_length, pre_roll, threshold, refractory):
-    """Event-centered windows for a long recording with scattered impacts.
-    Yields (window, start_sample) pairs, one per detected event."""
+    """Event-centered windows; yields one (window, start_sample) pair per detected event."""
     target = int(window_length * sr)
     pre = int(pre_roll * sr)
     refractory_frames = int(refractory * sr)

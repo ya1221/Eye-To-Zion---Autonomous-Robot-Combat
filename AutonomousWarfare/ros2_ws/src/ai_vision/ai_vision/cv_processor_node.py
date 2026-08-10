@@ -17,9 +17,7 @@ os.environ["QT_QPA_PLATFORM"] = "offscreen"
 # OpenCV/GStreamer warnings are left at their default level on purpose: they
 # are the only diagnostic that tells you why the UDP pipeline failed to open.
 
-# Debian/Ubuntu multiarch triplets for libturbojpeg0's install location.
-# ctypes.util.find_library() is unreliable in slim containers, so we resolve
-# an explicit path per-arch rather than relying on the dynamic linker's search.
+# Explicit per-arch paths: ctypes.util.find_library() is unreliable in slim containers.
 _TURBOJPEG_LIB_PATHS = {
     "aarch64": "/usr/lib/aarch64-linux-gnu/libturbojpeg.so.0",
     "arm64":   "/usr/lib/aarch64-linux-gnu/libturbojpeg.so.0",
@@ -123,10 +121,7 @@ class CVProcessorNode(Node):
         if not ret:
             return
 
-        # Camera is mounted inverted on the Pi 5 chassis. Rotating here - before
-        # the shm write and the JPEG encode - keeps the detection angles and the
-        # Foxglove overlay consistent with the operator's view. Set rotate_180
-        # to false in the YAML if the camera is ever remounted upright.
+        # Rotate before shm write and JPEG encode so angles and overlay match the operator's view.
         if self.rotate_180:
             frame = cv2.rotate(frame, cv2.ROTATE_180)
 

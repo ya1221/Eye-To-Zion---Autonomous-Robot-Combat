@@ -1,32 +1,5 @@
 #!/usr/bin/env python3
-"""Impact-sound dataset recorder for the chassis-damage-detection pipeline.
-
-Captures raw int16 PCM straight from the I2S/VoiceHAT capture stream and
-writes it to WAV with no digital gain, normalization, or AGC applied at any
-point, so the saved waveform is an untouched copy of what the ADC produced.
-This preserves the true shockwave shape for later spectrogram/MFCC work and
-keeps clipping fully diagnosable (a clipped sample here means the mic/ADC
-itself clipped, not the script).
-
-Hardware note: the googlevoicehat-soundcard overlay must be enabled in
-/boot/firmware/config.txt (dtoverlay=googlevoicehat-soundcard) and the card
-visible via `arecord -l` before running this.
-
-Two capture modes:
-  trigger    - listens continuously, auto-saves a clip whenever the signal
-               crosses --threshold, keeping --pre-roll seconds of audio from
-               before the hit. This is the normal way to collect "hit" data:
-               start the script, strike the chassis repeatedly, stop with
-               Ctrl+C.
-  continuous - saves fixed-length clips back to back for the whole session.
-               Use this for the "background" class (ambient noise, motor
-               whine, voices) where there is no discrete event to trigger on.
-
-Examples:
-  python3 record_impacts.py --list-devices
-  python3 record_impacts.py --label hit --mode trigger --threshold 0.2
-  python3 record_impacts.py --label background --mode continuous --clip-length 5
-"""
+"""Record raw int16 impact-sound clips to WAV. Modes: trigger (auto-save on threshold crossing) or continuous (fixed-length clips)."""
 
 import argparse
 import datetime

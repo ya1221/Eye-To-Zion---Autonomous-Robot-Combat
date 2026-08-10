@@ -1,8 +1,7 @@
 ai_inference:
   ros__parameters:
     # ── Model ──
-    # Empty = resolve from the installed share/ai_vision/models/ directory.
-    # Only set an absolute path here to point at a model outside the package.
+    # Empty = resolve from share/ai_vision/models/; set an absolute path to override.
     model_path: ''
     inference_imgsz: 320
     tracker_config: bytetrack.yaml

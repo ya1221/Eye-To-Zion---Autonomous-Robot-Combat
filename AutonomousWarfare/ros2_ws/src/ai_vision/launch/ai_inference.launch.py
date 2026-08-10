@@ -20,10 +20,7 @@ def generate_launch_description():
         executable='ai_inference_node',
         name='ai_inference',
         parameters=[LaunchConfiguration('params_file')],
-        # Scoped to this process rather than the container, so the tuning holds
-        # whether ai_inference runs in its own container or shares one with the
-        # rest of the stack. The compose file sets the same values for the
-        # split-container case.
+        # Scoped to this process so the tuning holds however ai_inference is containerized.
         additional_env={
             'OMP_NUM_THREADS': '2',
             'YOLO_OFFLINE': 'True',

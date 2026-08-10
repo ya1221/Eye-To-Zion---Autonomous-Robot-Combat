@@ -1,9 +1,6 @@
 cv_processor:
   ros__parameters:
-    # GStreamer pipeline for camera input (UDP H.264 from rpicam-vid).
-    # sync=false: the appsink hands frames over as soon as they decode instead
-    # of waiting on the pipeline clock. Lower latency, and late frames get
-    # dropped rather than queued - which is what we want for a live feed.
+    # UDP H.264 from rpicam-vid; sync=false drops late frames instead of queuing them.
     gstreamer_pipeline: >-
       udpsrc port=5000 ! h264parse ! avdec_h264 ! videoconvert
       ! video/x-raw,format=BGR ! appsink drop=true max-buffers=1 sync=false
@@ -11,9 +8,7 @@ cv_processor:
     # Capture loop rate (Hz)
     capture_fps: 30.0
 
-    # Rotate each frame 180 deg before shm write / JPEG encode.
-    # true  = camera is mounted inverted (current Pi 5 chassis)
-    # false = camera mounted upright; detection angles keep their raw sign
+    # Rotate each frame 180 deg before shm write / JPEG encode (camera mounted inverted).
     rotate_180: true
 
     # JPEG compression quality for /camera/compressed (1-100)

@@ -1,7 +1,4 @@
-"""Bring up the audio impact-detection pipeline.
-
-This is the entry point robot_bringup includes.
-"""
+"""Bring up the audio impact-detection pipeline."""
 from launch import LaunchDescription
 from launch_ros.actions import Node
 

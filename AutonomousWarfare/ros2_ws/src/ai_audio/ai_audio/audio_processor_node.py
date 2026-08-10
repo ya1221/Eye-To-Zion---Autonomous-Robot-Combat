@@ -43,25 +43,19 @@ class AudioProcessorNode(Node):
     def __init__(self):
         super().__init__('audio_processor')
 
-        # Hardware / capture -- must match dataset_collector's capture format
-        # exactly (48kHz mono int16), since the trained model has never seen
-        # audio in any other format.
+        # Must match dataset_collector's capture format exactly (48kHz mono int16).
         self.DEVICE_NAME = 'voicehat'
         self.SAMPLE_RATE = 48000
         self.CHANNELS = 1
         self.BLOCKSIZE = 512
 
-        # Trigger + window shape -- must match Stage 1/2 exactly (pre_roll +
-        # post_roll = window_length used when the training clips were cut),
-        # or the live window fed to the model won't look like what it was
-        # trained on.
+        # pre_roll + post_roll must equal the window_length the training clips were cut at.
         self.PRE_ROLL = 0.05
         self.POST_ROLL = 0.2
         self.TRIGGER_THRESHOLD = 0.15  # retune against real deployment noise floor, same as dataset_collector
         self.COOLDOWN = 0.05
 
-        # Feature extraction -- must match preprocessing/make_features.py's
-        # defaults exactly, since that's what produced the training data.
+        # Must match preprocessing/make_features.py's defaults, which produced the training data.
         self.N_MELS = 64
         self.N_FFT = 1024
         self.HOP_LENGTH = 480
@@ -151,9 +145,7 @@ class AudioProcessorNode(Node):
             self.trigger.feed(block.reshape(-1, self.CHANNELS))
 
     def _on_event(self, frames):
-        # Raw int16 -> float by a fixed divisor, same as make_features.py --
-        # not a peak-normalization, so relative loudness (the actual signal
-        # the model learned from) survives into the feature values.
+        # Fixed divisor, not peak-normalization, so relative loudness survives into the features.
         samples = frames[:, 0].astype(np.float32) / FULL_SCALE
 
         mel = librosa.feature.melspectrogram(

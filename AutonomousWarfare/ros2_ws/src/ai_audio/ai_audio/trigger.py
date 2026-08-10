@@ -6,9 +6,7 @@ import numpy as np
 
 
 class TriggerCapture:
-    """Feed it consecutive audio blocks; it calls on_capture(frames) once
-    per detected event with exactly pre_roll_frames + post_roll_frames of
-    audio, then enforces cooldown_frames of silence before re-arming."""
+    """Calls on_capture(pre_roll + post_roll frames) per event, then waits out cooldown_frames."""
 
     def __init__(self, pre_roll_frames, post_roll_frames, cooldown_frames, threshold_amp, on_capture):
         self.pre_roll_frames = pre_roll_frames

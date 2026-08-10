@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git mv *)",
+      "Bash(git rm *)",
+      "Bash(python3 -c ' *)",
+      "Bash(python3 -c \"import xml.dom.minidom as m; m.parse\\('fcp_ws/src/overhead_tracker/package.xml'\\); print\\('package.xml OK'\\)\")"
+    ]
+  }
+}

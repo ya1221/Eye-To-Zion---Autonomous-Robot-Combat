@@ -1,13 +1,4 @@
-"""IDLE -> CAPTURING -> COOLDOWN impact-trigger state machine.
-
-This file is intentionally duplicated at
-../../onboard/audio_processor/trigger.py. pipeline/ must build and run as a
-fully self-contained directory independent of onboard/ (and vice versa), so
-there is no shared build context or cross-directory import between them --
-see docker-compose.yml. If you tune the trigger logic here (threshold
-behavior, pre/post-roll handling, cooldown), mirror the change in the other
-copy, or training-time capture and live-time capture will silently diverge.
-"""
+"""IDLE -> CAPTURING -> COOLDOWN impact-trigger state machine. Mirror any tuning here into ai_audio/ai_audio/trigger.py."""
 
 import collections
 
@@ -15,9 +6,7 @@ import numpy as np
 
 
 class TriggerCapture:
-    """Feed it consecutive audio blocks; it calls on_capture(frames) once
-    per detected event with exactly pre_roll_frames + post_roll_frames of
-    audio, then enforces cooldown_frames of silence before re-arming."""
+    """Calls on_capture(pre_roll + post_roll frames) per event, then waits out cooldown_frames."""
 
     def __init__(self, pre_roll_frames, post_roll_frames, cooldown_frames, threshold_amp, on_capture):
         self.pre_roll_frames = pre_roll_frames
