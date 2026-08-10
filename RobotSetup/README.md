@@ -65,13 +65,16 @@ cd AutonomousWarfare
       - *(Add links here)*
   - `src/telemetry_data/`: InfluxDB/Telegraf bridges for dashboard metrics.
     - **Code Links:**
-      - [Telemetry data class - sending telemetry data to InfluxDB ](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/AutonomousWarfare/ros2_ws/src/shooting/src/shooting_node.cpp#L159C1-L164C2)
+      - *(Add links here)*
   - `src/robot_description/`: Robot description and URDF files.
     - **Code Links:**
-      - *(Add links here)*
+      - [Robot description URDF file - URDF base file of the robot ](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/AutonomousWarfare/ros2_ws/src/shooting/src/shooting_node.cpp#L159C1-L164C2)
   - `src/robot_bringup/`: Robot bringup files.
     - **Code Links:**
-      - [Robot bringup launch file - launch all the packages together ](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/AutonomousWarfare/ros2_ws/src/robot_bringup/launch/launch.py#L11C5-L25C7)
+      - [Robot bringup launch file - launch all the packages together ](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/AutonomousWarfare/ros2_ws/src/robot_bringup/launch/launch.py#L80C5-L94C7)
+  - `src/shooting/`: Shooting mechanism node.
+    - **Code Links:**
+      - [Shooting node class - shooting mechanism node ](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/AutonomousWarfare/ros2_ws/src/shooting/src/shooting_node.cpp#L159C1-L164C2)
 - `telegraf.conf` / `docker-compose.yml`: Infrastructure for telemetry and metrics.
 - `setup.sh`: Automated Pi 5 configuration script.
 
