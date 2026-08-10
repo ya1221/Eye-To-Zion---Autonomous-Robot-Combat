@@ -66,6 +66,7 @@ cd AutonomousWarfare
   - `src/telemetry_data/`: InfluxDB/Telegraf bridges for dashboard metrics.
     - **Code Links:**
       - [Telemetry data class - sending telemetry data to Telegraf ](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/AutonomousWarfare/ros2_ws/src/telemetry_data/src/telemetry_sender.cpp#L39C1-L50C2)
+      - [Telegraf node class - receiving telemetry data from other nodes ](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/AutonomousWarfare/ros2_ws/src/telemetry_data/src/telegraf_bridge.cpp#L8C1-L29C2)
   - `src/robot_description/`: Robot description and URDF files.
     - **Code Links:**
       - [Robot description URDF file - URDF base file of the robot ](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/AutonomousWarfare/ros2_ws/src/robot_description/urdf/robot_urdf.xacro#L1C1-L7C9)
