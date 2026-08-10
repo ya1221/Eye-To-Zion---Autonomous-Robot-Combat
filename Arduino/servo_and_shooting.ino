@@ -1,25 +1,3 @@
-// ============================================================
-// Ackermann Steering Servo Controller
-// ============================================================
-// Receives two Ackermann wheel angles (radians) from a
-// Raspberry Pi over USB-serial, computes the exact bicycle-
-// model center angle via the cotangent relation, and drives
-// one servo on pin 7.
-//
-// Protocol from ROS2 hardware interface:
-//   S<left_rad>,<right_rad>\n      (two wheels)
-//   S<rad>\n                       (single value fallback)
-//   F\n                            (shoot once - pulse HIGH then LOW)
-//   F1\n                           (shooting ON  - flag pin HIGH)
-//   F0\n                           (shooting OFF - flag pin LOW)
-//
-// Ackermann inverse (cotangent average):
-//   cot(δ_center) = ( cot(δ_left) + cot(δ_right) ) / 2
-//
-// Rewritten to avoid division-by-zero at straight ahead:
-//   tan(δ_center) = 2·tan(δ_L)·tan(δ_R) / (tan(δ_L)+tan(δ_R))
-// ============================================================
-
 #include <Servo.h>
 
 // ---------------------- Configuration -----------------------
