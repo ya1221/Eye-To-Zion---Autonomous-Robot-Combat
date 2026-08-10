@@ -71,7 +71,7 @@ cd AutonomousWarfare
       - *(Add links here)*
   - `src/robot_bringup/`: Robot bringup files.
     - **Code Links:**
-      - [Robot bringup launch file - launch all the packages together ] 
+      - [Robot bringup launch file - launch all the packages together ](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/AutonomousWarfare/ros2_ws/src/robot_bringup/launch/launch.py#L80C5-L94C7)
 - `telegraf.conf` / `docker-compose.yml`: Infrastructure for telemetry and metrics.
 - `setup.sh`: Automated Pi 5 configuration script.
 
