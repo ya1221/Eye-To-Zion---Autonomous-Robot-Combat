@@ -8,10 +8,7 @@ def generate_launch_description():
     # docker-compose so timestamps match the rest of the nav2/TF stack.
     use_sim_time = os.environ.get('USE_SIM_TIME', 'false').lower() == 'true'
 
-    # Identity/calibration on the overhead-camera tracker, relayed to us via
-    # the zenoh-bridge-ros2dds container (see docker-compose.yml) instead of
-    # a custom Zenoh client - tactical_brain_node just subscribes to its
-    # plain ROS2 topics directly.
+    # Identity/calibration on the overhead-camera tracker, relayed via the zenoh-bridge-ros2dds container (see docker-compose.yml) - tactical_brain_node just subscribes to its plain ROS2 topics directly.
     return LaunchDescription([
         Node(
             package='tactical_brain',

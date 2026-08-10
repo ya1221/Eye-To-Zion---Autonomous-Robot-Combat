@@ -1,14 +1,5 @@
-"""JSON-over-topic protocol for team-shared enemy sightings, teammate
-positions, distress calls, and arena-wide death broadcasts - all mirrored
-across Zenoh exactly like every other teams/*/* topic (see
-zenoh-bridge-ros2dds in main_brain.py's node setup).
-
-Owns enemies_by_detector, keyed by whichever robot_id reported each
-sighting (my own onboard detection, or a teammate's broadcast) so two
-robots simultaneously tracking different enemies don't clobber each
-other. teammate_help_by_id (distress calls) is keyed the same way for the
-same reason.
-"""
+"""JSON-over-topic protocol for team-shared enemy sightings, teammate positions, distress calls, and arena-wide death broadcasts - all mirrored across Zenoh like every other teams/*/* topic (see zenoh-bridge-ros2dds in main_brain.py).
+Owns enemies_by_detector and teammate_help_by_id, both keyed by robot_id so two robots tracking different enemies/status don't clobber each other."""
 import json
 import threading
 import time
@@ -23,17 +14,8 @@ class TeamComms:
         self.ros_node = ros_node
         self.robot_id = robot_id
 
-        # Guards enemies_by_detector/teammate_help_by_id/dead_robot_locations
-        # against the executor's two threads: the callbacks below mutate
-        # them IN PLACE on the pose callback group's thread, while
-        # get_enemies_snapshot/prune_stale_help_status/get_dead_robot_
-        # locations (called from the tree timer thread) iterate them -
-        # a concurrent insert during that iteration raises "dictionary/set
-        # changed size during iteration" and kills the node (confirmed
-        # directly for enemies_by_detector, see 667a459 - the same hazard
-        # applies to any dict/set mutated by one thread and iterated by the
-        # other). teammates_dict is only ever REASSIGNED wholesale (never
-        # mutated in place), so it doesn't need this.
+        # Guards enemies_by_detector/teammate_help_by_id/dead_robot_locations against the executor's two threads: callbacks mutate them IN PLACE on the pose callback group's thread while tree-timer-thread getters iterate them, and a concurrent insert raises "dictionary/set changed size during iteration" (confirmed for enemies_by_detector, see 667a459).
+        # teammates_dict is only ever REASSIGNED wholesale (never mutated in place), so it doesn't need this.
         self._state_lock = threading.Lock()
         self.enemies_by_detector = {}
         self.teammates_dict = {}
@@ -44,14 +26,8 @@ class TeamComms:
             String, f'teams/team_{my_team_idx}/detected_enemies',
             self._team_enemy_callback, 10, callback_group=callback_group)
 
-        # Distress calls: each robot broadcasts its own health/outnumbered
-        # assessment every sense_and_think tick (not event-driven - a
-        # dropped "I'm fine now" message must not leave a teammate stuck
-        # believing help is still needed forever), keyed by robot_id like
-        # enemies_by_detector above. Position (teammate_x/y) still comes
-        # from teammates_dict/positions - this topic only carries the
-        # needs_help/is_fighting booleans neither that nor detected_enemies
-        # already provides.
+        # Distress calls: each robot broadcasts its health/outnumbered assessment every sense_and_think tick (not event-driven, so a dropped "I'm fine now" can't leave a teammate stuck believing help is still needed), keyed by robot_id like enemies_by_detector above.
+        # Position still comes from teammates_dict/positions - this topic only carries the needs_help/is_fighting booleans nothing else provides.
         self.teammate_help_by_id = {}
         self.team_status_pub = ros_node.create_publisher(
             String, f'teams/team_{my_team_idx}/status', 10)

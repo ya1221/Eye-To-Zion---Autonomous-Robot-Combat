@@ -1,14 +1,8 @@
 """Alignment (aiming) control law for the attack branch. Provides pure math calculations to creep forward and proportionally turn, since Ackermann steering cannot pivot in place."""
 
-# --- Conservative defaults (m/s, rad/s, deg) ---
-# Broken out as named constants specifically so they're easy to retune
-# against real hardware once available - values below are untested
-# starting points, not measured.
+# Conservative defaults (m/s, rad/s, deg) - untested starting points, retune against real hardware.
 
-# Forward creep speed while aligning. Constant regardless of heading
-# error size - simplicity over an extra speed-scheduling knob;
-# ballistics_helper's own envelope decides when alignment is "good
-# enough" to fire, not this controller.
+# Forward creep speed while aligning; constant regardless of heading error (ballistics_helper decides fire-readiness, not this controller).
 ALIGN_CREEP_SPEED_MPS = 0.15
 
 # Turn-rate gain: rad/s of angular.z commanded per degree of heading error.
@@ -19,14 +13,8 @@ ALIGN_KP_ANGULAR = 0.03
 # downstream correction loop still has headroom on top of this.
 MAX_ALIGN_ANGULAR_Z = 0.6
 
-# Stop closing distance once this near the target - untested placeholder
-# like the speed/gain constants above, not a measured value. Without this,
-# the robot had no distance-based cutoff at all and would keep creeping
-# forward at ALIGN_CREEP_SPEED_MPS indefinitely while firing, closing to
-# point-blank/collision range against a stationary or slow target. Chosen
-# comfortably below MAX_FIRING_DISTANCE (ballistics_helper.py, 3.0m) so
-# most of the firing envelope still gets the full creep-and-align
-# behavior; only the final approach is held.
+# Stop closing once this near the target (untested placeholder, not measured); without it the robot would creep to point-blank range while firing.
+# Set below MAX_FIRING_DISTANCE (ballistics_helper.py, 3.0m) so most of the firing envelope still gets full creep-and-align.
 STANDOFF_DISTANCE_METERS = 1.0
 
 # Sign relating YOLO's 'angle' to ROS +angular.z; flip to -1.0 if the real robot steers away from the target.

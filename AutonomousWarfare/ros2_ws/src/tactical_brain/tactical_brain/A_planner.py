@@ -215,34 +215,6 @@ def calc_motion(node, xy_res, yaw_res, danger_dict, teammates_aura_set, current_
 # =========================================================
 #  בדיקת התנגשויות (כולל אינטרפולציה)
 # =========================================================
-# def check_collision(node, obstacle_set, xy_res):
-#     curr_x = node.x_ind * xy_res
-#     curr_y = node.y_ind * xy_res
-    
-#     # גבולות המגרש
-#     if curr_x <= 0.1 or curr_x >= 4.9 or curr_y <= 0.1 or curr_y >= 4.9:
-#         return False
-
-#     # בדיקת רדיוס מהירה של נקודת הקצה
-#     for (ox_ind, oy_ind) in obstacle_set:
-#         dist = math.hypot(curr_x - ox_ind * xy_res, curr_y - oy_ind * xy_res)
-#         if dist <= ROBOT_RADIUS:
-#             return False
-            
-#     # אינטרפולציה למניעת מעבר דרך קירות דקים (Tunneling)
-#     if node.p_node:
-#         prev_x = node.p_node.x_ind * xy_res
-#         prev_y = node.p_node.y_ind * xy_res
-#         for i in range(1, 4): # בדיקת 3 נקודות ביניים
-#             t = i / 4.0
-#             ix = prev_x + (curr_x - prev_x) * t
-#             iy = prev_y + (curr_y - prev_y) * t
-#             for (ox_ind, oy_ind) in obstacle_set:
-#                 if math.hypot(ix - ox_ind * xy_res, iy - oy_ind * xy_res) <= ROBOT_RADIUS:
-#                     return False
-
-#     return True
-
 def build_spatial_index(obstacle_set):
     # Uses spatial bucketing to limit collision checks to nearby obstacles, significantly speeding up A* search on large maps.
     index = {}

@@ -1,9 +1,5 @@
-"""Node-level orchestration around the attack branch's shooting outputs:
-publishing shooting_node's expected mode/firing topics and calling its
-fire_once service, gated by ballistics_helper's debounced trigger
-decision. Kept separate from ballistics_helper.py's pure threshold/
-hysteresis math, and from AttackAction's per-tick call site.
-"""
+"""Node-level orchestration around the attack branch's shooting outputs: publishes shooting_node's mode/firing topics and calls its fire_once service, gated by ballistics_helper's debounced trigger decision.
+Kept separate from ballistics_helper.py's pure threshold/hysteresis math, and from AttackAction's per-tick call site."""
 import std_srvs.srv
 from std_msgs.msg import String, Bool
 

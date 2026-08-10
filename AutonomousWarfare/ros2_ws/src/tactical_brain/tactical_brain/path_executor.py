@@ -1,17 +1,5 @@
-"""Feeds a movement leaf's Hybrid A* waypoints into nav2's FollowPath
-action: replan cadence, per-direction segment splitting, path
-densification, and stuck-recovery.
-
-Composed into a behavior-tree leaf (one PathExecutor instance per leaf,
-each owning its own segment-cache/cooldown state) rather than an
-inheritance base class - so tactical decision logic (which leaf gets
-picked, what goal it wants) and path-execution machinery (how a goal
-actually gets driven) can change independently. A leaf supplies a
-path_provider callable - the same shape as the old get_tactical_path()
-override: () -> [(x, y, yaw, direction), ...] or None - so it still owns
-picking its own goal and calling A_planner itself; PathExecutor only
-owns turning whatever comes back into FollowPath traffic.
-"""
+"""Feeds a movement leaf's Hybrid A* waypoints into nav2's FollowPath action: replan cadence, per-direction segment splitting, path densification, and stuck-recovery.
+Composed into a BT leaf (not an inheritance base) so tactical decision logic and path-execution machinery can change independently; a leaf supplies a path_provider callable (() -> [(x, y, yaw, direction), ...] or None) and still owns picking its own goal."""
 import math
 
 from rclpy.action import ActionClient
@@ -28,11 +16,8 @@ class PathExecutor:
     # Limits replanning frequency to give MPPI a stable reference path to commit to. A value of 8.0 balances reacting to newly discovered walls while allowing long turn-around maneuvers to complete.
     REPLAN_COOLDOWN_SEC = 8.0
 
-    # A* failing this many ticks in a row (from roughly the same spot) is
-    # treated as genuinely stuck rather than a one-off blip - see
-    # _build_recovery_segment. A* is deterministic, so repeated failures
-    # here mean check_collision rejects every candidate move from the
-    # current position, not transient noise.
+    # A* failing this many ticks in a row (from roughly the same spot) is treated as genuinely stuck, not a one-off blip (see _build_recovery_segment).
+    # A* is deterministic, so repeated failures mean check_collision rejects every candidate move from here, not transient noise.
     CONSECUTIVE_PLAN_FAILURE_THRESHOLD = 3
     # Candidate escalating step distances are used to probe multiple directions to get unstuck without arena-size assumptions. Smaller distances are tried first to prefer the least movement that clears boundaries without hitting other obstacles.
     RECOVERY_STEP_DISTANCES = (0.3, 0.5, 0.8, 1.2)
@@ -40,10 +25,8 @@ class PathExecutor:
     def __init__(self, ros_node, name):
         self.ros_node = ros_node
         self.name = name
-        # Needed for _build_recovery_segment and the failure-position
-        # check below. A dedicated client (rather than reaching into a
-        # leaf's own blackboard client) keeps PathExecutor usable without
-        # depending on which leaf composed it in.
+        # Needed for _build_recovery_segment and the failure-position check below.
+        # A dedicated client (rather than reaching into a leaf's own) keeps PathExecutor usable regardless of which leaf composed it.
         self.blackboard = py_trees.blackboard.Client(name=f"{name}_path_executor")
         self.blackboard.register_key(key="current_x", access=py_trees.common.Access.READ)
         self.blackboard.register_key(key="current_y", access=py_trees.common.Access.READ)
@@ -60,13 +43,8 @@ class PathExecutor:
 
     @staticmethod
     def _split_into_segments(waypoints):
-        # nav_msgs/Path has no per-pose direction field, and a single
-        # FollowPath goal mixing forward and reverse waypoints left MPPI
-        # with no consistent direction to commit to - it would get stuck
-        # fighting itself (confirmed directly: logged path with 5 of 6
-        # steps reverse matching the robot's stuck/overshoot behavior).
-        # Splitting into same-direction runs gives each FollowPath goal
-        # an unambiguous direction to execute.
+        # nav_msgs/Path has no per-pose direction field, and a single FollowPath goal mixing forward/reverse waypoints left MPPI with no consistent direction, fighting itself (confirmed: logged path 5/6 reverse steps matched the stuck/overshoot behavior).
+        # Splitting into same-direction runs gives each FollowPath goal an unambiguous direction.
         segments = []
         current_segment = []
         current_direction = None
@@ -82,15 +60,8 @@ class PathExecutor:
 
     @staticmethod
     def _densify_segment(points, max_spacing=0.05):
-        # A_planner's MOVE_STEP is 0.2m, so a short segment can reach
-        # FollowPath as just 3-4 widely-spaced poses. Measured directly
-        # (ground-truth trajectory logging) that MPPI does not slow down
-        # approaching such a sparse path's last pose at all - it sails
-        # through and overshoots by over a meter before it does anything
-        # resembling stopping. Interpolating extra poses in between (without
-        # touching A*'s own search step, which would blow up Hybrid A*'s
-        # search cost) gives the controller a denser breadcrumb trail to
-        # actually track near the goal.
+        # A_planner's MOVE_STEP (0.2m) can leave FollowPath with just 3-4 widely-spaced poses; measured (trajectory logging) that MPPI doesn't slow near such a sparse path's last pose and overshoots by over a meter.
+        # Interpolating extra poses here (without touching A*'s own step, which would blow up Hybrid A*'s search cost) gives the controller a denser trail to track near the goal.
         if len(points) < 2:
             return points
         dense = [points[0]]
@@ -131,18 +102,12 @@ class PathExecutor:
                 break
 
         if tx is None:
-            # Pathological case (surrounded on all sides at every tried
-            # distance) - fall back to the original plain
-            # reverse-along-heading at the largest tried distance as a
-            # last resort, better than sending nothing.
+            # Pathological case (surrounded at every tried distance) - fall back to plain reverse-along-heading at the largest distance, better than sending nothing.
             step_used = self.RECOVERY_STEP_DISTANCES[-1]
             tx = cx - step_used * math.cos(cyaw)
             ty = cy - step_used * math.sin(cyaw)
 
-        # Pick whichever gear (forward/reverse) is the closer kinematic
-        # match to the chosen target, so MPPI isn't fighting
-        # PreferForwardCritic/PreferReverseCritic unnecessarily - it still
-        # steers as needed to actually get there either way.
+        # Pick whichever gear (forward/reverse) is the closer kinematic match to the target, so MPPI isn't needlessly fighting PreferForwardCritic/PreferReverseCritic.
         bearing_to_target = math.atan2(ty - cy, tx - cx)
         heading_delta = math.atan2(
             math.sin(bearing_to_target - cyaw), math.cos(bearing_to_target - cyaw)
@@ -163,11 +128,8 @@ class PathExecutor:
         if self._is_driving:
             return py_trees.common.Status.RUNNING
 
-        # nav2's FollowPath action server isn't constructed until
-        # controller_server's lifecycle activates (on_activate()) - before
-        # that, there's nothing listening, so send_goal_async()'s future
-        # would never resolve and we'd never know to retry. Check
-        # non-blocking readiness instead of sending into the void.
+        # nav2's FollowPath action server isn't constructed until controller_server's lifecycle activates - before that send_goal_async()'s future would never resolve.
+        # Check non-blocking readiness instead of sending into the void.
         if not self._action_client.server_is_ready():
             self.ros_node.get_logger().warn(
                 f"[{self.name}] Nav2 controller_server not active yet - waiting to send path."
@@ -189,17 +151,8 @@ class PathExecutor:
         if needs_fresh_plan:
             waypoints = path_provider()
             if not waypoints:
-                # Count failures from roughly the same spot only - can't
-                # rely on py_trees' terminate(INVALID) to reset this
-                # between genuinely different contexts, since reactive
-                # (memory=False) Sequence/Selector composites call
-                # child.stop(INVALID) before every re-tick following ANY
-                # non-RUNNING status, including a plain FAILURE from this
-                # same node a moment ago (confirmed directly - a
-                # terminate()-based counter reset to 0 every single tick,
-                # never accumulating). Comparing position instead sidesteps
-                # that entirely and is arguably more correct anyway: only
-                # count it as "still stuck" if the robot hasn't moved.
+                # Count failures from roughly the same spot only; can't rely on terminate(INVALID) to reset this since reactive composites call child.stop(INVALID) after every non-RUNNING status, including a plain FAILURE (confirmed: a terminate()-based counter reset to 0 every tick, never accumulating).
+                # Comparing position instead sidesteps that and is arguably more correct: only count "still stuck" if the robot hasn't moved.
                 cx, cy = self.blackboard.current_x, self.blackboard.current_y
                 if self._last_plan_failure_pos is not None and math.hypot(
                     cx - self._last_plan_failure_pos[0], cy - self._last_plan_failure_pos[1]
@@ -211,11 +164,8 @@ class PathExecutor:
 
                 if self._consecutive_plan_failures < self.CONSECUTIVE_PLAN_FAILURE_THRESHOLD:
                     return py_trees.common.Status.FAILURE
-                # Stuck: check_collision has rejected every candidate move
-                # from here for several ticks in a row. A* can't route out
-                # of that by definition, so don't call it again - back up a
-                # short fixed distance instead and let normal planning
-                # retry from wherever that leaves us.
+                # Stuck: check_collision has rejected every candidate move from here for several ticks in a row, and A* can't route out of that by definition.
+                # Back up a short fixed distance instead and let normal planning retry from wherever that leaves us.
                 self._consecutive_plan_failures = 0
                 self._last_plan_failure_pos = None
                 self._cached_segments = self._build_recovery_segment()
@@ -270,22 +220,14 @@ class PathExecutor:
 
         goal_msg = FollowPath.Goal()
         goal_msg.path = path_msg
-        # PreferForwardCritic fights the reversing motion a reverse
-        # segment needs to finish (it activates near any segment's end,
-        # regardless of direction) - FollowPathReverse is identical to
-        # FollowPath but without it, confirmed via /cmd_vel_nav that
-        # reverse segments stalled 44s/85s under plain FollowPath.
+        # PreferForwardCritic fights the reversing motion a reverse segment needs (it activates near any segment's end, regardless of direction).
+        # FollowPathReverse is identical to FollowPath but without it - confirmed via /cmd_vel_nav that reverse segments stalled 44s/85s under plain FollowPath.
         goal_msg.controller_id = 'FollowPath' if direction == 1 else 'FollowPathReverse'
-        # Tight 5cm+stopped checker only for a plan's truly final segment -
-        # intermediate segments end at arbitrary A* waypoints, not
-        # somewhere the robot is meant to actually stop, and requiring
-        # 5cm+stopped there too turned ordinary transitions into 50+
-        # second stalls (confirmed directly).
+        # Tight 5cm+stopped checker only for a plan's truly final segment - intermediate segments end at arbitrary A* waypoints, not somewhere meant to stop.
+        # Requiring 5cm+stopped there too turned ordinary transitions into 50+ second stalls (confirmed directly).
         is_final_segment = self._segment_index == len(self._cached_segments) - 1
-        # A recovery nudge is a single "final" segment by construction, but
-        # it isn't a real goal to stop precisely at - it just needs to get
-        # far enough to let A* try again, so it always uses the loose
-        # checker regardless of is_final_segment.
+        # A recovery nudge is a single "final" segment by construction, but isn't a real goal to stop precisely at - it just needs distance to let A* try again.
+        # So it always uses the loose checker regardless of is_final_segment.
         goal_msg.goal_checker_id = (
             'loose_goal_checker' if (self._is_recovery_segment or not is_final_segment) else 'goal_checker'
         )
@@ -301,10 +243,8 @@ class PathExecutor:
         return py_trees.common.Status.RUNNING
 
     def _on_goal_response(self, future):
-        # controller_server's action server can exist (discoverable) before
-        # nav2's lifecycle bringup actually activates it - goals sent during
-        # that window get rejected. Reset _is_driving so the next tree tick
-        # retries instead of believing forever that it's already driving.
+        # controller_server's action server can exist (discoverable) before nav2's lifecycle bringup activates it - goals sent during that window get rejected.
+        # Reset _is_driving so the next tree tick retries instead of believing forever that it's already driving.
         goal_handle = future.result()
         if goal_handle is None or not goal_handle.accepted:
             self.ros_node.get_logger().warn(
@@ -327,10 +267,8 @@ class PathExecutor:
         except Exception:
             status = None
 
-        # STATUS_SUCCEEDED == 4 (action_msgs/msg/GoalStatus). Only advance
-        # to the next segment on a real success - on abort/cancel, retry
-        # the same segment (still bounded by REPLAN_COOLDOWN_SEC above
-        # before giving up and replanning from scratch).
+        # STATUS_SUCCEEDED == 4 (action_msgs/msg/GoalStatus). Only advance to the next segment on a real success.
+        # On abort/cancel, retry the same segment (bounded by REPLAN_COOLDOWN_SEC before giving up and replanning from scratch).
         if status == 4:
             self._segment_index += 1
 
@@ -349,8 +287,5 @@ class PathExecutor:
         self._segment_index = 0
         self._last_plan_time = None
         self._is_recovery_segment = False
-        # _consecutive_plan_failures/_last_plan_failure_pos deliberately
-        # NOT reset here - terminate(INVALID) fires on every re-tick
-        # following ANY non-RUNNING status, not just on a genuine switch to
-        # a different branch, so it can't be used to distinguish those
-        # cases (see the leaf's own terminate()).
+        # _consecutive_plan_failures/_last_plan_failure_pos deliberately NOT reset here - terminate(INVALID) fires on every re-tick following ANY non-RUNNING status, not just a genuine branch switch.
+        # So it can't be used to distinguish those cases (see the leaf's own terminate()).

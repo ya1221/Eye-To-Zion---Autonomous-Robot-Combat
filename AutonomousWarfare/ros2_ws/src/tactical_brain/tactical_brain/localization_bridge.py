@@ -1,14 +1,5 @@
-"""Reconciles slam_toolbox's run-relative 'map' TF frame against the
-robot's stable world-frame pose (/odometry/global, ArUco-corrected), and
-bridges the overhead-camera ArUco pose into EKF fusion.
-
-slam_toolbox's /map frame re-zeros at wherever the robot started this
-run; current_x/current_y instead come from /odometry/global, a separate,
-supposedly-stable source. Every point that crosses between the two
-(outgoing FollowPath waypoints, incoming /map obstacles) needs the same
-map<->world reconciliation - centralized here instead of duplicated
-inline in two places.
-"""
+"""Reconciles slam_toolbox's run-relative 'map' TF frame against the robot's stable world-frame pose (/odometry/global, ArUco-corrected), and bridges ArUco pose into EKF fusion.
+Centralizes map<->world reconciliation for every point that crosses between the two frames, instead of duplicating it inline."""
 import math
 
 from rclpy.time import Time
@@ -22,12 +13,8 @@ from tactical_brain.geometry_utils import get_yaw_from_quaternion
 
 
 class LocalizationBridge:
-    # Above this much disagreement between ArUco and the currently tracked
-    # pose, ekf_global's continuous /aruco/odom fusion (see
-    # publish_aruco_odom) is assumed to not have caught up fast enough
-    # (e.g. after wheel slip) - check_drift then force-reseeds it via the
-    # /set_pose service instead of waiting for the continuous filter to
-    # converge on its own.
+    # Above this disagreement between ArUco and tracked pose, continuous /aruco/odom fusion is assumed too slow to catch up (e.g. wheel slip).
+    # check_drift then force-reseeds ekf_global via /set_pose instead of waiting for it to converge.
     DRIFT_SNAP_THRESHOLD_METERS = 0.05
 
     def __init__(self, ros_node):
@@ -42,12 +29,7 @@ class LocalizationBridge:
 
     def get_map_pose(self):
         """Returns (map_x, map_y, map_yaw) for map->base_footprint.
-
-        Raises LookupException/ConnectivityException/ExtrapolationException
-        (tf2_ros) if the transform isn't available yet - callers decide how
-        to handle that (see main_brain.py's map_callback and
-        path_executor.py's PathExecutor.tick()).
-        """
+        Raises tf2_ros LookupException/ConnectivityException/ExtrapolationException if the transform isn't ready; callers decide how to handle it (see main_brain.py's map_callback, path_executor.py's PathExecutor.tick())."""
         tf = self.tf_buffer.lookup_transform('map', 'base_footprint', Time())
         map_x = tf.transform.translation.x
         map_y = tf.transform.translation.y
@@ -55,16 +37,8 @@ class LocalizationBridge:
         return map_x, map_y, map_yaw
 
     def world_to_map(self, wx, wy, wyaw, current_x, current_y, current_yaw):
-        """World-frame (wx, wy, wyaw) -> map-frame pose, for an outgoing
-        FollowPath waypoint.
-
-        ROOT CAUSE of a past overshoot investigation (2026-06-28):
-        A_planner computes waypoints in the same world frame as
-        current_x/current_y, but slam_toolbox's 'map' frame origin is the
-        robot's spawn point, not the world origin - every goal needs this
-        correction before nav2 sees it, or the spawn-point offset gets
-        silently added on top of the intended target.
-        """
+        """World-frame (wx, wy, wyaw) -> map-frame pose, for an outgoing FollowPath waypoint.
+        Needed because slam_toolbox's 'map' frame origin is the robot's spawn point, not the world origin (root cause of a 2026-06-28 overshoot investigation) - without this the spawn-point offset gets silently added on top of the target."""
         map_x, map_y, map_yaw = self.get_map_pose()
 
         yaw_offset = current_yaw - map_yaw
@@ -79,11 +53,8 @@ class LocalizationBridge:
         return (map_x + dx_m, map_y + dy_m, wyaw - yaw_offset)
 
     def transform_occupancy_grid_to_world(self, msg, current_x, current_y, current_yaw):
-        """Inverse of world_to_map: reprojects /map's occupied cells into
-        world-frame grid indices (A_planner.XY_RESOLUTION units) so A*'s
-        obstacle set lines up with current_x/current_y. Raises the same TF
-        exceptions as get_map_pose() if the transform isn't ready yet.
-        """
+        """Inverse of world_to_map: reprojects /map's occupied cells into world-frame grid indices (A_planner.XY_RESOLUTION units) so A*'s obstacle set lines up with current_x/current_y.
+        Raises the same TF exceptions as get_map_pose() if the transform isn't ready yet."""
         map_x, map_y, map_yaw = self.get_map_pose()
 
         yaw_offset = current_yaw - map_yaw
@@ -134,15 +105,8 @@ class LocalizationBridge:
         self.aruco_odom_pub.publish(odom_msg)
 
     def check_drift(self, aruco_x, aruco_y, aruco_yaw, current_x, current_y, current_yaw):
-        """Large-drift safety net alongside the continuous /aruco/odom
-        fusion above (see ekf_global.yaml's odom2) - snap-corrects
-        ekf_global via its real /set_pose service (robot_localization) when
-        ArUco and the currently tracked pose disagree by more than
-        DRIFT_SNAP_THRESHOLD_METERS. /initialpose has no subscriber in this
-        stack (no AMCL; slam_toolbox and robot_localization don't reset
-        from that topic), so this is the service ekf_global actually
-        exposes for a one-shot reseed.
-        """
+        """Large-drift safety net alongside the continuous /aruco/odom fusion (see ekf_global.yaml's odom2): snap-corrects ekf_global via /set_pose when ArUco and tracked pose disagree by more than DRIFT_SNAP_THRESHOLD_METERS.
+        /initialpose has no subscriber in this stack (no AMCL), so /set_pose is the only service ekf_global exposes for a one-shot reseed."""
         drift_x = aruco_x - current_x
         drift_y = aruco_y - current_y
         total_drift_meters = math.hypot(drift_x, drift_y)

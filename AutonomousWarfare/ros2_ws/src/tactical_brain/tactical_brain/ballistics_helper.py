@@ -1,9 +1,5 @@
 """Firing-envelope and trigger-debounce logic for the attack branch.
-
-Deliberately free of rclpy/ROS imports (same separation as A_planner.py)
-so the threshold math and the hysteresis state machine can be unit tested,
-or reasoned about, without a running node.
-"""
+Free of rclpy/ROS imports (like A_planner.py) so it can be unit tested without a running node."""
 
 # --- Firing envelope hyperparameters (degrees, meters) ---
 
@@ -11,18 +7,14 @@ or reasoned about, without a running node.
 # chassis is usually still roughly on-target at close distance.
 MAX_ALLOWABLE_ANGLE = 15.0
 
-# Angle budget at MAX_FIRING_DISTANCE - narrow, but not zero: leaves a
-# baseline margin for heading/pose noise rather than demanding a perfect
-# lock that noise could never satisfy.
+# Angle budget at MAX_FIRING_DISTANCE - narrow but not zero, leaving margin for heading/pose noise.
 MIN_ALLOWABLE_ANGLE = 2.0
 
 # Beyond this range the target is out of range outright, regardless of
 # how well-aimed the chassis is.
 MAX_FIRING_DISTANCE = 3.0
 
-# Degrees of allowable-angle shrink per additional meter of distance.
-# Sized so the envelope reaches MIN_ALLOWABLE_ANGLE exactly at
-# MAX_FIRING_DISTANCE: (15 - 2) / 3.0.
+# Degrees of allowable-angle shrink per meter, sized to hit MIN_ALLOWABLE_ANGLE exactly at MAX_FIRING_DISTANCE.
 DISTANCE_SLOPE = (MAX_ALLOWABLE_ANGLE - MIN_ALLOWABLE_ANGLE) / MAX_FIRING_DISTANCE
 
 # Once firing, the envelope widens by this many degrees before cutting
@@ -43,13 +35,7 @@ def allowable_angle_deg(distance_m):
 class TriggerController:
     """Debounced, hysteresis-gated trigger decision for one tracked target.
 
-    Call evaluate() once per tick with the latest (distance, heading_error).
-    Call reset() whenever the target is no longer being actively engaged
-    (out of range, lost, or the attack branch isn't selected this tick) -
-    the caller owns detecting that, since a single-tick py_trees leaf that
-    always returns SUCCESS can't reliably observe "I was skipped this tick"
-    through terminate()/initialise() (see main_brain.py's sense_and_think).
-    """
+    Call evaluate() once per tick; call reset() whenever the target is no longer actively engaged, since a single-tick py_trees leaf can't reliably detect being skipped on its own (see main_brain.py's sense_and_think)."""
 
     def __init__(self):
         self._consecutive_frames = 0

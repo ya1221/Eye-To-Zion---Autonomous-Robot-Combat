@@ -1,8 +1,4 @@
-"""Shared quaternion->yaw conversion - the one piece of frame math used by
-both pose ingestion (main_brain.py's pose_callback) and the map<->world
-reconciliation (localization_bridge.py), so there's a single definition
-instead of two copies drifting apart.
-"""
+"""Shared quaternion->yaw conversion, used by both pose ingestion (main_brain.py) and map<->world reconciliation (localization_bridge.py) so there's one definition instead of two drifting apart."""
 import math
 
 

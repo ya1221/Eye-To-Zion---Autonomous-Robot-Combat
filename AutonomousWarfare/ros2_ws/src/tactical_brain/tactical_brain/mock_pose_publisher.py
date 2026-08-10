@@ -5,15 +5,8 @@ from gazebo_msgs.msg import ModelStates
 
 
 class MockPosePublisher(Node):
-    """
-    Gazebo-only stand-in for the real EKF + overhead-ArUco-camera pose
-    source that will eventually publish 'itay_amcl_topic'. Republishes
-    Gazebo's ground-truth world-frame pose for the spawned robot, since
-    that's a stable, run-independent frame - same property the real fixed
-    overhead camera will have, unlike slam_toolbox's map frame, which
-    re-zeros at wherever the robot starts each run. Do not add this node
-    to main.launch.py - it has no business running on the RPi5.
-    """
+    """Gazebo-only stand-in for the real EKF + overhead-ArUco-camera pose source ('itay_amcl_topic'); republishes Gazebo's ground-truth world-frame pose, which is stable/run-independent like the real overhead camera will be, unlike slam_toolbox's re-zeroing map frame.
+    Do not add this node to main.launch.py - it has no business running on the RPi5."""
 
     ROBOT_ENTITY_NAME = 'robot1'
 

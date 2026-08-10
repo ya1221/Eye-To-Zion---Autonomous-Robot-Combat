@@ -475,15 +475,8 @@ class IsAtFinalGoal(py_trees.behaviour.Behaviour):
         )
 
 class HoldZoneAction(py_trees.behaviour.Behaviour):
-    """Stop and hold once inside the capture zone, instead of letting
-    MapsToGoalAction keep re-triggering trivial/zero-length A* replans.
-    survival_branch/attack_branch still preempt this every tick via the
-    root Selector's priority order (same mechanism AlignToEnemyAction's
-    docstring describes for attack_branch preempting patrol_branch), and
-    switching away from this back to MapsToGoalAction (e.g. pushed off
-    the zone) is handled for free by PathExecutor.terminate() canceling
-    whatever FollowPath goal was in flight.
-    """
+    """Stop and hold once inside the capture zone, instead of letting MapsToGoalAction keep re-triggering trivial/zero-length A* replans.
+    survival_branch/attack_branch still preempt this every tick via the root Selector's priority order; switching back to MapsToGoalAction (e.g. pushed off zone) is handled for free by PathExecutor.terminate() canceling the in-flight FollowPath goal."""
     def __init__(self, name="hold_zone_action", ros_node=None):
         super().__init__(name)
         self.ros_node = ros_node
@@ -497,13 +490,8 @@ class HoldZoneAction(py_trees.behaviour.Behaviour):
         return py_trees.common.Status.SUCCESS
 
 class ScreenAction(py_trees.behaviour.Behaviour):
-    """The SCREEN role with no enemy currently in sight (attack_branch
-    already outranks this branch whenever one is, so this only ever runs
-    when there's nothing to engage) - patrol the midpoint between the
-    capture zone and the arena center, a generic "stay between the
-    objective and the likely enemy approach" position, so the PUSHER
-    doesn't have to cross open ground alone.
-    """
+    """The SCREEN role with no enemy in sight (attack_branch already outranks this branch whenever one is, so this only runs when there's nothing to engage).
+    Patrols the midpoint between the capture zone and arena center, a generic "stay between objective and likely enemy approach" position, so the PUSHER doesn't cross open ground alone."""
     def __init__(self, name="screen_action", ros_node=None):
         super().__init__(name)
         self.ros_node = ros_node

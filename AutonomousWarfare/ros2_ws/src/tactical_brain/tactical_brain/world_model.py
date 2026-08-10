@@ -17,10 +17,7 @@ LOS_ENDPOINT_MARGIN_METERS = 0.3
 
 
 def prune_stale_enemies(enemies_by_detector, memory_timeout=ENEMY_MEMORY_TIMEOUT):
-    # Keyed by whichever robot_id reported each sighting (my own onboard
-    # detection, or a teammate's broadcast) - a dict rather than a flat list
-    # so two robots simultaneously tracking different enemies don't clobber
-    # each other.
+    # Keyed by whichever robot_id reported each sighting - a dict rather than a flat list so two robots tracking different enemies don't clobber each other.
     current_time = time.time()
     return {
         detector_id: enemy for detector_id, enemy in enemies_by_detector.items()
@@ -80,10 +77,7 @@ def line_of_sight_clear(start, end, walls_set, endpoint_margin_cells=0.0):
     y_points = np.linspace(start[1], end[1], num_points)
 
     for x, y in zip(x_points, y_points):
-        # Ignore samples within endpoint_margin_cells of either endpoint -
-        # the endpoints are the robot's own footprint and the enemy's body
-        # (a lidar return SLAM marks occupied), which would otherwise make
-        # every ray block on itself. See LOS_ENDPOINT_MARGIN_METERS.
+        # Ignore samples within endpoint_margin_cells of either endpoint - they're the robot's own footprint and the enemy's body (a lidar return SLAM marks occupied), which would otherwise block every ray on itself. See LOS_ENDPOINT_MARGIN_METERS.
         if endpoint_margin_cells > 0.0 and (
             distance((x, y), start) <= endpoint_margin_cells
             or distance((x, y), end) <= endpoint_margin_cells
