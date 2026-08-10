@@ -50,7 +50,7 @@ cd AutonomousWarfare
       - *(Add more links here)*
   - `src/localization/`: EKF and SLAM configurations.
     - **Code Links:**
-      - *(Add links here)*
+      - [Localization launch file - Dynamic loading of parameters for different YDLidar models. ](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/AutonomousWarfare/ros2_ws/src/localization/launch/launch.py#L13C5-L24C7)
   - `src/navigation/`: Nav2 configurations and launch files.
     - **Code Links:**
       - *(Add links here)*
@@ -59,7 +59,7 @@ cd AutonomousWarfare
       - *(Add links here)*
   - `src/robot_stats/`: Health and ammo management nodes.
     - **Code Links:**
-      - *(Add links here)*
+      - [Robot stats class - receiving robot internal states updates from other nodes ](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/AutonomousWarfare/ros2_ws/src/robot_stats/src/robot_stats.cpp#L5C1-L31C2)
   - `src/sensor_fusion_pkg/`: Fusion of sensor data.
     - **Code Links:**
       - *(Add links here)*
