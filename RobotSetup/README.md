@@ -46,7 +46,7 @@ cd AutonomousWarfare
       - *(Add links here)*
   - `src/hardware/`: C++ Motor Driver (L298N + Arduino Serial), Odometry, PID controllers.
     - **Code Links:**
-      - [Motor driver class - write method for pins Raspberry Pi 5 to L298N](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/AutonomousWarfare/ros2_ws/src/hardware/src/motor_driver.cpp#L11C1-L17C2)
+      - [Motor driver class - helper method to write configuration values to PWM sysfs files ](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/AutonomousWarfare/ros2_ws/src/hardware/src/motor_driver.cpp#L11C1-L17C2)
       - *(Add more links here)*
   - `src/localization/`: EKF and SLAM configurations.
     - **Code Links:**
@@ -66,6 +66,12 @@ cd AutonomousWarfare
   - `src/telemetry_data/`: InfluxDB/Telegraf bridges for dashboard metrics.
     - **Code Links:**
       - *(Add links here)*
+  - `src/robot_description/`: Robot description and URDF files.
+    - **Code Links:**
+      - *(Add links here)*
+  - `src/robot_bringup/`: Robot bringup files.
+    - **Code Links:**
+      - [Robot bringup launch file - launch all the packages together ] 
 - `telegraf.conf` / `docker-compose.yml`: Infrastructure for telemetry and metrics.
 - `setup.sh`: Automated Pi 5 configuration script.
 
