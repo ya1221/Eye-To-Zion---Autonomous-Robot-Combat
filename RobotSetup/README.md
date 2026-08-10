@@ -39,14 +39,33 @@ cd AutonomousWarfare
 ## Project Structure
 - `AutonomousWarfare/ros2_ws/`: Core ROS2 Humble workspace containing all functional packages.
   - `src/ai_audio/`: CNN-based chassis impact detection using microphone.
+    - **Code Links:**
+      - *(Add links here)*
   - `src/ai_vision/`: YOLO inference on camera streams.
+    - **Code Links:**
+      - *(Add links here)*
   - `src/hardware/`: C++ Motor Driver (L298N + Arduino Serial), Odometry, PID controllers.
+    - **Code Links:**
+      - [Motor driver class - write method for pins Raspberry Pi 5 to L298N](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/AutonomousWarfare/ros2_ws/src/hardware/src/motor_driver.cpp#L11C1-L17C2)
+      - *(Add more links here)*
   - `src/localization/`: EKF and SLAM configurations.
+    - **Code Links:**
+      - *(Add links here)*
   - `src/navigation/`: Nav2 configurations and launch files.
+    - **Code Links:**
+      - *(Add links here)*
   - `src/tactical_brain/`: Behavior trees for high-level tactical decision making.
+    - **Code Links:**
+      - *(Add links here)*
   - `src/robot_stats/`: Health and ammo management nodes.
+    - **Code Links:**
+      - *(Add links here)*
   - `src/sensor_fusion_pkg/`: Fusion of sensor data.
+    - **Code Links:**
+      - *(Add links here)*
   - `src/telemetry_data/`: InfluxDB/Telegraf bridges for dashboard metrics.
+    - **Code Links:**
+      - *(Add links here)*
 - `telegraf.conf` / `docker-compose.yml`: Infrastructure for telemetry and metrics.
 - `setup.sh`: Automated Pi 5 configuration script.
 

@@ -117,4 +117,4 @@ RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc && \
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
-     ["/entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh"]
