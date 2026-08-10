@@ -9,62 +9,25 @@ YAW_RESOLUTION = math.radians(5.0) # רזולוציית זווית [רדיאני
 MOVE_STEP = 0.2       # מרחק תנועה בכל צעד [מטרים]
 TURNING_RADIUS = 0.7  # רדיוס סיבוב מינימלי של הרובוט [מטרים]
 ROBOT_RADIUS = 0.25   # רדיוס פיזי של הרובוט להתנגשויות [מטרים]
-# nav2's real keepout is bigger than this: footprint [0.18,0.13]'s diagonal
-# reach (~0.22m) plus costmap inflation_radius (0.22m, nav2.yaml) is a
-# worst-case theoretical bound of ~0.44m (corner-on approach to a wall,
-# treating the soft inflation cost gradient as a hard cutoff - it isn't
-# really one). A* using only ROBOT_RADIUS could approve a goal/path nav2
-# then can never physically execute (confirmed directly: goal (1.3, 1.7)
-# had 0.25-0.44m clearance - passed the old ROBOT_RADIUS-only check, but
-# the robot stalled ~0.25-0.3m short of it every attempt and got
-# progress-checker-aborted). PLANNING_CLEARANCE is what check_collision
-# actually enforces, so A* only ever proposes goals/paths nav2 can
-# genuinely reach.
-#
-# 0.44 (the theoretical worst case above) is stricter than necessary in
-# practice - empirically binary-searched down: 0.35 failed cleanly (2/2
-# aborts) on that same (1.3, 1.7) goal, 0.40 succeeded cleanly (dozens of
-# consecutive successes on both (1.3, 1.7) and a known-good goal). Kept
-# at 0.40 rather than narrowing further - the gap to 0.35 is not large
-# enough to be worth more search time, and a real margin below the
-# theoretical 0.44 bound is reassuring rather than concerning.
+# Nav2's keepout requires a larger planning clearance to prevent A* from proposing unreachable goals.
+# Empirically set to 0.40m to balance safety and search space.
 PLANNING_CLEARANCE = 0.40
 BUCKET_CELLS = math.ceil(PLANNING_CLEARANCE / XY_RESOLUTION) + 1  # spatial-index bucket size for check_collision
 
-# Plannable-region geofence [meters]. check_collision rejects any node
-# outside [ARENA_MIN, ARENA_MAX] on both axes. These used to be the bare
-# literals 0.1 / 4.9 hardcoded inside check_collision - fine for the 5m
-# Gazebo maze, but on the real arena that boundary is either meaningless
-# (never protects the true edge) or, if the arena is smaller, lets the
-# robot plan straight off it. Now configurable via set_arena_bounds() so
-# main_brain can point it at the real arena size at startup. DEFAULTS ARE
-# THE OLD 0.1 / 4.9 so sim behaviour is byte-for-byte unchanged until
-# something calls the setter. NOTE: this is the *planning* arena, distinct
-# from the camera-grid arena_size_meters (that's a perspective-grid scale
-# factor, not the drivable extent) - do not conflate the two.
+# Plannable-region geofence limits to keep the robot from planning off the drivable arena. Configurable via set_arena_bounds() but defaults to the 5m sim maze dimensions.
 ARENA_MIN = 0.1
 ARENA_MAX = 4.9
 
 
 def set_arena_bounds(size_meters, margin=0.1):
-    """Point the plannable-region geofence at the real arena.
-
-    size_meters is the drivable arena's side length; margin keeps A* off
-    the very edge. Call once at startup (see main_brain). Leaves the
-    defaults (sim maze) in place if never called.
-    """
+    """Sets the plannable-region geofence size for the real arena. Call once at startup to override the sim maze defaults."""
     global ARENA_MIN, ARENA_MAX
     ARENA_MIN = margin
     ARENA_MAX = size_meters - margin
 
 # === פרמטרי עלויות (Costs) ===
 H_WEIGHT = 1.2        # משקל ההיוריסטיקה (Weighted A*) - מאוזן למניעת תקיעה
-# Minimum consecutive steps (0.6m at MOVE_STEP=0.2) a direction run must
-# last before another gear switch is "free" - see calc_motion's
-# switching/run_length handling. Confirmed directly: without this, A*'s
-# raw step-by-step direction output sometimes alternated every step,
-# producing 1-2 point same-direction runs that PathExecutor then had to
-# send to FollowPath as their own degenerate segments.
+# Minimum consecutive steps a direction run must last before a free gear switch to prevent degenerate path segments.
 MIN_RUN_STEPS = 3
 SHORT_RUN_PENALTY = MOVE_STEP * 3.0
 TEAMMATE_DISCOUNT = MOVE_STEP * 0.5
@@ -80,12 +43,7 @@ class Node:
         self.p_node = p_node
         self.cost = cost
         self.steering = steering
-        # Consecutive steps taken in the current direction. Used to
-        # penalize switching gear again too soon (see MIN_RUN_STEPS in
-        # calc_motion) - without this, the search could produce paths
-        # that flip direction every step, which PathExecutor then has
-        # to split into degenerate 1-2 point FollowPath segments that
-        # MPPI can't track sensibly.
+        # Tracks consecutive steps in the current direction to penalize excessive gear switching and avoid degenerate segments.
         self.run_length = run_length
 
     def __lt__(self, other):
@@ -161,21 +119,10 @@ def calc_hybrid_a_star(start, goal, obstacle_set, xy_resolution, yaw_resolution,
         _, current = heapq.heappop(pq)
         
         dist_to_goal = math.hypot(current.x_ind - goal_node.x_ind, current.y_ind - goal_node.y_ind) * xy_resolution
-        # Require the final approach step to be forward: reverse+steer near
-        # the goal is where Gazebo ODE friction makes the robot stall (see
-        # etz-open-issues memory). The goal's heading param is otherwise
-        # unused by this search (termination/heuristic are x,y-only), so it
-        # can't bias this - direction must be checked on the terminal node
-        # itself instead.
+        # Requires the final approach step to be forward to avoid Gazebo ODE friction stalls when reversing near the goal.
         if dist_to_goal <= 0.1 and current.direction == 1:
             rx, ry, rt, rd = extract_path(current, xy_resolution, yaw_resolution)
-            # Stop expanding once within 0.1m of goal (one grid cell) and
-            # snap the last waypoint to the exact goal coordinate so
-            # FollowPath's final pose is the real target. Tight radius keeps
-            # the path geometrically complete: anything larger (e.g. 0.3m)
-            # causes A* to return a trivial 2-step [current→goal] path when
-            # the robot is near the goal with a large heading mismatch,
-            # which MPPI can't execute in tight spaces.
+            # Stops expanding within 0.1m and snaps the last waypoint to the goal to ensure the path is geometrically complete.
             rx.append(goal[0])
             ry.append(goal[1])
             rt.append(rt[-1])
@@ -216,14 +163,7 @@ def calc_hybrid_a_star(start, goal, obstacle_set, xy_resolution, yaw_resolution,
 def calc_motion(node, xy_res, yaw_res, danger_dict, teammates_aura_set, current_time):
     next_nodes = []
     steering_inputs = [-math.radians(20), 0, math.radians(20)]
-    # Forward-only was tried and reverted: it made MPPI execution cleaner
-    # (no more reverse segments to discard going into nav_msgs/Path), but
-    # broke planning outright in tight spaces - confirmed directly, A*
-    # returned "failed to find a path" once obstacle_set had real walls
-    # in a narrow spot, since a forward-only Ackermann turn needs more
-    # room than a real car needing to reverse out of a tight spot. Kept
-    # reverse in the search; PathExecutor now splits the path into
-    # per-direction segments instead of sending one mixed-direction path.
+    # Includes reverse direction to allow planning in tight spaces, while PathExecutor splits the path into per-direction segments.
     directions = [1, -1] # קדימה ואחורה
 
     current_yaw = node.yaw_ind * yaw_res
@@ -246,10 +186,7 @@ def calc_motion(node, xy_res, yaw_res, danger_dict, teammates_aura_set, current_
             switching = direction != node.direction
             switch_gear_cost = 0 if not switching else MOVE_STEP * 2.0
             if switching and node.run_length < MIN_RUN_STEPS:
-                # Switched again before finishing a minimum-length leg -
-                # escalating penalty per step short, on top of the flat
-                # switch_gear_cost above, so the search prefers fewer,
-                # longer same-direction runs over flip-flopping.
+                # Adds an escalating penalty for switching gears before finishing a minimum-length leg to encourage longer runs.
                 switch_gear_cost += (MIN_RUN_STEPS - node.run_length) * SHORT_RUN_PENALTY
             new_run_length = node.run_length + 1 if not switching else 1
             steer_cost = abs(steering) * MOVE_STEP * 0.5
@@ -307,12 +244,7 @@ def calc_motion(node, xy_res, yaw_res, danger_dict, teammates_aura_set, current_
 #     return True
 
 def build_spatial_index(obstacle_set):
-    # check_collision's radius check used to scan the entire obstacle_set
-    # per candidate node - fine early in a run (~200 cells) but scaled
-    # linearly with how much slam_toolbox has mapped, confirmed directly
-    # to blow up to ~300s per A* search once the map grew past ~1600
-    # occupied cells. Bucketing lets check_collision only look at the
-    # handful of obstacles actually near the candidate point.
+    # Uses spatial bucketing to limit collision checks to nearby obstacles, significantly speeding up A* search on large maps.
     index = {}
     for (ox, oy) in obstacle_set:
         key = (ox // BUCKET_CELLS, oy // BUCKET_CELLS)

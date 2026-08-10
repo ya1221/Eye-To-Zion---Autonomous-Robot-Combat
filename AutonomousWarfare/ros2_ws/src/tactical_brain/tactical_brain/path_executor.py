@@ -25,17 +25,7 @@ from tactical_brain import A_planner
 
 
 class PathExecutor:
-    # Replan from scratch at most this often. Re-sending the same cached
-    # path on retry (instead of a fresh A* search from wherever the robot
-    # has drifted to) gives MPPI one stable reference to actually commit
-    # to, instead of restarting against a slightly-different path every
-    # time the previous attempt concludes/aborts. Was 15.0 (too slow to
-    # react to walls slam_toolbox only just discovered), then 3.0 (too
-    # fast - cut off A*'s wide forward turn-around arcs before they could
-    # complete, since reversing costs more than arcing forward per
-    # A_planner.py's direction_cost/switch_gear_cost, so it kept
-    # restarting the same early portion of a multi-second turn rather
-    # than ever finishing it). 8.0 splits the difference.
+    # Limits replanning frequency to give MPPI a stable reference path to commit to. A value of 8.0 balances reacting to newly discovered walls while allowing long turn-around maneuvers to complete.
     REPLAN_COOLDOWN_SEC = 8.0
 
     # A* failing this many ticks in a row (from roughly the same spot) is
@@ -44,18 +34,7 @@ class PathExecutor:
     # here mean check_collision rejects every candidate move from the
     # current position, not transient noise.
     CONSECUTIVE_PLAN_FAILURE_THRESHOLD = 3
-    # Candidate step distances used to get unstuck (see
-    # _build_recovery_segment, which probes several directions at each
-    # distance in turn and validates each via check_collision), smallest
-    # first. A single fixed distance isn't enough: a direction can fail
-    # either because the step doesn't travel far enough to clear a
-    # boundary/obstacle (needs MORE distance) or because its endpoint
-    # lands too close to a real obstacle (needs LESS, or a different
-    # direction) - confirmed directly that both failure modes occur in
-    # practice, so no single value covers both. Escalating distances
-    # (rather than one), tried smallest-first, prefers the least movement
-    # that actually works. Makes no "arena center"/maze-size assumption,
-    # so it behaves the same in sim or on a real robot.
+    # Candidate escalating step distances are used to probe multiple directions to get unstuck without arena-size assumptions. Smaller distances are tried first to prefer the least movement that clears boundaries without hitting other obstacles.
     RECOVERY_STEP_DISTANCES = (0.3, 0.5, 0.8, 1.2)
 
     def __init__(self, ros_node, name):
@@ -129,24 +108,7 @@ class PathExecutor:
         return dense
 
     def _build_recovery_segment(self):
-        # Bypasses calc_hybrid_a_star's search entirely (that's the whole
-        # point: A* has just failed CONSECUTIVE_PLAN_FAILURE_THRESHOLD
-        # times in a row from this same spot, so it can't be trusted to
-        # find a way out of it) - but the escape *direction* still has to
-        # be validated somehow, rather than assumed.
-        #
-        # First version of this just backed straight up along the reverse
-        # of the current heading. Confirmed directly (live sim test) that
-        # this only ever moves along the heading axis - it does nothing
-        # for a trap that's perpendicular to however the robot happens to
-        # be facing (e.g. escaped past the plannable region's y bound
-        # while facing along x: every "successful" reverse-along-heading
-        # nudge kept y pinned at the same out-of-bounds value, cycling
-        # forever without ever getting back in). So instead, probe a
-        # spread of world-frame directions and validate each with
-        # A_planner's own check_collision - the exact same rule A* itself
-        # uses, so this makes no assumption about heading, arena size, or
-        # "center", and is exactly as valid in sim or on a real robot.
+        # Bypasses the failing A* search entirely and validates escape directions via check_collision. Probing a spread of world-frame directions prevents the robot from getting trapped along a specific axis.
         cx = self.blackboard.current_x
         cy = self.blackboard.current_y
         cyaw = self.blackboard.current_yaw

@@ -37,14 +37,7 @@ class LocalizationBridge:
         # ArUco Odometry continuous publisher (for EKF fusion)
         self.aruco_odom_pub = ros_node.create_publisher(Odometry, '/aruco/odom', 10)
 
-        # Large-drift snap-correction: force-reseed ekf_global's internal
-        # state via its real /set_pose service (robot_localization) when
-        # ArUco vs. current_x/y disagree too much - kept as an explicit
-        # safety net on top of ekf_global's continuous fusion, which alone
-        # may not catch up fast enough after a sudden large drift (e.g.
-        # wheel slip). /initialpose has no subscriber in this stack (no
-        # AMCL; slam_toolbox and robot_localization don't reset from that
-        # topic), so this is the service ekf_global actually exposes for it.
+        # Force-reseed ekf_global's internal state via /set_pose when ArUco and current position disagree. This serves as a safety net for sudden large drifts since continuous fusion may not catch up fast enough.
         self.set_pose_client = ros_node.create_client(SetPose, '/ekf_global/set_pose')
 
     def get_map_pose(self):

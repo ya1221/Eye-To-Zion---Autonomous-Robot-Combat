@@ -8,17 +8,7 @@ from rgbmatrix5x5 import RGBMatrix5x5
 
 from icm20948 import ICM20948
 
-print("""magnetometer-to-rgb5x5.py - Convert heading to colour
-
-Converts the raw heading to a colour by treating it as hue.
-
-Requires a 5x5 RGB Matrix breakout.
-
-Rotate the sensor (X-axis upwards) through 360 degrees to calibrate.
-
-Press Ctrl+C to exit!
-
-""")
+print("""magnetometer-to-rgb5x5.py - Convert heading to colour. Requires a 5x5 RGB Matrix breakout. Rotate the sensor (X-axis upwards) through 360 degrees to calibrate and press Ctrl+C to exit.""")
 
 X = 0
 Y = 1

@@ -12,15 +12,7 @@ R_TEAMMATE = 0.3  # meters
 # message exists upstream) stays believed before being dropped outright.
 ENEMY_MEMORY_TIMEOUT = 2.0
 
-# Visibility (enemy line-of-sight) endpoint margin [meters]. A detected
-# enemy's position IS a lidar return the SLAM map marks occupied (that's
-# literally how it was detected), and the robot's own footprint often is
-# too - so a ray sampled right up to each endpoint reports itself
-# "blocked" by its own start/end, making the LOS check return False
-# essentially always. The visibility caller passes this (converted to grid
-# cells) so samples within it of either endpoint are ignored - only walls
-# strictly BETWEEN the two ends occlude sight. Kept off (0.0) by default so
-# get_danger_dict's own line_of_sight_clear use is unchanged.
+# Visibility endpoint margin (in meters) prevents line-of-sight rays from being blocked by the start/end points' own footprints. Samples within this margin are ignored so only walls strictly between the endpoints occlude sight.
 LOS_ENDPOINT_MARGIN_METERS = 0.3
 
 

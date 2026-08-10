@@ -25,23 +25,13 @@ from std_msgs.msg import String
 from tf2_ros import LookupException, ConnectivityException, ExtrapolationException
 import py_trees
 
-# attack_branch's engagement range - tied directly to the gun's actual
-# firing envelope (ballistics_helper.MAX_FIRING_DISTANCE = 3.0m) instead
-# of a separate hardcoded 5.0. With 5.0 the robot would commit to an
-# engagement (stop patrolling, creep, align, log "Engaging enemy") from
-# 3-5m, where trigger_controller.evaluate can never actually fire
-# (dist > MAX_FIRING_DISTANCE) - it just looked like "aims but never
-# shoots". Single source of truth so the two can't drift apart again.
+# Attack engagement range, tied directly to the gun's actual firing envelope to prevent aiming without shooting.
 MAX_COMBAT_DISTANCE = ballistics_helper.MAX_FIRING_DISTANCE
 
-# A raw /ai/detections reading older than this is treated as "no current
-# heading fix" rather than trusted stale data - two missed tree ticks
-# (tree runs every 0.5s) worth of margin for a dropped frame or two.
+# Readings older than this are treated as "no current heading fix" rather than stale data.
 DETECTION_STALE_SEC = 1.0
 
-# How far RunFromEnemyAction retreats along the away-from-threat bearing
-# on each replan (see PathExecutor.REPLAN_COOLDOWN_SEC for how often
-# that's re-evaluated).
+# How far RunFromEnemyAction retreats along the away-from-threat bearing on each replan.
 RETREAT_DISTANCE_METERS = 1.5
 
 # AreTeammatesComing's threshold: a teammate within this radius is close
@@ -52,14 +42,9 @@ TEAMMATE_HELP_ARRIVAL_RADIUS = 2.5
 # the physical capture zone, same caveat as ARENA_SIZE_METERS.
 CAPTURE_ZONE_RADIUS_METERS = 0.5
 
-# hide_x/y's "retreat along my own trail" memory (see safe_waypoints):
-# only record a new safe waypoint once we've moved at least this far from
-# the last one, so it doesn't fill up with near-duplicates while sitting
-# still or moving slowly.
+# Minimum distance required between safe waypoints to avoid recording near-duplicates.
 MIN_SAFE_WAYPOINT_SPACING_METERS = 0.5
-# Bounded history size - old waypoints age out once this many newer ones
-# have been recorded (deque(maxlen=...) below), so this doesn't grow
-# unbounded over a long match.
+# Bounded history size so safe waypoints don't grow unbounded over a long match.
 MAX_SAFE_WAYPOINTS = 20
 
 #######################
@@ -89,21 +74,7 @@ class HasLineOfSightToEnemy(py_trees.behaviour.Behaviour):
         return py_trees.common.Status.FAILURE
 
 class AlignToEnemyAction(py_trees.behaviour.Behaviour):
-    """Creeps/steers toward the tracked enemy's bearing (see aim_controller.py).
-
-    Publishes directly onto /cmd_vel - the same topic Nav2's controller
-    normally writes to. This works without any new arbitration because
-    attack_branch preempts patrol_branch in the root Selector's priority
-    order: the instant this branch is selected, patrol_branch's
-    MapsToGoalAction simply isn't ticked, and its PathExecutor.terminate()
-    already cancels any in-flight FollowPath on invalidation, so Nav2
-    stops writing to cmd_vel on its own.
-
-    Always returns SUCCESS (never RUNNING) so AttackAction still
-    evaluates the trigger every tick regardless of how converged
-    alignment is yet - alignment and firing run concurrently, neither
-    gates the other.
-    """
+    """Creeps/steers toward the tracked enemy's bearing by directly publishing to /cmd_vel. Returns SUCCESS so AttackAction evaluates the trigger concurrently with alignment."""
     def __init__(self, name="align_to_enemy_action", ros_node=None):
         super(AlignToEnemyAction, self).__init__(name)
         self.ros_node = ros_node
@@ -115,10 +86,8 @@ class AlignToEnemyAction(py_trees.behaviour.Behaviour):
         heading_error = self.blackboard.current_heading_error
         cmd = Twist()
         if heading_error is not None:
-            # Pass dist_to_closest_enemy so compute_alignment_twist can hold
-            # at aim_controller.STANDOFF_DISTANCE_METERS instead of creeping
-            # all the way to point-blank/collision range against the target
-            # while firing.
+            # Holds at aim_controller.STANDOFF_DISTANCE_METERS instead of creeping
+            # to point-blank range against the target while firing.
             cmd.linear.x, cmd.angular.z = aim_controller.compute_alignment_twist(
                 heading_error, self.blackboard.dist_to_closest_enemy
             )
@@ -142,13 +111,7 @@ class AttackAction(py_trees.behaviour.Behaviour):
         self.blackboard.robot_command = "ATTACK"
         self.ros_node.get_logger().info(f"[{self.name}] Engaging enemy at ({self.blackboard.current_x:.2f}, {self.blackboard.current_y:.2f})")
 
-        # Ballistics/trigger decision - see ballistics_helper.py and
-        # shooting_control.py. ShootingControl lives on ros_node (not on
-        # this behaviour) because the safety net in
-        # update_blackboard_from_world_state needs to reset/cease-fire the
-        # same instance on ticks where this action never runs at all - a
-        # single-tick, always-SUCCESS leaf like this one can't rely on
-        # terminate()/initialise() to detect "I was skipped this tick".
+        # Ballistics decision delegates to ShootingControl on the ros_node, allowing the safety net to cease-fire when this action isn't running.
         mode = self.ros_node.get_parameter('shooting_mode').value
         self.ros_node.shooting_control.evaluate_and_fire(
             self.blackboard.dist_to_closest_enemy, self.blackboard.current_heading_error, mode
@@ -161,11 +124,8 @@ class IsLowHealthOrOutnumbered(py_trees.behaviour.Behaviour):
     def __init__(self, name = "is_low_health_or_outnumbered"):
         super(IsLowHealthOrOutnumbered, self).__init__(name)
         self.blackboard = py_trees.blackboard.Client(name=self.name)
-        # am_i_in_danger is computed once in update_blackboard_from_world_
-        # state (the exact same health/outnumbered check this class used
-        # to duplicate) - shared with _publish_team_status's distress-call
-        # broadcast so the "what counts as danger" threshold lives in
-        # exactly one place.
+        # Computed once in update_blackboard_from_world_state and shared with
+        # _publish_team_status's distress broadcast, so the danger threshold stays consistent.
         self.blackboard.register_key(key="am_i_in_danger", access=py_trees.common.Access.READ)
 
     def update(self):
@@ -189,10 +149,7 @@ class HideAndWaitAction(py_trees.behaviour.Behaviour):
     def __init__(self, name="hide_and_wait_action", ros_node=None):
         super().__init__(name)
         self.ros_node = ros_node
-        # Composition, not inheritance: this leaf owns its goal-selection
-        # policy (below) and hands it to a PathExecutor as a callable, the
-        # same shape the old get_tactical_path() override had - see
-        # path_executor.py's module docstring.
+        # Owns its goal-selection policy and hands it to a PathExecutor as a callable.
         self.path_executor = PathExecutor(ros_node, name) if ros_node is not None else None
         self.blackboard = py_trees.blackboard.Client(name=self.name)
         self.blackboard.register_key(key="robot_command", access=py_trees.common.Access.WRITE)
@@ -211,11 +168,8 @@ class HideAndWaitAction(py_trees.behaviour.Behaviour):
             self.blackboard.robot_command = "HIDING (A* PATH)"
 
             start_pos = (cx, cy, cyaw)
-            # calc_hybrid_a_star's stop condition only checks x/y distance
-            # (A_planner.py:100-101) - goal yaw is currently inert either
-            # way - but compute it from the vector to goal anyway instead
-            # of a hardcoded value, since "face east" has no more tactical
-            # meaning here than "face the way you're driving."
+            # Goal yaw isn't used by A*'s stop condition, but compute it from the
+            # vector to goal instead of a hardcoded value for consistency.
             goal_pos = (hx, hy, math.atan2(hy - cy, hx - cx))
 
             self.ros_node.get_logger().info(f"[{self.name}] Calculating A* evasion route...")
@@ -281,9 +235,7 @@ class RunFromEnemyAction(py_trees.behaviour.Behaviour):
             gx = cx + RETREAT_DISTANCE_METERS * math.cos(away_angle)
             gy = cy + RETREAT_DISTANCE_METERS * math.sin(away_angle)
         else:
-            # In danger (e.g. low health/outnumbered) with no specific
-            # threat position known - fall back to the designated rally
-            # point rather than fleeing in an undefined direction.
+            # In danger with no specific threat position known - fall back to the rally point.
             gx, gy = self.blackboard.hide_x, self.blackboard.hide_y
             if gx is None or gy is None:
                 return None
@@ -456,13 +408,7 @@ class MapsToGoalAction(py_trees.behaviour.Behaviour):
         return None
 
     def update(self):
-        # Before the overhead camera has sighted the capture-zone marker
-        # even once, final_goal_x/y are still None. PathExecutor.tick()
-        # treats get_tactical_path() returning nothing as an A*-failed-to-
-        # find-a-path signal and starts counting toward a recovery
-        # backup-nudge after CONSECUTIVE_PLAN_FAILURE_THRESHOLD ticks - the
-        # robot isn't stuck here, it's just waiting on the camera, so skip
-        # straight to RUNNING instead of letting that bookkeeping misfire.
+        # Skip to RUNNING if the capture zone hasn't been sighted yet to prevent false A* failure bookkeeping.
         if self.blackboard.final_goal_x is None or self.blackboard.final_goal_y is None:
             return py_trees.common.Status.RUNNING
         if self.ros_node is None:
@@ -474,11 +420,8 @@ class MapsToGoalAction(py_trees.behaviour.Behaviour):
             self.path_executor.terminate()
 
 #######################
-# squad roles - deterministic, negotiation-free PUSHER/SCREEN split.
-# Every robot runs the exact same comparison independently from already-
-# shared state (own position, teammate's broadcast position, the locked
-# final_goal) - no "I'm pushing" message is ever exchanged, so there's no
-# leader/negotiation protocol to fail if a teammate drops out or dies.
+# Squad roles: deterministic PUSHER/SCREEN split. Each robot compares the same
+# shared state independently, so no negotiation protocol is needed.
 class IsCloserToGoal(py_trees.behaviour.Behaviour):
     """SUCCESS => this robot takes the PUSHER role this tick."""
     def __init__(self, name="is_closer_to_goal"):
@@ -608,13 +551,8 @@ class ScreenAction(py_trees.behaviour.Behaviour):
         return [(x_path[i], y_path[i], theta_path[i], directions[i]) for i in range(len(x_path))]
 
     def update(self):
-        # Same reasoning as MapsToGoalAction's guard: before final_goal is
-        # locked, get_tactical_path() has nothing to compute a midpoint
-        # from. Unlike MapsToGoalAction (the tree's last resort), FAILURE
-        # is correct here, not RUNNING - patrol_branch is the real
-        # fallback for this case, and it's role_branch's sibling in the
-        # root Selector, so role_branch must actually fail (both
-        # pusher_branch and this) for the Selector to reach it.
+        # FAILURE here (not RUNNING), since patrol_branch is role_branch's
+        # sibling fallback for an unlocked final_goal.
         if self.blackboard.final_goal_x is None or self.blackboard.final_goal_y is None:
             return py_trees.common.Status.FAILURE
         if self.ros_node is None:
@@ -661,12 +599,7 @@ def create_tree(ros_node=None):
          IsDistanceToTeammateAcceptable(name = "is distance to teammate acceptable"),
          DriveToTeammateAction(name = "drive to teammate action", ros_node=ros_node)])
 
-    # Squad roles: PUSHER drives to final_goal and holds once there, SCREEN
-    # roams to intercept. Sits below help_teammate_branch (a dying
-    # teammate outranks your assigned role) and above patrol_branch, which
-    # remains as the fallback for the one case role_branch can't resolve -
-    # final_goal not locked in yet (see IsCloserToGoal/ScreenAction, both
-    # of which FAILURE in that case, same as MapsToGoalAction's own guard).
+    # Squad roles: PUSHER drives to goal while SCREEN intercepts, running below help_teammate_branch and above patrol_branch.
     hold_zone_sequence = py_trees.composites.Sequence(name="hold_zone_sequence", memory=False)
     hold_zone_sequence.add_children([
         IsAtFinalGoal(name="is at final goal"),
@@ -709,12 +642,8 @@ class TacticalBrainNode(Node):
         super().__init__('tactical_brain_node')
         self.get_logger().info("Tactical Brain is waking up and planting the tree...")
 
-        # Our identity on the overhead-camera tracker (PureModuloTrackerNode,
-        # relayed to us via zenoh-bridge-ros2dds): which ArUco-marker id is
-        # "us" within our own team's positions array, which numeric team_idx
-        # we are (camera assigns team = marker_id % CNT_TEAM), and the
-        # grid_n/arena_size_meters scale factor to convert the camera's
-        # calibrated 0..grid_n perspective-grid units into real meters.
+        # Our identity on the overhead-camera tracker: which ArUco id is us,
+        # our team_idx, and the grid-to-meters scale factor.
         self.declare_parameter('robot_id', int(os.environ.get('ROBOT_ID', 3)))
         self.robot_id = self.get_parameter('robot_id').get_parameter_value().integer_value
         self.declare_parameter('my_team_idx', int(os.environ.get('MY_TEAM_IDX', 0)))
@@ -727,14 +656,7 @@ class TacticalBrainNode(Node):
             / self.get_parameter('grid_n').get_parameter_value().integer_value
         )
 
-        # A*'s plannable-region geofence (A_planner.check_collision). This
-        # is the real DRIVABLE arena extent, deliberately SEPARATE from
-        # arena_size_meters above (which is the camera perspective-grid
-        # scale, not a drivable size - conflating them would strangle the
-        # 5m sim maze down to a 2m box). Default 5.0 reproduces the old
-        # hardcoded 0.1/4.9 geofence exactly, so sim is unchanged; on the
-        # real robot set PLANNING_ARENA_SIZE_METERS to the true arena side
-        # length so A* won't plan a node off the actual boundary.
+        # Sets the drivable plannable-region geofence for A*, separate from the camera grid scale. Defaults to 5.0m for the sim maze.
         self.declare_parameter(
             'planning_arena_size_meters',
             float(os.environ.get('PLANNING_ARENA_SIZE_METERS', 5.0))
@@ -743,25 +665,7 @@ class TacticalBrainNode(Node):
             self.get_parameter('planning_arena_size_meters').get_parameter_value().double_value
         )
 
-        # Real pose source is /odometry/global, robot_localization's
-        # ekf_global node (map->odom, ArUco-corrected - see
-        # localization/launch.py on the rpi5 branch) - NOT /amcl_pose,
-        # since this stack runs slam_toolbox rather than amcl. hardware's
-        # pid_controller.cpp subscribes to this exact same topic, so this
-        # and the low-level controller are guaranteed to agree on pose.
-        #
-        # Dedicated callback group + MultiThreadedExecutor (see main()):
-        # the default single-threaded executor processes every callback
-        # of a node strictly one at a time, on one thread. sense_and_think
-        # (the 0.5s tree timer, which runs A*'s search) and map_callback
-        # (looping over the full occupancy grid) are both expensive enough
-        # to block that thread for a while - during which pose_callback
-        # never got a turn to run, leaving current_x/current_y frozen at
-        # whatever they were when the blocking started. Confirmed directly:
-        # logged A* start position stayed bit-for-bit identical across
-        # multiple planning cycles spanning ~24s while the real robot had
-        # already driven over a meter away. Every path sent this session
-        # was potentially planned from a stale position as a result.
+        # Real pose source is /odometry/global, shared with the low-level controller. Uses a dedicated callback group to prevent expensive A* search from blocking pose updates.
         self.pose_callback_group = MutuallyExclusiveCallbackGroup()
         self.pose_sub = self.create_subscription(
             Odometry,
@@ -771,12 +675,7 @@ class TacticalBrainNode(Node):
             callback_group=self.pose_callback_group
         )
 
-        # zenoh-bridge-ros2dds (a separate container, not our code) mirrors
-        # the overhead camera's real ROS2 topics across Zenoh transparently -
-        # we just subscribe to the plain ROS2 topics like any other sensor,
-        # no custom Zenoh client needed on our side anymore. Same callback
-        # group as pose_callback so these small JSON updates don't queue
-        # behind the tree timer's A* search.
+        # Subscribes to overhead camera ROS2 topics mirrored via zenoh-bridge-ros2dds, using the dedicated pose callback group.
         self.my_team_sub = self.create_subscription(
             String,
             f'teams/team_{self.my_team_idx}/positions',
@@ -785,12 +684,8 @@ class TacticalBrainNode(Node):
             callback_group=self.pose_callback_group
         )
 
-        # Capture-zone marker (physically static, one per team) tracked by
-        # the same overhead-camera node as teams/team_X/positions, mirrored
-        # across Zenoh the same way. Locked onto the first sighting in
-        # final_goal_callback rather than kept live, since re-reading a
-        # static marker's per-frame ArUco jitter would retarget MapsToGoal's
-        # A* goal for no reason.
+        # Capture-zone marker locked on first sighting rather than kept live,
+        # since re-reading its per-frame jitter would retarget A* for no reason.
         self.final_goal_locked = False
         self.final_goal_sub = self.create_subscription(
             String,
@@ -799,9 +694,8 @@ class TacticalBrainNode(Node):
             10,
             callback_group=self.pose_callback_group
         )
-        # אויבים מגיעים מהזיהוי המקומי (YOLO+לידאר) של sensor_fusion_node,
-        # לא מטופיק הקבוצה היריבה - teams/team_X/positions הוא הברודקאסט
-        # העצמי של הקבוצה ההיא, לא משהו שאנחנו אמורים להאזין לו בכלל.
+        # אויבים מגיעים מהזיהוי המקומי (YOLO+לידאר), לא מהברודקאסט העצמי של
+        # הקבוצה היריבה - אנחנו לא אמורים להאזין לו.
         self.local_enemy_sub = self.create_subscription(
             PoseStamped,
             '/sensor_fusion_node/local_enemy_position',
@@ -810,14 +704,8 @@ class TacticalBrainNode(Node):
             callback_group=self.pose_callback_group
         )
 
-        # Raw YOLO relative bearing (same /ai/detections + 'angle' (deg)
-        # field sensor_fusion_node.py itself parses to fuse against lidar)
-        # read directly here for the attack branch's heading error - this
-        # is our own camera's live relative angle to a target, not the
-        # fused/team-broadcast global (x,y) position, which is exactly
-        # what's needed for "is the gun pointed at what I'm actually
-        # seeing right now" rather than a team-shared, possibly
-        # teammate-detected position.
+        # Raw YOLO bearing to our own camera's live target, not the fused/
+        # team-broadcast position - needed for whether the gun is aimed at what we actually see.
         self._latest_heading_error_deg = None
         self._latest_detection_time = None
         self.ai_detections_sub = self.create_subscription(
@@ -828,9 +716,8 @@ class TacticalBrainNode(Node):
             callback_group=self.pose_callback_group
         )
 
-        # Team-shared enemy sightings (both broadcasting my own and
-        # receiving teammates') and teammate position tracking - see
-        # team_comms.py for the protocol/locking details.
+        # Team-shared enemy sightings and teammate position tracking - see
+        # team_comms.py for the protocol details.
         self.team_comms = TeamComms(
             self, self.my_team_idx, self.robot_id, callback_group=self.pose_callback_group
         )
@@ -847,10 +734,8 @@ class TacticalBrainNode(Node):
         self.declare_parameter('auto_fire_rate_hz', 2.0)
         self.declare_parameter('max_fire_angle_deg', 30.0)
 
-        # AlignToEnemyAction's output (see aim_controller.py). Same topic
-        # Nav2's controller normally publishes to - safe because
-        # attack_branch preempts patrol_branch (see AlignToEnemyAction's
-        # docstring), so only one of the two is ever actively driving.
+        # AlignToEnemyAction's output - same topic Nav2 normally publishes to, safe
+        # since attack_branch preempts patrol_branch, so only one is ever driving.
         self.cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel', 10)
 
         # 2. אתחול משתני מצב מקומיים (world-model state that only we hold -
@@ -860,11 +745,8 @@ class TacticalBrainNode(Node):
         self.danger_dict = {}
         self.teammates_aura_set = set()
 
-        # hide_x/y's "retreat along my own trail" fallback (see
-        # update_blackboard_from_world_state) - starts empty and gets
-        # seeded with the real starting position on the first pose_
-        # callback firing (not the current_x/y placeholder default), since
-        # that's the actual point the robot begins from.
+        # Retreat-trail fallback, seeded with the real starting position on the
+        # first pose callback rather than the placeholder default.
         self.safe_waypoints = deque(maxlen=MAX_SAFE_WAYPOINTS)
 
         self.map_sub = self.create_subscription(OccupancyGrid, '/map', self.map_callback, 1)
@@ -911,21 +793,16 @@ class TacticalBrainNode(Node):
         self.blackboard.current_x = 2.0
         self.blackboard.current_y = 2.0
         self.blackboard.current_yaw = 0.0
-        # Recomputed every tick in update_blackboard_from_world_state
-        # (nearest safe teammate, else last known-safe waypoint) - these
-        # are just the pre-first-tick placeholders.
+        # Recomputed every tick in update_blackboard_from_world_state - these
+        # are just pre-first-tick placeholders.
         self.blackboard.hide_x = 2.0
         self.blackboard.hide_y = 2.0
-        # Not known until the overhead camera's capture-zone marker is
-        # sighted at least once (see final_goal_callback) - None until
-        # then. MapsToGoalAction.update() explicitly treats this as
-        # "waiting", not a failed plan.
+        # None until the capture-zone marker is sighted once; MapsToGoalAction
+        # treats that as waiting, not a failed plan.
         self.blackboard.final_goal_x = None
         self.blackboard.final_goal_y = None
-        # None (not a placeholder point) until teammates_dict actually has
-        # an entry - IsCloserToGoal reads a None teammate position as
-        # "no teammate known, default to PUSHER", which a fake stale
-        # coordinate would silently defeat.
+        # None until teammates_dict has an entry, so IsCloserToGoal defaults to
+        # PUSHER instead of trusting a stale coordinate.
         self.blackboard.teammate_x = None
         self.blackboard.teammate_y = None
 
@@ -933,11 +810,8 @@ class TacticalBrainNode(Node):
         """
         זוהי לולאת הליבה של הרובוט: Sense -> Think -> Act
         """
-        # שלב א': Sense. enemies_by_detector/teammates_dict כבר מתעדכנים
-        # ישירות ע"י team_comms (מוזנים מ-local_enemy_position_callback/
-        # team_enemy_callback/my_team_positions_callback) - כאן רק שואבים
-        # תמונת מצב מנוקה (snapshot) ומחשבים ממנה את הרשתות הטקטיות,
-        # בעזרת static_obstacles שרק אנחנו מחזיקים.
+        # שלב א': Sense - שואבים תמונת מצב מעודכנת מ-team_comms ומחשבים
+        # ממנה את הרשתות הטקטיות.
         self.enemies_list = self.team_comms.get_enemies_snapshot()
         self.team_comms.prune_stale_help_status()
         self.danger_dict = world_model.get_danger_dict(self.danger_dict, self.enemies_list, self.static_obstacles)
@@ -946,10 +820,8 @@ class TacticalBrainNode(Node):
 
         # שלב ב': Translation
         self.update_blackboard_from_world_state()
-        # Distress-call broadcast - see team_comms.publish_status. Reads
-        # am_i_in_danger/am_i_fighting rather than recomputing either, so
-        # this and IsLowHealthOrOutnumbered/attack_branch can never
-        # disagree on what those mean.
+        # Reads am_i_in_danger/am_i_fighting rather than recomputing, so this
+        # always agrees with IsLowHealthOrOutnumbered/attack_branch.
         self.team_comms.publish_status(self.blackboard.am_i_in_danger, self.blackboard.am_i_fighting)
 
         # שלב ג': Think
@@ -999,12 +871,7 @@ class TacticalBrainNode(Node):
         )
 
     def ai_detections_callback(self, msg):
-        # Same raw JSON sensor_fusion_node.py parses ('angle' in degrees,
-        # first detection in the list - no multi-target selection exists
-        # anywhere yet, see that file's fusion_callback). Only the angle is
-        # used here; distance/range for firing purposes comes from the
-        # already-fused dist_to_closest_enemy on the blackboard, not lidar
-        # directly, so the two stay consistent with what IsEnemyClose sees.
+        # Parses the angle from the raw JSON AI detections. Distance for firing comes from the blackboard's fused dist_to_closest_enemy to maintain consistency.
         try:
             detections = json.loads(msg.data)
         except json.JSONDecodeError:
@@ -1016,11 +883,7 @@ class TacticalBrainNode(Node):
 
 
     def local_enemy_position_callback(self, msg):
-        # sensor_fusion_node only publishes when it actually has a fused
-        # YOLO+lidar detection (no "no enemy visible" message exists) -
-        # staleness pruning happens in sense_and_think via
-        # team_comms.get_enemies_snapshot() so an old detection doesn't
-        # linger forever once the enemy is no longer seen.
+        # Records local YOLO+lidar detection; staleness pruning is handled in sense_and_think.
         self.team_comms.record_local_detection(msg.pose.position.x, msg.pose.position.y)
 
     def update_blackboard_from_world_state(self):
@@ -1037,11 +900,7 @@ class TacticalBrainNode(Node):
                 self.blackboard.current_x / A_planner.XY_RESOLUTION,
                 self.blackboard.current_y / A_planner.XY_RESOLUTION
             )
-            # The enemy's own position is a lidar return SLAM marks
-            # occupied, so a ray checked all the way to it always reports
-            # "blocked" by the target itself - ignore a margin around both
-            # endpoints (see world_model.LOS_ENDPOINT_MARGIN_METERS). In
-            # grid cells, since grid_* are in world/XY_RESOLUTION units.
+            # Ignores a margin around both endpoints when checking line-of-sight to avoid self-blocking by the target's lidar return.
             los_margin_cells = world_model.LOS_ENDPOINT_MARGIN_METERS / A_planner.XY_RESOLUTION
 
             for enemy in self.enemies_list:
@@ -1069,41 +928,23 @@ class TacticalBrainNode(Node):
             self.blackboard.has_line_of_sight_to_closest_enemy = False
             self.blackboard.closest_enemy_x = None
             self.blackboard.closest_enemy_y = None
-            # "Didn't encounter any enemies" - record this spot as a safe
-            # retreat point for hide_x/y's fallback, provided we've moved
-            # far enough from the last one to be worth a new entry.
+            # Records this spot as a safe retreat point if we've moved far enough from the last one without encountering enemies.
             if not self.safe_waypoints or distance(current_pos, self.safe_waypoints[-1]) >= MIN_SAFE_WAYPOINT_SPACING_METERS:
                 self.safe_waypoints.append(current_pos)
 
-        # Raw camera bearing to whatever /ai/detections last saw, discarded
-        # once stale (see DETECTION_STALE_SEC) so a frozen old reading
-        # doesn't get treated as a live lock.
+        # Uses fresh raw camera bearing, discarding stale readings to prevent false live locks.
         detection_is_fresh = (
             self._latest_detection_time is not None
             and (time.time() - self._latest_detection_time) <= DETECTION_STALE_SEC
         )
         self.blackboard.current_heading_error = self._latest_heading_error_deg if detection_is_fresh else None
 
-        # Attack-branch safety net: this mirrors attack_branch's own
-        # IsEnemyClose/HasLineOfSightToEnemy preconditions exactly. When
-        # they don't hold, neither AttackAction nor AlignToEnemyAction
-        # ever runs this tick (Sequence short-circuits) - so nothing
-        # inside either of them ever gets a chance to cease-fire, zero out
-        # /cmd_vel, or reset the trigger's frame-delay/hysteresis state.
-        # This runs unconditionally every tick (regardless of which BT
-        # branch ends up selected), same as dist_to_closest_enemy above,
-        # which is the only reliable way to catch "enemy lost" here - see
-        # ballistics_helper.py's docstring and AttackAction's comment for
-        # why terminate()/initialise() can't do this for a single-tick,
-        # always-SUCCESS leaf.
+        # Unconditionally enforces attack preconditions to reset shooting control if the target is lost, serving as a safety net when attack actions don't run.
         attack_preconditions_met = (
             self.blackboard.dist_to_closest_enemy <= MAX_COMBAT_DISTANCE
             and self.blackboard.has_line_of_sight_to_closest_enemy
         )
-        # Shared with _publish_team_status's is_fighting field (a teammate
-        # broadcasting this as True is disqualified as a safe retreat
-        # target) - single source of truth, same reasoning as
-        # am_i_in_danger below.
+        # Single source of truth for fighting status, shared with team status broadcast.
         self.blackboard.am_i_fighting = attack_preconditions_met
 
 
@@ -1127,10 +968,7 @@ class TacticalBrainNode(Node):
                 current_pos,
                 (self.blackboard.teammate_x, self.blackboard.teammate_y)
             )
-            # needs_help/is_fighting come from the same teammate's own
-            # distress-call broadcast (teams/team_X/status, see
-            # team_comms.py), not from this position broadcast, which
-            # never carries either.
+            # Help and fighting status are sourced from the teammate's distress-call broadcast.
             help_status = self.team_comms.get_teammate_help_status(first_teammate_id)
             self.blackboard.dist_to_help_teammate = self.blackboard.dist_to_nearest_teammate
             self.blackboard.teammate_requested_help = (
@@ -1141,12 +979,7 @@ class TacticalBrainNode(Node):
             self.blackboard.dist_to_nearest_teammate = 100.0
             self.blackboard.teammate_requested_help = False
 
-        # 3. hide_x/y: run to my nearest teammate, provided they're not
-        # currently fighting (a teammate under fire is not a safe refuge) -
-        # else retreat to the most recent point on my own trail where no
-        # enemy was in sight (safe_waypoints, populated above). Used by
-        # both HideAndWaitAction and RunFromEnemyAction's no-known-threat
-        # fallback.
+        # 3. hide_x/y: Retreat to the nearest safe teammate or to the most recent safe waypoint on our trail.
         if teammate_is_safe_refuge and self.blackboard.teammate_x is not None:
             self.blackboard.hide_x = self.blackboard.teammate_x
             self.blackboard.hide_y = self.blackboard.teammate_y
@@ -1155,11 +988,7 @@ class TacticalBrainNode(Node):
         else:
             self.blackboard.hide_x, self.blackboard.hide_y = current_pos
 
-        # am_i_in_danger is the single source of truth for "am I in
-        # trouble" - read by both IsLowHealthOrOutnumbered (survival
-        # branch) and _publish_team_status/sense_and_think (the
-        # distress-call broadcast teammates react to), so the threshold
-        # can't drift between them.
+        # Single source of truth for danger status, used by both survival logic and team distress broadcasts.
         self.blackboard.am_i_in_danger = (
             self.blackboard.health < 0.5
             or self.blackboard.num_enemies > self.blackboard.num_teammates + 1
@@ -1174,13 +1003,7 @@ class TacticalBrainNode(Node):
             self.safe_waypoints.append((self.blackboard.current_x, self.blackboard.current_y))
 
     def map_callback(self, msg):
-        # slam_toolbox's /map lives in its own run-relative TF frame (it
-        # re-zeros at wherever the robot started this run). current_x/
-        # current_y come from a separate, supposedly-stable pose source
-        # (/odometry/global). Without reconciling the two, obstacles read
-        # straight off the grid would land in the wrong place relative to
-        # where tactical_brain thinks it is - exactly the mismatch that
-        # let A* plan straight through real walls. See localization_bridge.py.
+        # Reconciles the /map TF frame with the /odometry/global pose to correctly position obstacles relative to the robot.
         try:
             obstacles = self.localization_bridge.transform_occupancy_grid_to_world(
                 msg, self.blackboard.current_x, self.blackboard.current_y, self.blackboard.current_yaw
@@ -1188,11 +1011,7 @@ class TacticalBrainNode(Node):
         except (LookupException, ConnectivityException, ExtrapolationException):
             return
 
-        # /map only ever tells us about walls/terrain - dead robots are a
-        # separate, non-SLAM source of obstacles, merged in fresh each time
-        # rather than kept in a second persistent set, since this
-        # assignment would otherwise wholesale-overwrite them (see
-        # team_comms.py's dead_robot_locations docstring).
+        # Merges SLAM obstacles with dead robot locations into a single static_obstacles set.
         dead_cells = {
             (round(dx_m / A_planner.XY_RESOLUTION), round(dy_m / A_planner.XY_RESOLUTION))
             for dx_m, dy_m in self.team_comms.get_dead_robot_locations()
@@ -1209,10 +1028,7 @@ def distance(a, b):
 def main(args=None):
     rclpy.init(args=args)
     node = TacticalBrainNode()
-    # MultiThreadedExecutor + pose_callback's own callback group (see
-    # __init__) so pose updates keep flowing while the tree timer's A*
-    # search or map_callback's grid scan are running, instead of being
-    # serialized behind them on a single thread.
+    # Uses a MultiThreadedExecutor to process pose updates concurrently with A* search and map scans.
     executor = MultiThreadedExecutor()
     executor.add_node(node)
     try:

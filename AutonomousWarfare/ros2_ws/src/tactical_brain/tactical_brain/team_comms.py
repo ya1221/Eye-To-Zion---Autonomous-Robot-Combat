@@ -59,17 +59,7 @@ class TeamComms:
             String, f'teams/team_{my_team_idx}/status',
             self._team_status_callback, 10, callback_group=callback_group)
 
-        # Death broadcast - published by a (separate, not-this-package)
-        # HP/hit-detection node once a robot's HP reaches 0. Deliberately
-        # NOT team-scoped by index (teams/arena/..., not teams/team_N/...)
-        # since an enemy robot's death needs to reach the *other* team too,
-        # not just ours - still matches the Zenoh bridge's ^/teams/.*
-        # allowlist, so no bridge config change is needed. Just a plain set
-        # of locations, not a dict keyed by id/timestamp: a corpse never
-        # expires or needs identifying, only its position matters (see
-        # main_brain.py's map_callback, which merges these into
-        # static_obstacles). sensor_fusion_node.py has its own separate
-        # copy of this same data for filtering detections at the source.
+        # Death broadcasts from HP nodes are deliberately not team-scoped so both teams receive them. These location sets are merged into static_obstacles since corpses only matter for their position and never expire.
         self.dead_robot_locations = set()
         self.death_message_sub = ros_node.create_subscription(
             String, 'teams/arena/death_message',
