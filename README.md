@@ -79,7 +79,7 @@ cd AutonomousWarfare
     - **Code Links:**
       - [Shooting node class - shooting mechanism node ](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/AutonomousWarfare/ros2_ws/src/shooting/src/shooting_node.cpp#L159C1-L164C2)
 -  `Forward_Command_Post`
-   - `src/overhead_tracker/`: 
+  - `src/overhead_tracker/`: 
     - **Code Links:**
       - ([Corrects camera perspective to a flat arena grid for precise distance measurements in mm](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/Forward_Command_Post/ros2_ws/src/overhead_tracker/overhead_tracker/overhead_tracker.py#L213C5-L224C37))
     - **Code Links:**
