@@ -78,22 +78,22 @@ cd AutonomousWarfare
   - `src/shooting/`: Shooting mechanism node.
     - **Code Links:**
       - [Shooting node class - shooting mechanism node ](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/AutonomousWarfare/ros2_ws/src/shooting/src/shooting_node.cpp#L159C1-L164C2)
-- `Forward_Command_Post`:
-  - `src/overhead_tracker/`: 
+- `Forward_Command_Post/`: Overhead ground station building a shared tactical map.
+  - `src/overhead_tracker/`: Tracks ArUco markers to map positions, targets, and captures on a flat grid.
     - **Code Links:**
-      - ([Corrects camera perspective to a flat arena grid for precise distance measurements in mm](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/Forward_Command_Post/ros2_ws/src/overhead_tracker/overhead_tracker/overhead_tracker.py#L213C5-L224C37))
-      - ([Tracks the robot body when markers are hidden (with Lucas-Kanade-Tomasi) to prevent dropouts on the tactical map](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/Forward_Command_Post/ros2_ws/src/overhead_tracker/overhead_tracker/overhead_tracker.py#L262C5-L293C47))
-      - ([Assigning teams using ID modulo (rid % CNT_TEAM) enables dynamic support for N teams without code changes](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/Forward_Command_Post/ros2_ws/src/overhead_tracker/overhead_tracker/overhead_tracker.py#L231C1-L231C48))
-- `Offboard`
-  - `ai_audio/pipeline/training/`:
+      - [Corrects camera perspective to a flat arena grid for precise distance measurements in mm](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/Forward_Command_Post/ros2_ws/src/overhead_tracker/overhead_tracker/overhead_tracker.py#L213C5-L224C37)
+      - [Tracks the robot body when markers are hidden (with Lucas-Kanade-Tomasi) to prevent dropouts on the tactical map](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/Forward_Command_Post/ros2_ws/src/overhead_tracker/overhead_tracker/overhead_tracker.py#L262C5-L293C47)
+      - [Assigning teams using ID modulo (rid % CNT_TEAM) enables dynamic support for N teams without code changes](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/Forward_Command_Post/ros2_ws/src/overhead_tracker/overhead_tracker/overhead_tracker.py#L231C1-L231C48)
+- `Offboard/`: Offline pipelines for model training and simulation.
+  - `ai_audio/pipeline/training/`: Trains on Kaggle the audio impact CNN and exports it to ONNX.
     - **Code Links:**
-      - ([ImpactCNN uses 3 convolution blocks ending with AdaptiveAvgPool2d(1) to maintain a fixed classification layer regardless of spectrogram dimensions](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/Offboard/ai_audio/pipeline/training/kaggle_train.ipynb#In[9]))
-  - `ai_audio/pipeline/preprocessing/`: 
+      - [ImpactCNN uses 3 convolution blocks ending with AdaptiveAvgPool2d(1) to maintain a fixed classification layer regardless of spectrogram dimensions](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/Offboard/ai_audio/pipeline/training/kaggle_train.ipynb#In[9])
+  - `ai_audio/pipeline/preprocessing/`: Converts WAV files to Log-Mel features and manifest.csv.
     - **Code Links:**
-      - ([Isolates impacts from long audio by detecting energy peaks with a refractory period to prevent duplicates](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/Offboard/ai_audio/pipeline/preprocessing/make_features.py#L40C1-L64C28))
-  - `ai_vision/`: 
+      - [Isolates impacts from long audio by detecting energy peaks with a refractory period to prevent duplicates](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/Offboard/ai_audio/pipeline/preprocessing/make_features.py#L40C1-L64C28)
+  - `ai_vision/`: Manages YOLO datasets, trains on Kaggle, and exports weights.
     - **Code Links:**
-      - ([Augments light and scale during training to prevent overfitting and ensure robust field detection](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/Offboard/ai_vision/eye-to-zion-ai-vision.ipynb#In[3]))
+      - [Augments light and scale during training to prevent overfitting and ensure robust field detection](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/Offboard/ai_vision/eye-to-zion-ai-vision.ipynb#In[3])
 - `telegraf.conf` / `docker-compose.yml`: Infrastructure for telemetry and metrics.
 - `setup.sh`: Automated Pi 5 configuration script.
 
