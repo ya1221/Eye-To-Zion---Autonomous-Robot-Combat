@@ -78,7 +78,7 @@ cd AutonomousWarfare
   - `src/shooting/`: Shooting mechanism node.
     - **Code Links:**
       - [Shooting node class - shooting mechanism node ](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/AutonomousWarfare/ros2_ws/src/shooting/src/shooting_node.cpp#L159C1-L164C2)
--  `Forward_Command_Post`:
+- `Forward_Command_Post`:
   - `src/overhead_tracker/`: 
     - **Code Links:**
       - ([Corrects camera perspective to a flat arena grid for precise distance measurements in mm](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/Forward_Command_Post/ros2_ws/src/overhead_tracker/overhead_tracker/overhead_tracker.py#L213C5-L224C37))
@@ -86,7 +86,7 @@ cd AutonomousWarfare
       - ([Tracks the robot body when markers are hidden (with Lucas-Kanade-Tomasi) to prevent dropouts on the tactical map](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/Forward_Command_Post/ros2_ws/src/overhead_tracker/overhead_tracker/overhead_tracker.py#L262C5-L293C47))
     - **Code Links:**
       - ([Assigning teams using ID modulo (rid % CNT_TEAM) enables dynamic support for N teams without code changes](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/Forward_Command_Post/ros2_ws/src/overhead_tracker/overhead_tracker/overhead_tracker.py#L231C1-L231C48))
--  `Offboard`
+- `Offboard`
   - `ai_audio/pipeline/training/`:
     - **Code Links:**
       - ([ImpactCNN uses 3 convolution blocks ending with AdaptiveAvgPool2d(1) to maintain a fixed classification layer regardless of spectrogram dimensions](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/Offboard/ai_audio/pipeline/training/kaggle_train.ipynb#In[9]))
