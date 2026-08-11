@@ -1,11 +1,11 @@
 # sensor_fusion_pkg
 
 ## Purpose
-Pre-process and fuse raw sensor inputs before they hit the main EKF.
+Fuse visual detections with LiDAR scans and global robot pose to calculate global enemy coordinates in real time.
 
 ## Logic
-Aligns timestamps and covariance matrices of wheel odometry and IMU data to ensure smooth filtering.
+Pairs YOLO detections with the latest LiDAR scan data. Uses the relative angle to extract the target's range, filters noise within a local beam window, and projects the distance using the robot's heading to compute the global target position in the map frame.
 
 ## Data Flow
-- **Input:** Raw IMU, raw encoders.
-- **Output:** Filtered `/odom` or `/imu/data`.
+- **Input:** Global robot pose, raw LiDAR scans, and YOLO relative target angles.
+- **Output:** Global coordinates of detected enemy targets.
