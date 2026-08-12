@@ -4,7 +4,7 @@ import numpy as np
 
 from tactical_brain.A_planner import XY_RESOLUTION, ENEMY_TTL
 
-# קבועים
+# Constants
 R_ENEMY = 0.5  # meters
 R_TEAMMATE = 0.3  # meters
 # Separate from A_planner.ENEMY_TTL (which ages danger-grid cells out over

@@ -12,7 +12,7 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='tactical_brain',
-            executable='brain_node', # ודא שזה השם שרשום ב-setup.py שלך
+            executable='brain_node', # make sure this matches the name registered in your setup.py
             name='tactical_brain_node',
             output='screen',
             parameters=[{

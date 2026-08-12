@@ -552,7 +552,7 @@ class ScreenAction(py_trees.behaviour.Behaviour):
             self.path_executor.terminate()
 
 # ==========================================
-# פונקציית יצירת עץ ההתנהגות
+# Behaviour tree construction function
 # ==========================================
 def create_tree(ros_node=None):
     survival_branch = py_trees.composites.Sequence(name="survival_branch", memory=False)
@@ -623,7 +623,7 @@ def create_tree(ros_node=None):
 
 
 # ==========================================
-# קוד ה-ROS2 Node (המעטפת שמריצה ובודקת את העץ)
+# ROS2 Node code (the wrapper that runs and ticks the tree)
 # ==========================================
 class TacticalBrainNode(Node):
     def __init__(self):
@@ -682,8 +682,8 @@ class TacticalBrainNode(Node):
             10,
             callback_group=self.pose_callback_group
         )
-        # אויבים מגיעים מהזיהוי המקומי (YOLO+לידאר), לא מהברודקאסט העצמי של
-        # הקבוצה היריבה - אנחנו לא אמורים להאזין לו.
+        # Enemies come from local detection (YOLO+lidar), not from the opposing
+        # team's own broadcast - we're not supposed to listen to that.
         self.local_enemy_sub = self.create_subscription(
             PoseStamped,
             '/sensor_fusion_node/local_enemy_position',
@@ -726,7 +726,7 @@ class TacticalBrainNode(Node):
         # since attack_branch preempts patrol_branch, so only one is ever driving.
         self.cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel', 10)
 
-        # 2. אתחול משתני מצב מקומיים (world-model state that only we hold -
+        # 2. Local state variable initialization (world-model state that only we hold -
         # enemies/teammates now live in team_comms, see above)
         self.static_obstacles = set()
         self.enemies_list = []
@@ -739,7 +739,7 @@ class TacticalBrainNode(Node):
 
         self.map_sub = self.create_subscription(OccupancyGrid, '/map', self.map_callback, 1)
 
-        # 1. רישום כל המשתנים שהעץ צריך ב-Blackboard
+        # 1. Register all variables the tree needs on the Blackboard
         self.blackboard = py_trees.blackboard.Client(name="global")
         keys = [
             "current_x", "current_y", "current_yaw", "hide_x", "hide_y", "final_goal_x", "final_goal_y", "teammate_x", "teammate_y",
@@ -751,14 +751,14 @@ class TacticalBrainNode(Node):
         for key in keys:
             self.blackboard.register_key(key=key, access=py_trees.common.Access.WRITE)
 
-        # מצב התחלתי שקט
+        # Quiet initial state
         self.reset_blackboard_to_safe_state()
 
-        # 2. הקמת העץ
+        # 2. Build the tree
         self.tree = create_tree(ros_node=self)
         self.tree.setup(timeout=15)
 
-        # 3. טיימרים
+        # 3. Timers
         self.tree_timer = self.create_timer(0.5, self.sense_and_think)
 
 
@@ -796,23 +796,23 @@ class TacticalBrainNode(Node):
 
     def sense_and_think(self):
         """
-        זוהי לולאת הליבה של הרובוט: Sense -> Think -> Act
+        This is the robot's core loop: Sense -> Think -> Act
         """
-        # שלב א': Sense - שואבים תמונת מצב מעודכנת מ-team_comms ומחשבים
-        # ממנה את הרשתות הטקטיות.
+        # Step A: Sense - pull an updated state snapshot from team_comms and
+        # compute the tactical grids from it.
         self.enemies_list = self.team_comms.get_enemies_snapshot()
         self.team_comms.prune_stale_help_status()
         self.danger_dict = world_model.get_danger_dict(self.danger_dict, self.enemies_list, self.static_obstacles)
         self.danger_dict = world_model.delete_old_danger_squares(self.danger_dict)
         self.teammates_aura_set = world_model.get_teammates_aura_set(self.team_comms.get_teammates())
 
-        # שלב ב': Translation
+        # Step B: Translation
         self.update_blackboard_from_world_state()
         # Reads am_i_in_danger/am_i_fighting rather than recomputing, so this
         # always agrees with IsLowHealthOrOutnumbered/attack_branch.
         self.team_comms.publish_status(self.blackboard.am_i_in_danger, self.blackboard.am_i_fighting)
 
-        # שלב ג': Think
+        # Step C: Think
         self.tree.tick()
         self.get_logger().info(f"Tree Output Command ---> {self.blackboard.robot_command}")
 
@@ -875,7 +875,7 @@ class TacticalBrainNode(Node):
         self.team_comms.record_local_detection(msg.pose.position.x, msg.pose.position.y)
 
     def update_blackboard_from_world_state(self):
-        # 1. עדכון נתוני אויבים
+        # 1. Update enemy data
         self.blackboard.num_enemies = len(self.enemies_list)
         current_pos = (self.blackboard.current_x, self.blackboard.current_y)
 
@@ -883,7 +883,7 @@ class TacticalBrainNode(Node):
             visible_enemies = []
             hidden_enemies = []
 
-            # המרה לקואורדינטות רשת (גריד) עבור בדיקת קו ראייה
+            # Convert to grid coordinates for line-of-sight checking
             grid_current_pos = (
                 self.blackboard.current_x / A_planner.XY_RESOLUTION,
                 self.blackboard.current_y / A_planner.XY_RESOLUTION
@@ -942,7 +942,7 @@ class TacticalBrainNode(Node):
             self.shooting_control.cease_fire()
             self.cmd_vel_pub.publish(Twist())
 
-        # 2. עדכון נתוני חברי צוות
+        # 2. Update teammate data
         teammates = self.team_comms.get_teammates()
         self.blackboard.num_teammates = len(teammates)
         teammate_is_safe_refuge = False

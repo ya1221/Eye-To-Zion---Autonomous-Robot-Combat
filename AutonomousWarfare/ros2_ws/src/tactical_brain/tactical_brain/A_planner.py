@@ -3,12 +3,12 @@ import heapq
 import numpy as np
 import time
 
-# === הגדרות מערכת ורובוט ===
-XY_RESOLUTION = 0.1   # רזולוציית רשת [מטרים]
-YAW_RESOLUTION = math.radians(5.0) # רזולוציית זווית [רדיאנים]
-MOVE_STEP = 0.2       # מרחק תנועה בכל צעד [מטרים]
-TURNING_RADIUS = 0.7  # רדיוס סיבוב מינימלי של הרובוט [מטרים]
-ROBOT_RADIUS = 0.25   # רדיוס פיזי של הרובוט להתנגשויות [מטרים]
+# === System and robot settings ===
+XY_RESOLUTION = 0.1   # grid resolution [meters]
+YAW_RESOLUTION = math.radians(5.0) # angle resolution [radians]
+MOVE_STEP = 0.2       # movement distance per step [meters]
+TURNING_RADIUS = 0.7  # robot's minimum turning radius [meters]
+ROBOT_RADIUS = 0.25   # robot's physical radius for collisions [meters]
 # Nav2's keepout requires a larger planning clearance to prevent A* from proposing unreachable goals.
 # Empirically set to 0.40m to balance safety and search space.
 PLANNING_CLEARANCE = 0.40
@@ -25,21 +25,21 @@ def set_arena_bounds(size_meters, margin=0.1):
     ARENA_MIN = margin
     ARENA_MAX = size_meters - margin
 
-# === פרמטרי עלויות (Costs) ===
-H_WEIGHT = 1.2        # משקל ההיוריסטיקה (Weighted A*) - מאוזן למניעת תקיעה
+# === Cost parameters (Costs) ===
+H_WEIGHT = 1.2        # heuristic weight (Weighted A*) - tuned to avoid getting stuck
 # Minimum consecutive steps a direction run must last before a free gear switch to prevent degenerate path segments.
 MIN_RUN_STEPS = 3
 SHORT_RUN_PENALTY = MOVE_STEP * 3.0
 TEAMMATE_DISCOUNT = MOVE_STEP * 0.5
-ENEMY_MAX_COST = 1.0  # קנס אויב נמוך לעידוד אגרסיביות (חציית שטח השמדה)
-ENEMY_TTL = 15        # זמן חיים של זיהוי אויב [שניות]
+ENEMY_MAX_COST = 1.0  # low enemy penalty to encourage aggression (crossing the kill zone)
+ENEMY_TTL = 15        # enemy detection lifetime [seconds]
 
 class Node:
     def __init__(self, x_ind, y_ind, yaw_ind, direction, p_node, cost, steering=0, run_length=1):
         self.x_ind = x_ind
         self.y_ind = y_ind
         self.yaw_ind = yaw_ind
-        self.direction = direction # 1 קדימה, -1 אחורה
+        self.direction = direction # 1 forward, -1 reverse
         self.p_node = p_node
         self.cost = cost
         self.steering = steering
@@ -50,7 +50,7 @@ class Node:
         return self.cost < other.cost
 
 # =========================================================
-#  מפת היוריסטיקה (Dijkstra)
+#  Heuristic map (Dijkstra)
 # =========================================================
 def calc_holonomic_heuristic_with_obstacle(goal_node, obstacle_set, xy_resolution):
     min_x, min_y = 0, 0
@@ -85,7 +85,7 @@ def calc_holonomic_heuristic_with_obstacle(goal_node, obstacle_set, xy_resolutio
     return heuristic_map
 
 # =========================================================
-#  האלגוריתם המרכזי - Hybrid A*
+#  Main algorithm - Hybrid A*
 # =========================================================
 def calc_hybrid_a_star(start, goal, obstacle_set, xy_resolution, yaw_resolution, danger_dict, teammates_aura_set):
     sx_ind = int(round(start[0] / xy_resolution))
@@ -143,14 +143,14 @@ def calc_hybrid_a_star(start, goal, obstacle_set, xy_resolution, yaw_resolution,
             next_id = (next_node.x_ind, next_node.y_ind, next_node.yaw_ind)
             if next_id in closed_set: continue
             
-            # חישוב היוריסטיקה (H)
+            # Heuristic (H) calculation
             try:
                 h_cost = h_map[(next_node.x_ind, next_node.y_ind)] * xy_resolution
             except KeyError:
                 h_cost = math.hypot(next_node.x_ind - goal_node.x_ind, 
                                     next_node.y_ind - goal_node.y_ind) * xy_resolution
             
-            # נוסחת ה-Weighted A*
+            # Weighted A* formula
             new_total_cost = next_node.cost + (h_cost * H_WEIGHT)
             
             if next_id not in open_set or open_set[next_id].cost > next_node.cost:
@@ -158,13 +158,13 @@ def calc_hybrid_a_star(start, goal, obstacle_set, xy_resolution, yaw_resolution,
                 heapq.heappush(pq, (new_total_cost, next_node))
 
 # =========================================================
-#  מודל תנועה (Ackermann Kinematics)
+#  Motion model (Ackermann Kinematics)
 # =========================================================
 def calc_motion(node, xy_res, yaw_res, danger_dict, teammates_aura_set, current_time):
     next_nodes = []
     steering_inputs = [-math.radians(20), 0, math.radians(20)]
     # Includes reverse direction to allow planning in tight spaces, while PathExecutor splits the path into per-direction segments.
-    directions = [1, -1] # קדימה ואחורה
+    directions = [1, -1] # forward and reverse
 
     current_yaw = node.yaw_ind * yaw_res
     current_x = node.x_ind * xy_res
@@ -172,7 +172,7 @@ def calc_motion(node, xy_res, yaw_res, danger_dict, teammates_aura_set, current_
     
     for direction in directions:
         for steering in steering_inputs:
-            # מודל אקרמן לסיבוב
+            # Ackermann steering model
             yaw = current_yaw + (direction * MOVE_STEP / TURNING_RADIUS) * math.tan(steering)
             x = current_x + direction * MOVE_STEP * math.cos(yaw)
             y = current_y + direction * MOVE_STEP * math.sin(yaw)
@@ -181,7 +181,7 @@ def calc_motion(node, xy_res, yaw_res, danger_dict, teammates_aura_set, current_
             y_ind = int(round(y / xy_res))
             yaw_ind = int(round(yaw / yaw_res))
             
-            # חישוב עלויות צעד
+            # Step cost calculation
             direction_cost = 0 if direction == 1 else MOVE_STEP * 1.0
             switching = direction != node.direction
             switch_gear_cost = 0 if not switching else MOVE_STEP * 2.0
@@ -193,15 +193,15 @@ def calc_motion(node, xy_res, yaw_res, danger_dict, teammates_aura_set, current_
 
             step_cost = MOVE_STEP + direction_cost + switch_gear_cost + steer_cost
             
-            # הנחת חבר צוות
+            # Teammate discount
             if (x_ind, y_ind) in teammates_aura_set:
                 step_cost -= TEAMMATE_DISCOUNT
 
-            # קנס אויב עם דעיכה בזמן
+            # Enemy penalty with time decay
             if (x_ind, y_ind) in danger_dict:
                 time_since_danger = current_time - danger_dict[(x_ind, y_ind)]
                 if time_since_danger < ENEMY_TTL:
-                    # קנס שדועך מ-1.0 לאפס בתוך 15 שניות
+                    # Penalty decaying from 1.0 to zero over 15 seconds
                     enemy_penalty = (-ENEMY_MAX_COST / ENEMY_TTL) * time_since_danger + ENEMY_MAX_COST
                     step_cost += max(0, enemy_penalty)
 
@@ -213,7 +213,7 @@ def calc_motion(node, xy_res, yaw_res, danger_dict, teammates_aura_set, current_
     return next_nodes
 
 # =========================================================
-#  בדיקת התנגשויות (כולל אינטרפולציה)
+#  Collision checking (including interpolation)
 # =========================================================
 def build_spatial_index(obstacle_set):
     # Uses spatial bucketing to limit collision checks to nearby obstacles, significantly speeding up A* search on large maps.
@@ -227,28 +227,28 @@ def check_collision(node, obstacle_set, xy_res, spatial_index):
     curr_x = node.x_ind * xy_res
     curr_y = node.y_ind * xy_res
 
-    # 1. גבולות המגרש (configurable geofence, see set_arena_bounds)
+    # 1. Arena bounds (configurable geofence, see set_arena_bounds)
     if curr_x <= ARENA_MIN or curr_x >= ARENA_MAX or curr_y <= ARENA_MIN or curr_y >= ARENA_MAX:
         return False
 
-    # 2. בדיקה שהמשבצת הנוכחית אינה קיר
+    # 2. Check that the current cell isn't a wall
     if (node.x_ind, node.y_ind) in obstacle_set:
         return False
 
-    # 3. מניעת חיתוך קירות באלכסון (Tunneling Fix)
+    # 3. Prevent cutting through walls diagonally (Tunneling Fix)
     if node.p_node:
         px_ind = node.p_node.x_ind
         py_ind = node.p_node.y_ind
         cx_ind = node.x_ind
         cy_ind = node.y_ind
 
-        # מניעת חיתוך קירות באלכסון (Tunneling Fix)
+        # Prevent cutting through walls diagonally (Tunneling Fix)
         if px_ind != cx_ind and py_ind != cy_ind:
-            # בודקים את שתי המשבצות שיוצרות את ה"פינה" של הקיר
+            # Check the two cells that form the wall's "corner"
             if (px_ind, cy_ind) in obstacle_set or (cx_ind, py_ind) in obstacle_set:
-                return False # חוסם!
+                return False # Blocked!
 
-    # 4. בדיקת רדיוס רובוט מול קירות קרובים בלבד (spatial index, ראה build_spatial_index)
+    # 4. Check robot radius against nearby walls only (spatial index, see build_spatial_index)
     bx, by = node.x_ind // BUCKET_CELLS, node.y_ind // BUCKET_CELLS
     for dbx in (-1, 0, 1):
         for dby in (-1, 0, 1):

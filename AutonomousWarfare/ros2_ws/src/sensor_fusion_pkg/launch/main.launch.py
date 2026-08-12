@@ -6,7 +6,7 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='sensor_fusion_pkg',
-            executable='sensor_fusion_node', # ודא שזה השם שרשום ב-setup.py שלך
+            executable='sensor_fusion_node', # make sure this matches the name registered in your setup.py
             name='sensor_fusion_node',
             output='screen',
             parameters=[{
