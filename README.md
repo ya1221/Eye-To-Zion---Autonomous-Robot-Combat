@@ -60,6 +60,8 @@ cd AutonomousWarfare
     - **Code Links:**
       - [Priority-ordered behavior tree that picks the robot's action each tick.](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/af8c456ed127bdbf34a7e729d21005394793ca84/AutonomousWarfare/ros2_ws/src/tactical_brain/tactical_brain/main_brain.py#L557-L622)
       - [Assigns PUSHER/SCREEN squad roles with no negotiation between robots.](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/af8c456ed127bdbf34a7e729d21005394793ca84/AutonomousWarfare/ros2_ws/src/tactical_brain/tactical_brain/main_brain.py#L425-L455)
+      - [Hybrid A* search with Ackermann motion and a weighted heuristic.](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/146d7cec6cec26a4f3d033e6ecf6fb9360f3d0c1/AutonomousWarfare/ros2_ws/src/tactical_brain/tactical_brain/A_planner.py#L90-L158)
+      - [Checks walls, arena bounds, and diagonal wall-cutting.](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/146d7cec6cec26a4f3d033e6ecf6fb9360f3d0c1/AutonomousWarfare/ros2_ws/src/tactical_brain/tactical_brain/A_planner.py#L226-L259)
   - `src/robot_stats/`: Health and ammo management nodes.
     - **Code Links:**
       - [Robot stats class - receiving robot internal states updates from other nodes ](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/AutonomousWarfare/ros2_ws/src/robot_stats/src/robot_stats.cpp#L5C1-L31C2)
