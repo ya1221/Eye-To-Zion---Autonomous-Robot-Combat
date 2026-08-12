@@ -67,7 +67,8 @@ cd AutonomousWarfare
       - [Robot stats class - receiving robot internal states updates from other nodes ](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/AutonomousWarfare/ros2_ws/src/robot_stats/src/robot_stats.cpp#L5C1-L31C2)
   - `src/sensor_fusion_pkg/`: Fusion of sensor data.
     - **Code Links:**
-      - *(Add links here)*
+      - [Matches YOLO's bearing to a LiDAR beam window to find target range.](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/15a44f11f7caad7306b9e11cd18a9b621155d375/AutonomousWarfare/ros2_ws/src/sensor_fusion_pkg/sensor_fusion_pkg/sensor_fusion_node.py#L100-L134)
+      - [Converts the fused bearing and range into a global enemy position.](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/15a44f11f7caad7306b9e11cd18a9b621155d375/AutonomousWarfare/ros2_ws/src/sensor_fusion_pkg/sensor_fusion_pkg/sensor_fusion_node.py#L136-L139)
   - `src/telemetry_data/`: InfluxDB/Telegraf bridges for dashboard metrics.
     - **Code Links:**
       - [Telemetry data class - sending telemetry data to Telegraf ](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/AutonomousWarfare/ros2_ws/src/telemetry_data/src/telemetry_sender.cpp#L39C1-L50C2)
