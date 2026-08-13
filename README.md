@@ -53,9 +53,6 @@ cd AutonomousWarfare
   - `src/localization/`: EKF and SLAM configurations.
     - **Code Links:**
       - [Localization launch file - Dynamic loading of parameters for different YDLidar models ](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/main/AutonomousWarfare/ros2_ws/src/localization/launch/launch.py#L13C5-L24C7)
-  - `src/navigation/`: Nav2 configurations and launch files.
-    - **Code Links:**
-      - *(Add links here)*
   - `src/tactical_brain/`: Behavior trees for high-level tactical decision making.
     - **Code Links:**
       - [Priority-ordered behavior tree that picks the robot's action each tick.](https://github.com/ya1221/Eye-To-Zion---Autonomous-Robot-Combat/blob/af8c456ed127bdbf34a7e729d21005394793ca84/AutonomousWarfare/ros2_ws/src/tactical_brain/tactical_brain/main_brain.py#L557-L622)
